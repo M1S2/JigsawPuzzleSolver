@@ -40,10 +40,6 @@ namespace JigsawPuzzleSolver
             Image<Gray, byte> mask = sourceImg.GrabCut(new Rectangle(1, 1, sourceImg.Width - 1, sourceImg.Height - 1), 20); //10);
             mask = mask.ThresholdBinary(new Gray(2), new Gray(255));            // Change the mask. All values bigger than 2 get mapped to 255. All values equal or smaller than 2 get mapped to 0.
 
-            /*VectorOfVectorOfPoint contour = new VectorOfVectorOfPoint();       // Draw contours in sourceImg. Only for visualization !
-            CvInvoke.FindContours(mask, contour, null, RetrType.List, ChainApproxMethod.ChainApproxNone);
-            CvInvoke.DrawContours(sourceImg, contour, -1, new MCvScalar(255, 0, 0));*/
-
             CvBlobDetector blobDetector = new CvBlobDetector();                 // Find all blobs in the mask image, extract them and add them to the list of pieces
             CvBlobs blobs = new CvBlobs();
             blobDetector.Detect(mask, blobs);

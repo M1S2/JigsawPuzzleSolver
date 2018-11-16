@@ -47,6 +47,24 @@ namespace JigsawPuzzleSolver
             //pieces.SavePieces(@"..\..\..\Test_Pictures\ExtractedPieces");
 
             pieces.InitPieceEdgesForAllPieces();
+
+            pieces[0].Edges[0].CalculateEdgeMatchFactor(pieces[0].Edges[0]);
+            pieces[0].Edges[2].CalculateEdgeMatchFactor(pieces[3].Edges[0]);
+
+            /*foreach (Piece piece1 in pieces)
+            {
+                foreach (PieceEdge pieceEdge1 in piece1.Edges)
+                {
+                    foreach (Piece piece2 in pieces)
+                    {
+                        foreach (PieceEdge pieceEdge2 in piece2.Edges)
+                        {
+                            pieceEdge1.CalculateEdgeMatchFactor(pieceEdge2);
+                        }
+                    }
+                }
+            }*/
+
         }
 
         private void list_imageDescriptions_SelectionChanged(object sender, SelectionChangedEventArgs e)

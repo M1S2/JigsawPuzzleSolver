@@ -81,6 +81,22 @@ namespace JigsawPuzzleSolver
                 cv.circle(dst, far, 3, circleColor, -1);
             }*/
 
+
+
+
+            /*Image<Gray, byte> cannyImg = new Image<Gray, byte>(Mask.Size);
+            CvInvoke.Canny(Mask, cannyImg, 50, 200);
+            ProcessedImagesStorage.AddImage(PieceID + " Canny", cannyImg.ToBitmap());
+            LineSegment2D[] lines = CvInvoke.HoughLinesP(cannyImg, 1, Math.PI / 180, 1, 7);
+            Image<Rgb, byte> sourceWithLines = SourceImg.Copy();
+            foreach (LineSegment2D line in lines)
+            {
+                CvInvoke.Line(sourceWithLines, line.P1, line.P2, new MCvScalar(0, 0, 255), 3);
+            }
+            ProcessedImagesStorage.AddImage(PieceID + " Lines", sourceWithLines.ToBitmap());*/
+
+
+
             Image<Rgb, byte> sourceWithEdgeTypes = SourceImg.Copy();
 
             int sliceNumberPerSide = 2;
@@ -118,6 +134,16 @@ namespace JigsawPuzzleSolver
                     case EdgeTypes.HOLE: numberHoles++; sourceWithEdgeTypes.Draw(new CircleF(edgeRectCenter, edgeIconSize.Width / 2), new Rgb(Color.Red), 2); break;
                     case EdgeTypes.LINE: numberLines++; sourceWithEdgeTypes.Draw(new Rectangle(Point.Subtract(Point.Round(edgeRectCenter), edgeIconSize), edgeIconSize), new Rgb(Color.Green), 2); break;
                 }
+            }
+
+            // edgeNo = 0 --> clockwiseEdgeNo = 1; counterClockwiseEdgeNo = 3
+            // edgeNo = 1 --> clockwiseEdgeNo = 2; counterClockwiseEdgeNo = 0
+            // edgeNo = 2 --> clockwiseEdgeNo = 3; counterClockwiseEdgeNo = 1
+            // edgeNo = 3 --> clockwiseEdgeNo = 0; counterClockwiseEdgeNo = 2
+            for (int edgeNo = 0; edgeNo < 4; edgeNo++)      // Fill the edges PieceEdgeTypeNextClockwise and PieceEdgeTypeNextCounterClockwise properties
+            {
+                Edges[edgeNo].PieceEdgeTypeNextClockwise = Edges[(edgeNo + 1) % 4].EdgeType;
+                Edges[edgeNo].PieceEdgeTypeNextCounterClockwise = Edges[(edgeNo + 3) % 4].EdgeType;
             }
 
             ProcessedImagesStorage.AddImage(PieceID + " Edge types", sourceWithEdgeTypes.ToBitmap());

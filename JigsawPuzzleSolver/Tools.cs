@@ -38,6 +38,59 @@ namespace JigsawPuzzleSolver
             }
         }
 
+        /// <summary>
+        /// Combine the two images into one (horizontal)
+        /// </summary>
+        /// <param name="image1">Image 1</param>
+        /// <param name="image2">Image 2</param>
+        /// <param name="spacing">Space between the two images</param>
+        /// <returns>Combination of image1 and image2</returns>
+        /// see: https://stackoverflow.com/questions/29488507/add-two-sub-images-into-one-new-image-using-emgu-cv
+        public static Image<Gray, byte> Combine2ImagesHorizontal(Image<Gray, byte> image1, Image<Gray, byte> image2, int spacing)
+        {
+            return Combine2ImagesHorizontal(image1.Convert<Rgb, byte>(), image2.Convert<Rgb, byte>(), spacing).Convert<Gray, byte>();
+        }
+
+        /// <summary>
+        /// Combine the two images into one (horizontal)
+        /// </summary>
+        /// <param name="image1">Image 1</param>
+        /// <param name="image2">Image 2</param>
+        /// <param name="spacing">Space between the two images</param>
+        /// <returns>Combination of image1 and image2</returns>
+        /// see: https://stackoverflow.com/questions/29488507/add-two-sub-images-into-one-new-image-using-emgu-cv
+        public static Image<Rgb, byte> Combine2ImagesHorizontal(Image<Rgb, byte> image1, Image<Rgb, byte> image2, int spacing)
+        {
+            int ImageWidth = image1.Width + image2.Width + spacing;
+            int ImageHeight = Math.Max(image1.Height, image2.Height);
+
+            Bitmap combinedBitmap = new Bitmap(ImageWidth, ImageHeight);
+            using (Graphics g = Graphics.FromImage(combinedBitmap))
+            {
+                g.DrawImage(image1.Bitmap, 0, 0);
+                g.DrawImage(image2.Bitmap, image1.Width + spacing, 0);
+            }
+
+            return new Image<Rgb, byte>(combinedBitmap);
+        }
+
+        /// <summary>
+        /// Find the largest contour in the list of contours
+        /// </summary>
+        /// <param name="contours">list of contours returned by FindContours</param>
+        /// <returns>largest contour</returns>
+        public static VectorOfPoint GetLargestContour(VectorOfVectorOfPoint contours)
+        {
+            int indexLargestContour = -1;
+            double lastContourSize = -1;
+            for (int i = 0; i < contours.Size; i++)
+            {
+                double currentContourSize = CvInvoke.ContourArea(contours[i]);
+                if(lastContourSize < currentContourSize) { lastContourSize = currentContourSize; indexLargestContour = i; }
+            }
+            return contours[indexLargestContour];
+        }
+
         /*
         // DOESN'T WORK !!!!!
         // see: https://stackoverflow.com/questions/44752240/how-to-remove-shadow-from-scanned-images-using-opencv
