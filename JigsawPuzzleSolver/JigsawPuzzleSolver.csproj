@@ -71,13 +71,18 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Edge.cs" />
+    <Compile Include="Enumerations\EdgeTypes.cs" />
+    <Compile Include="old files\Piece_old.cs" />
+    <Compile Include="old files\PieceCollection_old.cs" />
+    <Compile Include="old files\PieceEdge_old.cs" />
+    <Compile Include="old files\PieceExtractor_old.cs" />
+    <Compile Include="old files\PieceRotator_old.cs" />
     <Compile Include="Piece.cs" />
-    <Compile Include="PieceCollection.cs" />
-    <Compile Include="PieceEdge.cs" />
-    <Compile Include="PieceExtractor.cs" />
-    <Compile Include="PieceRotator.cs" />
     <Compile Include="ProcessedImagesStorage.cs" />
+    <Compile Include="Puzzle.cs" />
     <Compile Include="Tools.cs" />
+    <Compile Include="Utils.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -119,6 +124,7 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\EMGU.CV.3.4.3.3016\build\EMGU.CV.targets" Condition="Exists('..\packages\EMGU.CV.3.4.3.3016\build\EMGU.CV.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

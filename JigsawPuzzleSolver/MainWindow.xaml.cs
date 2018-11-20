@@ -32,11 +32,11 @@ namespace JigsawPuzzleSolver
             list_imageDescriptions.ItemsSource = ProcessedImagesStorage.ImageDescriptions;
         }
 
-        PieceCollection pieces;
+        PieceCollection_old pieces;
 
-        private void btn_process_Click(object sender, RoutedEventArgs e)
+        private void btn_process_old_Click(object sender, RoutedEventArgs e)
         {
-            pieces = PieceExtractor.ExtractPieces(@"..\..\..\Test_Pictures\Pieces1_and_2.jpg");
+            pieces = PieceExtractor_old.ExtractPieces(@"..\..\..\Test_Pictures\Pieces1_and_2.jpg");
             //pieces = PieceExtractor.ExtractPieces(@"..\..\..\Test_Pictures\Pieces7.jpg");
             //pieces = PieceExtractor.ExtractPieces(@"..\..\..\Test_Pictures\Piece2_1.jpg");
             //pieces = PieceExtractor.ExtractPieces(@"..\..\..\Test_Pictures\Piece3_3_1.jpg");

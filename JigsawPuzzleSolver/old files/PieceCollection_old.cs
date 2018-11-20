@@ -11,14 +11,14 @@ namespace JigsawPuzzleSolver
     /// <summary>
     /// Collection of pieces. Derived from list of Piece
     /// </summary>
-    public class PieceCollection : List<Piece>
+    public class PieceCollection_old : List<Piece_old>
     {
         /// <summary>
         /// Call InitPieceEdges for each piece in the collection
         /// </summary>
         public void InitPieceEdgesForAllPieces()
         {
-            foreach (Piece p in this) { p.InitPieceEdges(); }
+            foreach (Piece_old p in this) { p.InitPieceEdges(); }
         }
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace JigsawPuzzleSolver
         /// </summary>
         /// <param name="pieceID">ID to search</param>
         /// <returns>Piece with the given ID</returns>
-        public Piece this[string pieceID]
+        public Piece_old this[string pieceID]
         {
             get { return this.Where(p => p.PieceID == pieceID)?.First(); }
         }
@@ -38,7 +38,7 @@ namespace JigsawPuzzleSolver
         /// see: https://stackoverflow.com/questions/15862810/a-generic-error-occurred-in-gdi-in-bitmap-save-method
         public void SavePieces(string folderPath)
         {
-            foreach(Piece p in this)
+            foreach(Piece_old p in this)
             {
                 string filePath = Path.Combine(folderPath, Path.GetFileNameWithoutExtension(p.OriginImageName) + "__" + p.PieceID + ".jpg");
                 Directory.CreateDirectory(folderPath);             

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace JigsawPuzzleSolver
 {
-    public class Piece
+    public class Puzzle
     {
     }
 }

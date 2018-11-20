@@ -12,16 +12,16 @@ using Emgu.CV.Cvb;
 
 namespace JigsawPuzzleSolver
 {
-    public static class PieceRotator
+    public static class PieceRotator_old
     {
         /// <summary>
         /// Find the minimum area rectangle of all pieces and rotate the Mask of the pieces so that this rectangle isn't rotated.
         /// This function only calls RotatePiece for all pieces in the list.
         /// </summary>
         /// <param name="pieces">Pieces to rotate</param>
-        public static void RotateAllPieces(List<Piece> pieces)
+        public static void RotateAllPieces(List<Piece_old> pieces)
         {
-            foreach(Piece piece in pieces)
+            foreach(Piece_old piece in pieces)
             {
                 RotatePiece(piece);
             }
@@ -33,7 +33,7 @@ namespace JigsawPuzzleSolver
         /// Find the minimum area rectangle and rotate the Mask of the piece so that this rectangle isn't rotated.
         /// </summary>
         /// <param name="piece">Piece to rotate</param>
-        public static void RotatePiece(Piece piece)
+        public static void RotatePiece(Piece_old piece)
         {
             VectorOfVectorOfPoint contour = new VectorOfVectorOfPoint();
             CvInvoke.FindContours(piece.Mask, contour, null, RetrType.List, ChainApproxMethod.ChainApproxNone);

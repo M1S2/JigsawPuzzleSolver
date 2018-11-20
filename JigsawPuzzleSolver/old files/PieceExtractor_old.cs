@@ -13,7 +13,7 @@ using Emgu.CV.Cvb;
 
 namespace JigsawPuzzleSolver
 {
-    public static class PieceExtractor
+    public static class PieceExtractor_old
     {
         /// <summary>
         /// Extract all pieces from the source image. 
@@ -22,7 +22,7 @@ namespace JigsawPuzzleSolver
         /// <returns>List with all found pieces</returns>
         /// see: https://docs.opencv.org/trunk/d8/d83/tutorial_py_grabcut.html
         /// see: http://www.emgu.com/forum/viewtopic.php?t=1923
-        public static PieceCollection ExtractPieces(string sourceImgPath)
+        public static PieceCollection_old ExtractPieces(string sourceImgPath)
         {
             Image<Rgb, byte> sourceImg = new Image<Rgb, byte>(sourceImgPath);
 
@@ -35,7 +35,7 @@ namespace JigsawPuzzleSolver
 
             ProcessedImagesStorage.AddImage("Source Img \"" + Path.GetFileName(sourceImgPath) + "\"", sourceImg.ToBitmap());
 
-            PieceCollection pieces = new PieceCollection();
+            PieceCollection_old pieces = new PieceCollection_old();
 
             Image<Gray, byte> mask = sourceImg.GrabCut(new Rectangle(1, 1, sourceImg.Width - 1, sourceImg.Height - 1), 20); //10);
             mask = mask.ThresholdBinary(new Gray(2), new Gray(255));            // Change the mask. All values bigger than 2 get mapped to 255. All values equal or smaller than 2 get mapped to 0.
@@ -69,7 +69,7 @@ namespace JigsawPuzzleSolver
                 Image<Rgb, byte> pieceSourceImgMasked = new Image<Rgb, byte>(pieceSourceImg.Size);
                 CvInvoke.BitwiseOr(pieceSourceImageForeground, pieceSourceImageBackground, pieceSourceImgMasked);
 
-                Piece piece = new Piece(pieceSourceImgMasked, pieceMask);
+                Piece_old piece = new Piece_old(pieceSourceImgMasked, pieceMask);
                 piece.OriginImageName = Path.GetFileName(sourceImgPath);
                 pieces.Add(piece);
             }

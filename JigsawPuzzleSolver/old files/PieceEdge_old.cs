@@ -12,10 +12,9 @@ using Emgu.CV.Cvb;
 
 namespace JigsawPuzzleSolver
 {
-    public enum EdgeTypes { LINE, BULB, HOLE }
     public enum EdgeLocations { TOP, RIGHT, BOTTOM, LEFT }
 
-    public class PieceEdge
+    public class PieceEdge_old
     {
         /// <summary>
         /// ID of the Piece that this PieceEdge belongs to
@@ -67,7 +66,7 @@ namespace JigsawPuzzleSolver
         /// <param name="pieceID">ID of the Piece that this PieceEdge belongs to</param>
         /// <param name="edgeMask">Mask image of the edge</param>
         /// <param name="edgeLocation">Location of the edge in the Piece (Top, Right, Bottom, Left)</param>
-        public PieceEdge(string pieceID, Image<Gray, byte> edgeMask, EdgeLocations edgeLocation)
+        public PieceEdge_old(string pieceID, Image<Gray, byte> edgeMask, EdgeLocations edgeLocation)
         {
             PieceID = pieceID;
             EdgeMask = edgeMask;
@@ -259,7 +258,7 @@ namespace JigsawPuzzleSolver
         //**********************************************************************************************************************************************************************************************
         //**********************************************************************************************************************************************************************************************
 
-        public float CalculateEdgeMatchFactor(PieceEdge edge2)
+        public float CalculateEdgeMatchFactor(PieceEdge_old edge2)
         {
             float matchFactorBulbHole = CalculateEdgeBulbHoleMatchFactor(edge2);
             float matchFactorShape = CalculateEdgeShapeMatchFactor(edge2);
@@ -270,7 +269,7 @@ namespace JigsawPuzzleSolver
 
         //**********************************************************************************************************************************************************************************************
 
-        private float CalculateEdgeBulbHoleMatchFactor(PieceEdge edge2)
+        private float CalculateEdgeBulbHoleMatchFactor(PieceEdge_old edge2)
         {
             float matchFactorBulbHole;
             
@@ -293,7 +292,7 @@ namespace JigsawPuzzleSolver
 
         //**********************************************************************************************************************************************************************************************
 
-        public float CalculateEdgeShapeMatchFactor(PieceEdge edge2)
+        public float CalculateEdgeShapeMatchFactor(PieceEdge_old edge2)
         {
             Image<Gray, byte> edgeMask1rotated = this.EdgeMask.Copy();
             Image<Gray, byte> edgeMask2rotated = edge2.EdgeMask.Copy();
