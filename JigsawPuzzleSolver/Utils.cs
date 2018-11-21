@@ -22,6 +22,8 @@ namespace JigsawPuzzleSolver
             return CvInvoke.Norm(new VectorOfPointF(new PointF[1] { PointF.Subtract(p1, new SizeF(p2)) }));
         }
 
+        //**********************************************************************************************************************************************************************************************
+
         /// <summary>
         /// Euclidian distance between the point and the origin.
         /// </summary>
@@ -32,6 +34,7 @@ namespace JigsawPuzzleSolver
             return CvInvoke.Norm(new VectorOfPointF(new PointF[1] { p1 }));
         }
 
+        //**********************************************************************************************************************************************************************************************
 
         /// <summary>
         /// Return a contour that is translated.
@@ -50,15 +53,17 @@ namespace JigsawPuzzleSolver
             return ret_contour;
         }
 
+        //**********************************************************************************************************************************************************************************************
+
         /// <summary>
         /// Remove duplicate points
         /// </summary>
         /// <param name="vectorOfPoints">vector of points</param>
         /// <returns>vector of points with removed duplicates</returns>
-        public static VectorOfPoint RemoveDuplicates(VectorOfPoint vectorOfPoints)
+        public static VectorOfPointF RemoveDuplicates(VectorOfPointF vectorOfPoints)
         {
 #warning Test!!!
-            List<Point> listOfPoints = vectorOfPoints.ToArray().ToList();
+            List<PointF> listOfPoints = vectorOfPoints.ToArray().ToList();
 
             bool dupes_found = true;
             while (dupes_found)
@@ -87,5 +92,21 @@ namespace JigsawPuzzleSolver
             return vectorOfPoints;
         }
 
+        //**********************************************************************************************************************************************************************************************
+
+        /// <summary>
+        /// Get a subset of the given vector.
+        /// </summary>
+        /// <param name="vector">Vector to create the subset from</param>
+        /// <param name="startIndex">Index of the first element that is part of the subset</param>
+        /// <param name="endIndex">Index of the last element that is part of the subset</param>
+        /// <returns>Subset of the vector</returns>
+        public static VectorOfPointF GetSubsetOfVector(this VectorOfPointF vector, int startIndex, int endIndex)
+        {
+            PointF[] vectorArray = vector.ToArray();
+            PointF[] vectorArraySubset = new PointF[endIndex - startIndex];
+            Array.Copy(vectorArray, startIndex, vectorArraySubset, 0, endIndex - startIndex);
+            return new VectorOfPointF(vectorArraySubset);
+        }
     }
 }

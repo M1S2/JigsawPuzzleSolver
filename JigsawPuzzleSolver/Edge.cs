@@ -18,7 +18,7 @@ namespace JigsawPuzzleSolver
     /// see: https://github.com/jzeimen/PuzzleSolver/blob/master/PuzzleSolver/edge.cpp
     public class Edge
     {
-        private VectorOfPoint contour;                      //The original contour passed into the function.
+        private VectorOfPointF contour;                      //The original contour passed into the function.
         private VectorOfPointF normalized_contour;          //Normalized contour produces a contour that has its begining at (0,0) and its endpoint straight above it (0,y). This is used internally to classify the piece.
         private VectorOfPointF reverse_normalized_contour;
 
@@ -29,12 +29,12 @@ namespace JigsawPuzzleSolver
 
         //##############################################################################################################################################################################################
 
-        public Edge(VectorOfPoint edgeContour)
+        public Edge(VectorOfPointF edgeContour)
         {
             contour = edgeContour;
             normalized_contour = normalize(contour);    //Normalized contours are used for comparisons
 
-            VectorOfPoint contourCopy = new VectorOfPoint(contour.ToArray().Reverse().ToArray());
+            VectorOfPointF contourCopy = new VectorOfPointF(contour.ToArray().Reverse().ToArray());
             reverse_normalized_contour = normalize(contourCopy);   //same as normalized contour, but flipped 180 degrees
 
             classify();
@@ -84,7 +84,7 @@ namespace JigsawPuzzleSolver
         /// </summary>
         /// <param name="contour">Contour to normalize</param>
         /// <returns>normalized contour</returns>
-        private VectorOfPointF normalize(VectorOfPoint contour)
+        private VectorOfPointF normalize(VectorOfPointF contour)
         {
             VectorOfPointF ret_contour = new VectorOfPointF();
             PointF a = new PointF(contour.ToArray().First().X, contour.ToArray().First().Y);

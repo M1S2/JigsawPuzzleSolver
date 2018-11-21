@@ -12,8 +12,6 @@ using Emgu.CV.Cvb;
 
 namespace JigsawPuzzleSolver
 {
-    public enum PieceTypes { CORNER, BORDER, INNER }
-
     public class Piece_old
     {
         public static int NextPieceID { get; private set; }
