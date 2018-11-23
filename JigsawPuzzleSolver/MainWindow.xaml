@@ -14,6 +14,8 @@
         </Grid.RowDefinitions>
 
         <Button x:Name="btn_process_old" Grid.Row="0" Content="Process old" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="10,10,0,0" Click="btn_process_old_Click"/>
+        <Button x:Name="btn_init_puzzle" Grid.Row="0" Content="Init Puzzle" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="90,10,0,0" Click="btn_init_puzzle_Click"/>
+        <Button x:Name="btn_solve_puzzle" Grid.Row="0" Content="Solve Puzzle" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="170,10,0,0" Click="btn_solve_puzzle_Click"/>
         <Image x:Name="img_Processed" Grid.Row="2" Margin="5"/>
         <ListBox x:Name="list_imageDescriptions" Margin="5" Grid.Row="1" SelectionChanged="list_imageDescriptions_SelectionChanged"/>
 

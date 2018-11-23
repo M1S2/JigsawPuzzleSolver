@@ -33,6 +33,7 @@ namespace JigsawPuzzleSolver
         }
 
         PieceCollection_old pieces;
+        Puzzle puzzle;
 
         private void btn_process_old_Click(object sender, RoutedEventArgs e)
         {
@@ -66,11 +67,20 @@ namespace JigsawPuzzleSolver
             }*/
 
         }
+        
+        private void btn_init_puzzle_Click(object sender, RoutedEventArgs e)
+        {
+            puzzle = new Puzzle(@"..\..\..\Test_Pictures\ScannedImages", 20, 50, false);
+        }
+
+        private void btn_solve_puzzle_Click(object sender, RoutedEventArgs e)
+        {
+            puzzle.solve();
+        }
 
         private void list_imageDescriptions_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             img_Processed.Source = Tools.BitmapToImageSource(ProcessedImagesStorage.GetImage(list_imageDescriptions.SelectedItem.ToString()));
         }
-
     }
 }

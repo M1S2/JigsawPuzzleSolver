@@ -19,7 +19,16 @@ namespace JigsawPuzzleSolver
     /// see: https://github.com/jzeimen/PuzzleSolver/blob/master/PuzzleSolver/piece.cpp
     public class Piece
     {
-        private VectorOfPointF corners;
+        public static int NextPieceID { get; private set; }
+
+        static Piece()
+        {
+            NextPieceID = 0;
+        }
+
+        //##############################################################################################################################################################################################
+
+        private VectorOfPointF corners = new VectorOfPointF();
         private int piece_size;
 
         /// <summary>
@@ -27,6 +36,7 @@ namespace JigsawPuzzleSolver
         /// </summary>
         public PieceTypes PieceType { get; private set; }
 
+        public string PieceID { get; set; }
         public Mat Full_color;
         public Mat Bw;
         public Edge[] Edges = new Edge[4];
@@ -35,9 +45,15 @@ namespace JigsawPuzzleSolver
 
         public Piece(Mat color, Mat bw, int estimated_piece_size)
         {
+            PieceID = "Piece#" + NextPieceID.ToString();
+            NextPieceID++;
             Full_color = color;
             Bw = bw;
             piece_size = estimated_piece_size;
+
+            ProcessedImagesStorage.AddImage(PieceID + " Color", color.Bitmap);
+            ProcessedImagesStorage.AddImage(PieceID + " Bw", bw.Bitmap);
+
             process();
         }
 
@@ -119,7 +135,13 @@ namespace JigsawPuzzleSolver
 #warning Test!!!
                 VectorOfKeyPoint keyPoints = new VectorOfKeyPoint();
                 GFTTDetector featureDetector = new GFTTDetector(100, qualityLevel, minDistance, blockSize, useHarrisDetector, k);
-                featureDetector.DetectAndCompute(Bw.Clone(), null, keyPoints, corners, false);
+                Mat bw_clone = Bw.Clone();
+
+                featureDetector.DetectRaw(bw_clone, keyPoints);
+                Mat c = new Mat();
+                featureDetector.Compute(bw_clone, keyPoints, corners);
+
+                //featureDetector.DetectAndCompute(bw_clone, null, keyPoints, corners, false);
 
                 if (corners.Size > 4)
                 {
@@ -146,13 +168,12 @@ namespace JigsawPuzzleSolver
             CvInvoke.CornerSubPix(Bw, corners, winSize, zeroZone, criteria);
             
             //More debug stuff, this will mark the corners with a white circle and save the image
-            //    int r = 4;
-            //    for( int i = 0; i < corners.size(); i++ )
-            //    { circle( full_color, corners[i],(int) corners.size(), cv::Scalar(255,255,255), -1, 8, 0 ); }
-            //    std::stringstream out_file_name;
-            //    out_file_name << "/tmp/final/test"<<number++<<".png";
-            //    cv::imwrite(out_file_name.str(), full_color);
-            
+            for( int i = 0; i < corners.Size; i++ )
+            {
+                CvInvoke.Circle(Full_color, Point.Round(corners[i]), 8, new MCvScalar(255, 255, 255));
+            }
+            ProcessedImagesStorage.AddImage(PieceID + " Corners", Full_color.Bitmap);
+
             if (!found_all_corners)
             {
                 System.Windows.MessageBox.Show("Failed to find correct number of corners " + corners.Size);
