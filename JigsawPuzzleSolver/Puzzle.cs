@@ -44,7 +44,9 @@ namespace JigsawPuzzleSolver
 #warning OBSOLETE
         private void extract_pieces(string path, bool needs_filter)
         {
-            List<Mat> color_images = Utils.GetImagesFromDirectory(path);
+            List<Image<Rgb, byte>> color_images_tmp = Utils.GetImagesFromDirectory(path);
+            List<Mat> color_images = new List<Mat>();
+            foreach(Image<Rgb, byte> img in color_images_tmp) { color_images.Add(img.Mat); }
             
             List<Mat> bw_images = new List<Mat>();
             if (needs_filter)
@@ -92,7 +94,7 @@ namespace JigsawPuzzleSolver
                     mini_color = mini_color.Clone();        //Create a copy so it can't conflict.
                     mini_bw = mini_bw.Clone();
                     
-                    Piece p = new Piece(mini_color, mini_bw, piece_size);
+                    Piece p = new Piece(mini_color.ToImage<Rgb, byte>(), mini_bw.ToImage<Gray, byte>(), piece_size);
                     pieces.Add(p);
                 }
             }
@@ -108,7 +110,7 @@ namespace JigsawPuzzleSolver
         /// see: http://www.emgu.com/forum/viewtopic.php?t=1923
         private void extract_pieces2(string path)
         {
-            List<Mat> color_images = Utils.GetImagesFromDirectory(path);
+            List<Image<Rgb, byte>> color_images = Utils.GetImagesFromDirectory(path);
 
             //For each input image
             for (int i = 0; i < color_images.Count; i++)
@@ -138,7 +140,7 @@ namespace JigsawPuzzleSolver
                     Rectangle roi = blob.BoundingBox;
                     sourceImgPiecesMarked.Draw(roi, new Rgb(255, 0, 0), 2);
 
-                    //if (sourceImg.Height > roi.Height + 2 && sourceImg.Width > roi.Width + 2) { roi.Inflate(1, 1); }
+                    if (sourceImg.Height > roi.Height + 2 && sourceImg.Width > roi.Width + 2) { roi.Inflate(1, 1); }
                     Image<Rgb, byte> pieceSourceImg = sourceImg.Copy(roi);
                     Image<Gray, byte> pieceMask = mask.Copy(roi);
 
@@ -156,7 +158,7 @@ namespace JigsawPuzzleSolver
                     Image<Rgb, byte> pieceSourceImgMasked = new Image<Rgb, byte>(pieceSourceImg.Size);
                     CvInvoke.BitwiseOr(pieceSourceImageForeground, pieceSourceImageBackground, pieceSourceImgMasked);
 
-                    Piece p = new Piece(pieceSourceImgMasked.Mat, pieceMask.Mat, piece_size);
+                    Piece p = new Piece(pieceSourceImgMasked, pieceMask, piece_size);
                     pieces.Add(p);
                 }
 

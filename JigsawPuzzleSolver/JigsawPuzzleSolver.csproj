@@ -71,6 +71,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="DistanceToPointComparer.cs" />
     <Compile Include="Edge.cs" />
     <Compile Include="Enumerations\EdgeTypes.cs" />
     <Compile Include="Enumerations\PieceTypes.cs" />

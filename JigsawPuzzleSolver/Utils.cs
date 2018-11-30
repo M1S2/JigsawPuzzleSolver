@@ -113,7 +113,7 @@ namespace JigsawPuzzleSolver
         }
 
         //**********************************************************************************************************************************************************************************************
-
+        
         /// <summary>
         /// Get a subset of the given vector.
         /// </summary>
@@ -124,9 +124,30 @@ namespace JigsawPuzzleSolver
         public static VectorOfPointF GetSubsetOfVector(this VectorOfPointF vector, int startIndex, int endIndex)
         {
             PointF[] vectorArray = vector.ToArray();
-            PointF[] vectorArraySubset = new PointF[endIndex - startIndex];
-            Array.Copy(vectorArray, startIndex, vectorArraySubset, 0, endIndex - startIndex);
+            PointF[] vectorArrayExtended = new PointF[vector.Size * 3];
+            for (int i = 0; i < 3; i++) { Array.Copy(vectorArray, 0, vectorArrayExtended, i * vector.Size, vector.Size); }
+
+            PointF[] vectorArraySubset = new PointF[endIndex - startIndex + 1];
+            Array.Copy(vectorArrayExtended, startIndex + vector.Size, vectorArraySubset, 0, endIndex - startIndex + 1);
             return new VectorOfPointF(vectorArraySubset);
+        }
+
+        /// <summary>
+        /// Get a subset of the given vector.
+        /// </summary>
+        /// <param name="vector">Vector to create the subset from</param>
+        /// <param name="startIndex">Index of the first element that is part of the subset</param>
+        /// <param name="endIndex">Index of the last element that is part of the subset</param>
+        /// <returns>Subset of the vector</returns>
+        public static VectorOfPoint GetSubsetOfVector(this VectorOfPoint vector, int startIndex, int endIndex)
+        {
+            Point[] vectorArray = vector.ToArray();
+            Point[] vectorArrayExtended = new Point[vector.Size * 3];
+            for (int i = 0; i < 3; i++) { Array.Copy(vectorArray, 0, vectorArrayExtended, i * vector.Size, vector.Size); }
+
+            Point[] vectorArraySubset = new Point[endIndex - startIndex + 1];
+            Array.Copy(vectorArrayExtended, startIndex + vector.Size, vectorArraySubset, 0, endIndex - startIndex + 1);
+            return new VectorOfPoint(vectorArraySubset);
         }
 
         //**********************************************************************************************************************************************************************************************
@@ -136,10 +157,10 @@ namespace JigsawPuzzleSolver
         /// </summary>
         /// <param name="path">Path from where to get the images</param>
         /// <returns>List of all images in directory</returns>
-        public static List<Mat> GetImagesFromDirectory(string path)
+        public static List<Image<Rgb, byte>> GetImagesFromDirectory(string path)
         {
             List<string> imageExtensions = new List<string>() { ".jpg", ".png", ".bmp" };
-            List<Mat> imageList = new List<Mat>();
+            List<Image<Rgb, byte>> imageList = new List<Image<Rgb, byte>>();
 
             DirectoryInfo folderInfo = new DirectoryInfo(path);
             List<FileInfo> imageFiles = folderInfo.GetFiles().ToList();
@@ -147,7 +168,7 @@ namespace JigsawPuzzleSolver
 
             for (int i = 0; i < imageFiles.Count; i++)
             {
-                imageList.Add(CvInvoke.Imread(path + "/" + imageFiles[i].Name));
+                imageList.Add(CvInvoke.Imread(path + "/" + imageFiles[i].Name).ToImage<Rgb, byte>());
 
                 ProcessedImagesStorage.AddImage("Image Loaded " + i.ToString(), imageList.Last().Bitmap);
             }

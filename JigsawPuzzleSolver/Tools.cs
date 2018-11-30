@@ -91,6 +91,25 @@ namespace JigsawPuzzleSolver
             return contours[indexLargestContour];
         }
         
+        
+        /// <summary>
+        /// Find the point in the list of points that has the minimum distance to the origin point
+        /// </summary>
+        /// <param name="points">List of points</param>
+        /// <param name="origin">Point to which the distances are calculated</param>
+        /// <returns>point in points with the minimum distance to origin</returns>
+        public static Point GetNearestPoint(List<Point> points, Point origin)
+        {
+            Point result = new Point();
+            double last_distance = double.MaxValue;
+            for (int i = 0; i < points.Count; i++)
+            {
+                double tmp_distance = Utils.Distance(origin, points[i]);
+                if(tmp_distance < last_distance) { last_distance = tmp_distance; result = points[i]; }
+            }
+            return result;
+        }
+
         /// <summary>
         /// Rotate the array count times
         /// </summary>
@@ -123,6 +142,19 @@ namespace JigsawPuzzleSolver
                     array[0] = temp;
                 }
             }
+        }
+
+        /// <summary>
+        /// Calculate the standard deviation of the given values
+        /// </summary>
+        /// <param name="values">List of doubles</param>
+        /// <returns>Standard deviation of the given values</returns>
+        /// see: https://stackoverflow.com/questions/5336457/how-to-calculate-a-standard-deviation-array
+        public static double CalculateStandardDeviation(List<double> values)
+        {
+            double average = values.Average();
+            double sumOfSquaresOfDifferences = values.Sum(val => (val - average) * (val - average));
+            return Math.Sqrt(sumOfSquaresOfDifferences / values.Count);
         }
 
         /*
