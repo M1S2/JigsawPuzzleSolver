@@ -80,7 +80,7 @@ namespace JigsawPuzzleSolver
 
         private void list_imageDescriptions_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            img_Processed.Source = Tools.BitmapToImageSource(ProcessedImagesStorage.GetImage(list_imageDescriptions.SelectedItem.ToString()));
+            img_Processed.Source = Utils.BitmapToImageSource(ProcessedImagesStorage.GetImage(list_imageDescriptions.SelectedItem.ToString()));
         }
     }
 }

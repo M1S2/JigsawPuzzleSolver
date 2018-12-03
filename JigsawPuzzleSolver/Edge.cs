@@ -18,23 +18,32 @@ namespace JigsawPuzzleSolver
     /// see: https://github.com/jzeimen/PuzzleSolver/blob/master/PuzzleSolver/edge.cpp
     public class Edge
     {
-        private VectorOfPointF contour;                      //The original contour passed into the function.
-        private VectorOfPointF normalized_contour;          //Normalized contour produces a contour that has its begining at (0,0) and its endpoint straight above it (0,y). This is used internally to classify the piece.
-        private VectorOfPointF reverse_normalized_contour;
+        private VectorOfPoint contour;                      //The original contour passed into the function.
+        private VectorOfPoint normalized_contour;          //Normalized contour produces a contour that has its begining at (0,0) and its endpoint straight above it (0,y). This is used internally to classify the piece.
+        private VectorOfPoint reverse_normalized_contour;
 
         /// <summary>
         /// Type of the Edge (LINE, BULB, HOLE)
         /// </summary>
         public EdgeTypes EdgeType { get; private set; }
 
+        public string PieceID { get; private set; }
+        public int EdgeNumber { get; private set; }
+
+        public Image<Rgb, byte> Full_color;
+
         //##############################################################################################################################################################################################
 
-        public Edge(VectorOfPointF edgeContour)
+        public Edge(string pieceID, int edgeNumber, Image<Rgb, byte> full_color, VectorOfPoint edgeContour)
         {
+            PieceID = pieceID;
+            EdgeNumber = edgeNumber;
             contour = edgeContour;
+            Full_color = full_color;
+
             normalized_contour = normalize(contour);    //Normalized contours are used for comparisons
 
-            VectorOfPointF contourCopy = new VectorOfPointF(contour.ToArray().Reverse().ToArray());
+            VectorOfPoint contourCopy = new VectorOfPoint(contour.ToArray().Reverse().ToArray());
             reverse_normalized_contour = normalize(contourCopy);   //same as normalized contour, but flipped 180 degrees
 
             classify();
@@ -47,10 +56,12 @@ namespace JigsawPuzzleSolver
         /// </summary>
         private void classify()
         {
+            EdgeType = EdgeTypes.UNKNOWN;
+            if(normalized_contour.Size == 1) { return; }
+
             //See if it is an outer edge comparing the distance between beginning and end with the arc length.
             double contour_length = CvInvoke.ArcLength(normalized_contour, false);
-
-#warning Test Utils.Distance
+            
             double begin_end_distance = Utils.Distance(normalized_contour.ToArray().First(), normalized_contour.ToArray().Last());
             if (contour_length < begin_end_distance * 1.3)
             {
@@ -75,6 +86,10 @@ namespace JigsawPuzzleSolver
             {
                 EdgeType = EdgeTypes.HOLE;
             }
+
+            Image<Rgb, byte> contour_img = Full_color.Clone();
+            for (int i = 0; i < contour.Size; i++) { CvInvoke.Circle(contour_img, Point.Round(contour[i]), 2, new MCvScalar(255, 0, 0), 1); }
+            ProcessedImagesStorage.AddImage(PieceID + " Edge " + EdgeNumber.ToString() + " " + EdgeType.ToString(), contour_img.Bitmap);
         }
 
         //**********************************************************************************************************************************************************************************************
@@ -84,17 +99,16 @@ namespace JigsawPuzzleSolver
         /// </summary>
         /// <param name="contour">Contour to normalize</param>
         /// <returns>normalized contour</returns>
-        private VectorOfPointF normalize(VectorOfPointF contour)
+        private VectorOfPoint normalize(VectorOfPoint contour)
         {
-            VectorOfPointF ret_contour = new VectorOfPointF();
+            VectorOfPoint ret_contour = new VectorOfPoint();
             PointF a = new PointF(contour.ToArray().First().X, contour.ToArray().First().Y);
             PointF b = new PointF(contour.ToArray().Last().X, contour.ToArray().Last().Y);
 
             //Calculating angle from vertical
             b.X = b.X - a.X;
             b.Y = b.Y - a.Y;
-
-#warning Test Utils.Distance
+            
             double theta = Math.Acos(b.Y / (Utils.DistanceToOrigin(b)));
             if (b.X < 0) { theta = -theta; }
 
@@ -107,10 +121,10 @@ namespace JigsawPuzzleSolver
                 //Apply roatation
                 double new_x = Math.Cos(theta) * temp_point.X - Math.Sin(theta) * temp_point.Y;
                 double new_y = Math.Sin(theta) * temp_point.X + Math.Cos(theta) * temp_point.Y;
-                ret_contour.Push(new PointF[1] { new PointF((float)new_x, (float)new_y) });
+                ret_contour.Push(new Point[1] { new Point((int)new_x, (int)new_y) });
             }
     
-    return ret_contour;
+            return ret_contour;
         }
 
         //##############################################################################################################################################################################################
@@ -121,7 +135,7 @@ namespace JigsawPuzzleSolver
         /// <param name="offset_x">X Offset</param>
         /// <param name="offset_y">Y Offset</param>
         /// <returns>Translated contour</returns>
-        public VectorOfPointF GetTranslatedContour(int offset_x, int offset_y)
+        public VectorOfPoint GetTranslatedContour(int offset_x, int offset_y)
         {
             return Utils.TranslateContour(normalized_contour, offset_x, offset_y);
         }
@@ -134,7 +148,7 @@ namespace JigsawPuzzleSolver
         /// <param name="offset_x">X Offset</param>
         /// <param name="offset_y">Y Offset</param>
         /// <returns>Translated contour</returns>
-        public VectorOfPointF GetTranslatedContourReverse(int offset_x, int offset_y)
+        public VectorOfPoint GetTranslatedContourReverse(int offset_x, int offset_y)
         {
             return Utils.TranslateContour(reverse_normalized_contour, offset_x, offset_y);
         }

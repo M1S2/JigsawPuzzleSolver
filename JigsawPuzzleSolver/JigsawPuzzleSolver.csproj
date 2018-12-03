@@ -84,7 +84,6 @@
     <Compile Include="ProcessedImagesStorage.cs" />
     <Compile Include="Puzzle.cs" />
     <Compile Include="Structures\MatchScore.cs" />
-    <Compile Include="Tools.cs" />
     <Compile Include="Utils.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

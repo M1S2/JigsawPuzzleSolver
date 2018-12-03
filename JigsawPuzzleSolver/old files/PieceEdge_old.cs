@@ -286,7 +286,7 @@ namespace JigsawPuzzleSolver
                 matchFactorBulbHole = 0;    // 0 % match because it's not a bulb/hole combination
             }
 
-            ProcessedImagesStorage.AddImage(this.PieceID + " " + this.EdgeLocation.ToString() + " <==>" + edge2.PieceID + " " + edge2.EdgeLocation.ToString() + "  BulbHoleFactor = " + matchFactorBulbHole.ToString(), Tools.Combine2ImagesHorizontal(this.EdgeMask, edge2.EdgeMask, 20).ToBitmap());
+            ProcessedImagesStorage.AddImage(this.PieceID + " " + this.EdgeLocation.ToString() + " <==>" + edge2.PieceID + " " + edge2.EdgeLocation.ToString() + "  BulbHoleFactor = " + matchFactorBulbHole.ToString(), Utils.Combine2ImagesHorizontal(this.EdgeMask, edge2.EdgeMask, 20).ToBitmap());
             return matchFactorBulbHole;
         }
 
@@ -326,7 +326,7 @@ namespace JigsawPuzzleSolver
 
                 holeExtendingImg = new Image<Gray, byte>(10, edgeMask1rotated.Height);
                 holeExtendingImg.SetValue(new Gray(0));
-                edgeMask1rotated = Tools.Combine2ImagesHorizontal(edgeMask1rotated, holeExtendingImg, 0);
+                edgeMask1rotated = Utils.Combine2ImagesHorizontal(edgeMask1rotated, holeExtendingImg, 0);
             }
 
             if (edge2.EdgeType == EdgeTypes.BULB)       // get the left half of the edge mask
@@ -341,16 +341,16 @@ namespace JigsawPuzzleSolver
 
                 holeExtendingImg = new Image<Gray, byte>(10, edgeMask2rotated.Height);
                 holeExtendingImg.SetValue(new Gray(0));
-                edgeMask2rotated = Tools.Combine2ImagesHorizontal(holeExtendingImg, edgeMask2rotated, 0);
+                edgeMask2rotated = Utils.Combine2ImagesHorizontal(holeExtendingImg, edgeMask2rotated, 0);
             }
 
-            ProcessedImagesStorage.AddImage(this.PieceID + " " + this.EdgeLocation.ToString() + " <==>" + edge2.PieceID + " " + edge2.EdgeLocation.ToString() + " Rotated ", Tools.Combine2ImagesHorizontal(edgeMask1rotated, edgeMask2rotated, 20).ToBitmap());
+            ProcessedImagesStorage.AddImage(this.PieceID + " " + this.EdgeLocation.ToString() + " <==>" + edge2.PieceID + " " + edge2.EdgeLocation.ToString() + " Rotated ", Utils.Combine2ImagesHorizontal(edgeMask1rotated, edgeMask2rotated, 20).ToBitmap());
             
 #warning cut out extremas before calculating the contours
 
             VectorOfVectorOfPoint contours1 = new VectorOfVectorOfPoint();
             CvInvoke.FindContours(edgeMask1rotated, contours1, null, RetrType.List, ChainApproxMethod.ChainApproxNone);
-            VectorOfPoint contour1 = Tools.GetLargestContour(contours1);
+            VectorOfPoint contour1 = Utils.GetLargestContour(contours1);
             Image<Rgb, byte> contour1Img = edgeMask1rotated.Convert<Rgb, byte>();
             CvInvoke.DrawContours(contour1Img, new VectorOfVectorOfPoint(contour1), -1, new MCvScalar(255, 0, 0));
 
@@ -358,13 +358,13 @@ namespace JigsawPuzzleSolver
             Image<Gray, byte> edge2MaskInverted = edgeMask2rotated.Copy();
             edge2MaskInverted._Not();
             CvInvoke.FindContours(edge2MaskInverted, contours2, null, RetrType.List, ChainApproxMethod.ChainApproxNone);
-            VectorOfPoint contour2 = Tools.GetLargestContour(contours2);
+            VectorOfPoint contour2 = Utils.GetLargestContour(contours2);
             Image<Rgb, byte> contour2Img = edge2MaskInverted.Convert<Rgb, byte>();
             CvInvoke.DrawContours(contour2Img, new VectorOfVectorOfPoint(contour2), -1, new MCvScalar(255, 0, 0));
 
             double shapeMatchFactor = CvInvoke.MatchShapes(contour1, contour2, ContoursMatchType.I1);
 
-            ProcessedImagesStorage.AddImage(this.PieceID + " " + this.EdgeLocation.ToString() + " <==>" + edge2.PieceID + " " + edge2.EdgeLocation.ToString() + " Contours " + shapeMatchFactor.ToString(), Tools.Combine2ImagesHorizontal(contour1Img, contour2Img, 20).ToBitmap());
+            ProcessedImagesStorage.AddImage(this.PieceID + " " + this.EdgeLocation.ToString() + " <==>" + edge2.PieceID + " " + edge2.EdgeLocation.ToString() + " Contours " + shapeMatchFactor.ToString(), Utils.Combine2ImagesHorizontal(contour1Img, contour2Img, 20).ToBitmap());
             
             return 1;
         }

@@ -24,6 +24,11 @@ namespace JigsawPuzzleSolver
         /// <summary>
         /// Edge with a hole
         /// </summary>
-        HOLE
+        HOLE,
+
+        /// <summary>
+        /// Unclassified Edge
+        /// </summary>
+        UNKNOWN
     }
 }

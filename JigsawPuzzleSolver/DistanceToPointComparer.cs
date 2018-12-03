@@ -12,7 +12,7 @@ namespace JigsawPuzzleSolver
     /// <summary>
     /// Use this class to order a list of PointF by the distance of the points to another PointF (origin)
     /// </summary>
-    public class DistanceToPointComparer : IComparer<PointF>
+    public class DistanceToPointComparer : IComparer<Point>
     {
         /// <summary>
         /// Origin point to which the distances are calculated
@@ -29,7 +29,7 @@ namespace JigsawPuzzleSolver
         /// </summary>
         /// <param name="origin">Origin point to which the distances are calculated</param>
         /// <param name="distanceOrder">How to order the points (nearest or farest first)</param>
-        public DistanceToPointComparer(PointF origin, DistanceOrders distanceOrder)
+        public DistanceToPointComparer(Point origin, DistanceOrders distanceOrder)
         {
             Origin = origin;
             DistanceOrder = distanceOrder;
@@ -41,7 +41,7 @@ namespace JigsawPuzzleSolver
         /// <param name="p1">Point 1</param>
         /// <param name="p2">Point 2</param>
         /// <returns>Compare result</returns>
-        public int Compare(PointF p1, PointF p2)
+        public int Compare(Point p1, Point p2)
         {
             double distance1 = Utils.Distance(Origin, p1);
             double distance2 = Utils.Distance(Origin, p2);

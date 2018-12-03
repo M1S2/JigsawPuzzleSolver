@@ -28,7 +28,7 @@ namespace JigsawPuzzleSolver
 
         //##############################################################################################################################################################################################
 
-        private VectorOfPointF corners = new VectorOfPointF();
+        private VectorOfPoint corners = new VectorOfPoint();
         private int piece_size;
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace JigsawPuzzleSolver
         /// <param name="vec1">Vector that is searched for the occurence of the elements of vector 2</param>
         /// <param name="vec2">Vector with element to be searched</param>
         /// <returns>Index of the first element in vector 1 that exist in vector 2 too</returns>
-        private int find_first_in(VectorOfPointF vec1, VectorOfPointF vec2)
+        private int find_first_in(VectorOfPoint vec1, VectorOfPoint vec2)
         {
             List<int> all_occurences = find_all_in(vec1, vec2);
             return (all_occurences?.First()).Value;
@@ -79,7 +79,7 @@ namespace JigsawPuzzleSolver
         /// <param name="vec1">Vector that is searched for the occurences of the elements of vector 2</param>
         /// <param name="vec2">Vector with element to be searched</param>
         /// <returns>Indices of all elements in vector 1 that exist in vector 2 too</returns>
-        private List<int> find_all_in(VectorOfPointF vec1, VectorOfPointF vec2)
+        private List<int> find_all_in(VectorOfPoint vec1, VectorOfPoint vec2)
         {
             List<int> places = new List<int>();
             for(int i = 0; i < vec1.Size; i++)
@@ -104,8 +104,8 @@ namespace JigsawPuzzleSolver
         private void process()
         {
             find_corners2();
-            //extract_edges();
-            //classify();
+            extract_edges();
+            classify();
         }
 
         //**********************************************************************************************************************************************************************************************
@@ -146,7 +146,7 @@ namespace JigsawPuzzleSolver
 
                 for (int i = 0; i < keyPoints.Size; i++)
                 {
-                    corners.Push(new PointF[1] { keyPoints[i].Point });
+                    corners.Push(new Point[1] { Point.Round(keyPoints[i].Point) });
                 }
 
                 if (corners.Size > 4)
@@ -195,35 +195,41 @@ namespace JigsawPuzzleSolver
             GFTTDetector detector = new GFTTDetector(1000, 0.01, 5, 6, true, 0.04); //new GFTTDetector(1000, 0.0001, 0, 5, true, 0.0004);
             MKeyPoint[] keyPoints = detector.Detect(Bw.Clone());
 
-            Image<Rgb, byte> color_clone = Full_color.Clone();  //Bw.Convert<Rgb, byte>().Clone();
+            /*float xRangeInvalidStart = 0.3f * Bw.Width;
+            float xRangeInvalidEnd = Bw.Width - 0.3f * Bw.Width;
+            float yRangeInvalidStart = 0.3f * Bw.Height;
+            float yRangeInvalidEnd = Bw.Height - 0.3f * Bw.Height;
+            keyPoints = keyPoints.Where(k => ((k.Point.X <= xRangeInvalidStart || k.Point.X >= xRangeInvalidEnd) && (k.Point.Y <= yRangeInvalidStart || k.Point.Y >= yRangeInvalidEnd))).ToArray();*/
+
+            Image<Rgb, byte> color_clone = Full_color.Clone();
             Features2DToolbox.DrawKeypoints(color_clone, new VectorOfKeyPoint(keyPoints), color_clone, new Bgr(0, 0, 255));
             ProcessedImagesStorage.AddImage(PieceID + " Fast detector", color_clone.Bitmap);
 
-            List<PointF> possibleCorners = keyPoints.Select(k => k.Point).ToList();
-            List<PointF> possibleCornersSorted = new List<PointF>(possibleCorners);
+            List<Point> possibleCorners = keyPoints.Select(k => Point.Round(k.Point)).ToList();
+            List<Point> possibleCornersSorted = new List<Point>(possibleCorners);
 
-            possibleCornersSorted.Sort(new DistanceToPointComparer(new PointF(0, 0), DistanceOrders.NEAREST_FIRST));
-            foreach (PointF possibleCorner in possibleCornersSorted)
+            possibleCornersSorted.Sort(new DistanceToPointComparer(new Point(0, 0), DistanceOrders.NEAREST_FIRST));
+            foreach (Point possibleCorner in possibleCornersSorted)
             {
-                if (CheckPossibleCorner(possibleCorner)) { corners.Push(new PointF[1] { possibleCorner }); break; }
+                if (CheckPossibleCorner(possibleCorner)) { corners.Push(new Point[1] { possibleCorner }); break; }
             }
 
-            possibleCornersSorted.Sort(new DistanceToPointComparer(new PointF(Bw.Width, 0), DistanceOrders.NEAREST_FIRST));
-            foreach (PointF possibleCorner in possibleCornersSorted)
+            possibleCornersSorted.Sort(new DistanceToPointComparer(new Point(Bw.Width, 0), DistanceOrders.NEAREST_FIRST));
+            foreach (Point possibleCorner in possibleCornersSorted)
             {
-                if (CheckPossibleCorner(possibleCorner)) { corners.Push(new PointF[1] { possibleCorner }); break; }
+                if (CheckPossibleCorner(possibleCorner)) { corners.Push(new Point[1] { possibleCorner }); break; }
             }
 
-            possibleCornersSorted.Sort(new DistanceToPointComparer(new PointF(Bw.Width, Bw.Height), DistanceOrders.NEAREST_FIRST));
-            foreach (PointF possibleCorner in possibleCornersSorted)
+            possibleCornersSorted.Sort(new DistanceToPointComparer(new Point(Bw.Width, Bw.Height), DistanceOrders.NEAREST_FIRST));
+            foreach (Point possibleCorner in possibleCornersSorted)
             {
-                if (CheckPossibleCorner(possibleCorner)) { corners.Push(new PointF[1] { possibleCorner }); break; }
+                if (CheckPossibleCorner(possibleCorner)) { corners.Push(new Point[1] { possibleCorner }); break; }
             }
 
-            possibleCornersSorted.Sort(new DistanceToPointComparer(new PointF(0, Bw.Height), DistanceOrders.NEAREST_FIRST));
-            foreach (PointF possibleCorner in possibleCornersSorted)
+            possibleCornersSorted.Sort(new DistanceToPointComparer(new Point(0, Bw.Height), DistanceOrders.NEAREST_FIRST));
+            foreach (Point possibleCorner in possibleCornersSorted)
             {
-                if (CheckPossibleCorner(possibleCorner)) { corners.Push(new PointF[1] { possibleCorner }); break; }
+                if (CheckPossibleCorner(possibleCorner)) { corners.Push(new Point[1] { possibleCorner }); break; }
             }
 
             if(corners.Size != 4)
@@ -245,7 +251,7 @@ namespace JigsawPuzzleSolver
             VectorOfPoint contour = contours[0];
             List<Point> contourList = contour.ToArray().ToList();
 
-            Point possibleCornerOnContour = Tools.GetNearestPoint(contourList, Point.Round(possibleCorner));
+            Point possibleCornerOnContour = Utils.GetNearestPoint(contourList, Point.Round(possibleCorner));
             int indexOfCorner = contourList.IndexOf(possibleCornerOnContour);
             int numberOfAnalysisPoints = 15;
             int numberOfGapPoints = 3;
@@ -264,16 +270,33 @@ namespace JigsawPuzzleSolver
                 previousPointsAngles.Add(System.Windows.Vector.AngleBetween(new System.Windows.Vector(cornerPreviousPoints[i].X - possibleCorner.X, cornerPreviousPoints[i].Y - possibleCorner.Y), new System.Windows.Vector(1, 0)));
             }
 
-            double standardDeviationNext = Tools.CalculateStandardDeviation(nextPointsAngles);
+            double nextAngleAverage = nextPointsAngles.Average();
+            double previousAngleAverage = previousPointsAngles.Average();
+            double cornerAngle = Math.Abs(nextAngleAverage - previousAngleAverage);
+            if(cornerAngle > 180) { cornerAngle = 360 - cornerAngle; }
+            //if (Math.Abs(cornerAngle) > 180) { cornerAngle = Math.Sign(cornerAngle) * (360 - Math.Abs(cornerAngle)); }
+
+            /*double standardDeviationNext = Tools.CalculateStandardDeviation(nextPointsAngles);
             double standardDeviationPrevious = Tools.CalculateStandardDeviation(previousPointsAngles);
 
-            bool isCornerValid = (standardDeviationNext < 11 && standardDeviationPrevious < 11);
+            bool isCornerValid = (standardDeviationNext < 11 && standardDeviationPrevious < 11);*/
+
+            double nextArcLen = CvInvoke.ArcLength(cornerNextPoints, false);
+            double previousArcLen = CvInvoke.ArcLength(cornerPreviousPoints, false);
+            double nextDirectLen = Utils.Distance(cornerNextPoints[0], cornerNextPoints[cornerNextPoints.Size - 1]);
+            double previousDirectLen = Utils.Distance(cornerPreviousPoints[0], cornerPreviousPoints[cornerPreviousPoints.Size - 1]);
+            double nextLenRatio = nextArcLen / nextDirectLen;
+            double previousLenRatio = previousArcLen / previousDirectLen;
+
+            double ratioLimit = 1.2; //(cornerAngle > 70 && cornerAngle < 110) ? 1.25 : 1.2;
+            bool isCornerValid = (((nextLenRatio < ratioLimit && previousLenRatio < ratioLimit) || nextLenRatio == 1 || previousLenRatio == 1) && cornerAngle > 50 && cornerAngle < 140);
 
             Image<Rgb, byte> color_clone = Full_color.Clone();
             CvInvoke.Circle(color_clone, possibleCornerOnContour, 4, new MCvScalar(255, 0, 0), 2);
             for (int i = 0; i < cornerNextPoints.Size; i++) { CvInvoke.Circle(color_clone, Point.Round(cornerNextPoints[i]), 2, new MCvScalar(0, 255, 0), 1); }
             for (int i = 0; i < cornerPreviousPoints.Size; i++) { CvInvoke.Circle(color_clone, Point.Round(cornerPreviousPoints[i]), 2, new MCvScalar(0, 0, 255), 1); }
-            ProcessedImagesStorage.AddImage(PieceID + " Check Corner " + possibleCorner.ToString() + "  " + standardDeviationNext.ToString() + "  |  " + standardDeviationPrevious.ToString() + "   Valid: " + isCornerValid.ToString(), color_clone.Bitmap);
+            //ProcessedImagesStorage.AddImage(PieceID + " Check Corner " + possibleCorner.ToString() + "  " + standardDeviationNext.ToString() + "  |  " + standardDeviationPrevious.ToString() + "   Valid: " + isCornerValid.ToString(), color_clone.Bitmap);
+            ProcessedImagesStorage.AddImage(PieceID + " Check Corner " + possibleCorner.ToString() + "  " + nextLenRatio.ToString() + "  |  " + previousLenRatio.ToString() + "  |  " + cornerAngle.ToString() + "°   Valid: " + isCornerValid.ToString(), color_clone.Bitmap);
 
             return isCornerValid;
         }
@@ -286,23 +309,23 @@ namespace JigsawPuzzleSolver
         /// </summary>
         private void extract_edges()
         {
-            VectorOfVectorOfPointF contours = new VectorOfVectorOfPointF();
+            VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint();
             CvInvoke.FindContours(Bw.Clone(), contours, null, RetrType.List, ChainApproxMethod.ChainApproxNone);
-            //assert(corners.Size == 4);
             if (contours.Size != 1)
             {
                 System.Windows.MessageBox.Show("Found incorrect number of contours " + contours.Size);
                 return;
             }
-            VectorOfPointF contour = contours[0];
-            contour = Utils.RemoveDuplicates(contour);
+            VectorOfPoint contour = contours[0];
+            //contour = Utils.RemoveDuplicates(contour);
 
-            VectorOfPointF new_corners = new VectorOfPointF();
-            //out of all of the found corners, find the closest points in the contour, these will become the endpoints of the edges
-            for (int i = 0; i < corners.Size; i++)
+            Image<Rgb, byte> edge_img = Full_color.Clone();
+
+            VectorOfPoint new_corners = new VectorOfPoint();
+            for (int i = 0; i < corners.Size; i++)      //out of all of the found corners, find the closest points in the contour, these will become the endpoints of the edges
             {
                 double best = 10000000000;
-                PointF closest_point = contour[0];
+                Point closest_point = contour[0];
                 for (int j = 0; j < contour.Size; j++)
                 {
                     double d = Utils.Distance(corners[i], contour[j]);
@@ -312,34 +335,32 @@ namespace JigsawPuzzleSolver
                         closest_point = contour[j];
                     }
                 }
-                new_corners.Push(new PointF[] { closest_point });
+                new_corners.Push(new Point[] { closest_point });
             }
             corners = new_corners;
+            
+            for (int i = 0; i < corners.Size; i++) { CvInvoke.Circle(edge_img, Point.Round(corners[i]), 2, new MCvScalar(255, 0, 0), 1); }
+            ProcessedImagesStorage.AddImage(PieceID + " New corners", edge_img.Bitmap);
 
-            //We need the beginning of the vector to correspond to the begining of an edge.
-            PointF[] contourArray = contour.ToArray();
-            contourArray.Rotate(find_first_in(contour, corners));
-            contour = new VectorOfPointF(contourArray);
-
-            //assert(corners[0] != corners[1] && corners[0] != corners[2] && corners[0] != corners[3] && corners[1] != corners[2] && corners[1] != corners[3] && corners[2] != corners[3]);
+            ////We need the beginning of the vector to correspond to the begining of an edge.
+            //Point[] contourArray = contour.ToArray();
+            //contourArray.Rotate(find_first_in(contour, corners));
+            //contour = new VectorOfPoint(contourArray);
 
             List<int> sections = find_all_in(contour, corners);
 
             //Make corners go in the correct order
-            VectorOfPointF new_corners2 = new VectorOfPointF();
+            VectorOfPoint new_corners2 = new VectorOfPoint();
             for (int i = 0; i < 4; i++)
             {
-                new_corners2.Push(new PointF[] { contour[sections[i]] });
+                new_corners2.Push(new Point[] { contour[sections[i]] });
             }
             corners = new_corners2;
-
-            //assert(corners[1] != corners[0] && corners[0] != corners[2] && corners[0] != corners[3] && corners[1] != corners[2] && corners[1] != corners[3] && corners[2] != corners[3]);
-
-#warning Test !!!
-            Edges[0] = new Edge(contour.GetSubsetOfVector(sections[0], sections[1]));
-            Edges[1] = new Edge(contour.GetSubsetOfVector(sections[1], sections[2]));
-            Edges[2] = new Edge(contour.GetSubsetOfVector(sections[2], sections[3]));
-            Edges[3] = new Edge(contour.GetSubsetOfVector(sections[3], contour.Size));
+            
+            Edges[0] = new Edge(PieceID, 0, Full_color, contour.GetSubsetOfVector(sections[0], sections[1]));
+            Edges[1] = new Edge(PieceID, 1, Full_color, contour.GetSubsetOfVector(sections[1], sections[2]));
+            Edges[2] = new Edge(PieceID, 2, Full_color, contour.GetSubsetOfVector(sections[2], sections[3]));
+            Edges[3] = new Edge(PieceID, 3, Full_color, contour.GetSubsetOfVector(sections[3], sections[0]));
         }
 
         //**********************************************************************************************************************************************************************************************
@@ -370,6 +391,8 @@ namespace JigsawPuzzleSolver
             {
                 System.Windows.MessageBox.Show("Problem, found too many outer edges for this piece.");
             }
+
+            ProcessedImagesStorage.AddImage(PieceID + " Type " + PieceType.ToString(), Full_color.Clone().Bitmap);
         }
 
         //##############################################################################################################################################################################################
@@ -381,6 +404,7 @@ namespace JigsawPuzzleSolver
 
         //**********************************************************************************************************************************************************************************************
         
+        /*
         /// <summary>
         /// This method "rotates the corners and edges so they are in a correct order.
         /// </summary>
@@ -391,10 +415,10 @@ namespace JigsawPuzzleSolver
             int times_to_rotate = times % 4;
             Edges.Rotate(times_to_rotate);
 
-            PointF[] cornersArray = corners.ToArray();
+            Point[] cornersArray = corners.ToArray();
             cornersArray.Rotate(times_to_rotate);
-            corners = new VectorOfPointF(cornersArray);   
-        }
+            corners = new VectorOfPoint(cornersArray);   
+        }*/
 
     }
 }

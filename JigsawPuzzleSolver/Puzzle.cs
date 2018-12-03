@@ -179,7 +179,7 @@ namespace JigsawPuzzleSolver
                 {
                     Mat m = Mat.Zeros(500, 500, DepthType.Cv8U, 1);
 
-                    VectorOfVectorOfPointF contours = new VectorOfVectorOfPointF();
+                    VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint();
                     contours.Push(pieces[i].Edges[j].GetTranslatedContour(200, 0));
 
                     CvInvoke.DrawContours(m, contours, -1, new MCvScalar(255), 2);
