@@ -59,6 +59,8 @@ namespace JigsawPuzzleSolver
             EdgeType = EdgeTypes.UNKNOWN;
             if(normalized_contour.Size == 1) { return; }
 
+            Image<Rgb, byte> contour_img = Full_color.Clone();
+
             //See if it is an outer edge comparing the distance between beginning and end with the arc length.
             double contour_length = CvInvoke.ArcLength(normalized_contour, false);
             
@@ -66,6 +68,9 @@ namespace JigsawPuzzleSolver
             if (contour_length < begin_end_distance * 1.3)
             {
                 EdgeType = EdgeTypes.LINE;
+
+                for (int i = 0; i < contour.Size; i++) { CvInvoke.Circle(contour_img, Point.Round(contour[i]), 2, new MCvScalar(255, 0, 0), 1); }
+                ProcessedImagesStorage.AddImage(PieceID + " Edge " + EdgeNumber.ToString() + " " + EdgeType.ToString(), contour_img.Bitmap);
                 return;
             }
 
@@ -86,8 +91,7 @@ namespace JigsawPuzzleSolver
             {
                 EdgeType = EdgeTypes.HOLE;
             }
-
-            Image<Rgb, byte> contour_img = Full_color.Clone();
+            
             for (int i = 0; i < contour.Size; i++) { CvInvoke.Circle(contour_img, Point.Round(contour[i]), 2, new MCvScalar(255, 0, 0), 1); }
             ProcessedImagesStorage.AddImage(PieceID + " Edge " + EdgeNumber.ToString() + " " + EdgeType.ToString(), contour_img.Bitmap);
         }

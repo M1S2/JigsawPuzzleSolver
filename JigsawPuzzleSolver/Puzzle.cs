@@ -34,7 +34,7 @@ namespace JigsawPuzzleSolver
         {
             threshold = thresh;
             piece_size = estimated_piece_size;
-            extract_pieces2(path);
+            extract_pieces2(path, filter);
             solved = false;
             // print_edges();
         }
@@ -51,7 +51,7 @@ namespace JigsawPuzzleSolver
             List<Mat> bw_images = new List<Mat>();
             if (needs_filter)
             {
-                List<Mat> blured_images = Utils.MedianBlur(color_images, 5);
+                List<Mat> blured_images = Utils.MedianBlur(color_images.Select(x => x.ToImage<Rgb, byte>()).ToList(), 5).Select(x => x.Mat).ToList();
                 bw_images = Utils.ColorToBw(blured_images, threshold);
             }
             else
@@ -108,9 +108,14 @@ namespace JigsawPuzzleSolver
         /// <param name="path">Path to the image in which to search for the pieces</param>
         /// see: https://docs.opencv.org/trunk/d8/d83/tutorial_py_grabcut.html
         /// see: http://www.emgu.com/forum/viewtopic.php?t=1923
-        private void extract_pieces2(string path)
+        private void extract_pieces2(string path, bool needs_filter)
         {
             List<Image<Rgb, byte>> color_images = Utils.GetImagesFromDirectory(path);
+
+            if (needs_filter)
+            {
+                color_images = Utils.MedianBlur(color_images, 5);
+            }
 
             //For each input image
             for (int i = 0; i < color_images.Count; i++)
@@ -139,10 +144,22 @@ namespace JigsawPuzzleSolver
                 {
                     Rectangle roi = blob.BoundingBox;
                     sourceImgPiecesMarked.Draw(roi, new Rgb(255, 0, 0), 2);
+                    
+                    Image<Rgb, byte> pieceSourceImg = new Image<Rgb, byte>(sourceImg.Size);
+                    Image<Gray, byte> pieceMask = new Image<Gray, byte>(mask.Size);
 
-                    if (sourceImg.Height > roi.Height + 2 && sourceImg.Width > roi.Width + 2) { roi.Inflate(1, 1); }
-                    Image<Rgb, byte> pieceSourceImg = sourceImg.Copy(roi);
-                    Image<Gray, byte> pieceMask = mask.Copy(roi);
+                    try
+                    {
+                        if (sourceImg.Height > roi.Height + 2 && sourceImg.Width > roi.Width + 2) { roi.Inflate(1, 1); }
+                        pieceSourceImg = sourceImg.Copy(roi);
+                        pieceMask = mask.Copy(roi);
+                    }
+                    catch(Exception ex)
+                    {
+                        roi = blob.BoundingBox;
+                        pieceSourceImg = sourceImg.Copy(roi);
+                        pieceMask = mask.Copy(roi);
+                    }
 
                     // Mask out background of piece
                     Image<Rgb, byte> pieceSourceImageForeground = new Image<Rgb, byte>(pieceSourceImg.Size);
@@ -160,6 +177,14 @@ namespace JigsawPuzzleSolver
 
                     Piece p = new Piece(pieceSourceImgMasked, pieceMask, piece_size);
                     pieces.Add(p);
+
+                    pieceSourceImg.Dispose();
+                    pieceSourceImgMasked.Dispose();
+                    pieceMask.Dispose();
+                    pieceSourceImageForeground.Dispose();
+                    pieceMaskInverted.Dispose();
+                    background.Dispose();
+                    pieceSourceImageBackground.Dispose();
                 }
 
                 ProcessedImagesStorage.AddImage("Source Img " + i.ToString() + " Pieces", sourceImgPiecesMarked.ToBitmap());

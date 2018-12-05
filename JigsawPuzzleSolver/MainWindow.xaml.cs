@@ -70,7 +70,10 @@ namespace JigsawPuzzleSolver
         
         private void btn_init_puzzle_Click(object sender, RoutedEventArgs e)
         {
-            puzzle = new Puzzle(@"..\..\..\Test_Pictures\ScannedImages", 20, 50, false);
+            //puzzle = new Puzzle(@"..\..\..\Test_Pictures\ScannedImages", 20, 50, false);
+
+            //puzzle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\1.tiff", 20, 50, true);
+            puzzle = new Puzzle(@"..\..\..\Scans\ToyStoryBack\1.tiff", 20, 50, true);
         }
 
         private void btn_solve_puzzle_Click(object sender, RoutedEventArgs e)

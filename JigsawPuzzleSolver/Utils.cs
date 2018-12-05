@@ -56,6 +56,66 @@ namespace JigsawPuzzleSolver
             return Math.Sqrt(sumOfSquaresOfDifferences / values.Count);
         }
 
+        //**********************************************************************************************************************************************************************************************
+        
+        /// <summary>
+        /// Calculate the curvature of the given list of points
+        /// </summary>
+        /// <param name="contourPoints">List of contour points</param>
+        /// <param name="step">Step size for derivative calculation (can be used to reduce noise from noisy contours)</param>
+        /// <returns>list of curvature values at the specific contour points</returns>
+        /// see: https://stackoverflow.com/questions/32629806/how-can-i-calculate-the-curvature-of-an-extracted-contour-by-opencv
+        public static List<double> CalculateCurvature(List<Point> contourPoints, int step)
+        {
+            List<double> listCurvature = new List<double>(contourPoints.Count);
+            if (contourPoints.Count < step) { return listCurvature; }
+
+            Point frontToBack = Point.Subtract(contourPoints.First(), new Size(contourPoints.Last()));
+            bool isClosed = ((int)Math.Max(Math.Abs(frontToBack.X), Math.Abs(frontToBack.Y))) <= 1;
+
+            Point pplus, pminus;
+            Point f1stDerivative = new Point(), f2ndDerivative = new Point();
+            for (int i = 0; i < contourPoints.Count; i++)
+            {
+                Point pos = contourPoints[i];
+
+                int maxStep = step;
+                if (!isClosed)
+                {
+                    maxStep = Math.Min(Math.Min(step, i), (int)contourPoints.Count - 1 - i);
+                    if (maxStep == 0)
+                    {
+                        listCurvature.Add(double.PositiveInfinity);
+                        continue;
+                    }
+                }
+
+                int iminus = i - maxStep;
+                int iplus = i + maxStep;
+                pminus = contourPoints[iminus < 0 ? iminus + contourPoints.Count : iminus];
+                pplus = contourPoints[iplus >= contourPoints.Count ? iplus - contourPoints.Count : iplus];
+
+                f1stDerivative.X = (pplus.X - pminus.X) / (iplus - iminus);
+                f1stDerivative.Y = (pplus.Y - pminus.Y) / (iplus - iminus);
+                f2ndDerivative.X = (pplus.X - 2 * pos.X + pminus.X) / ((iplus - iminus) / 2 * (iplus - iminus) / 2);
+                f2ndDerivative.Y = (pplus.Y - 2 * pos.Y + pminus.Y) / ((iplus - iminus) / 2 * (iplus - iminus) / 2);
+
+                double curvature2D;
+                double divisor = f1stDerivative.X * f1stDerivative.X + f1stDerivative.Y * f1stDerivative.Y;
+                if (Math.Abs(divisor) > 10e-8)
+                {
+                    curvature2D = Math.Abs(f2ndDerivative.Y * f1stDerivative.X - f2ndDerivative.X * f1stDerivative.Y) / Math.Pow(divisor, 3.0 / 2.0);
+                }
+                else
+                {
+                    curvature2D = double.PositiveInfinity;
+                }
+
+                listCurvature.Add(curvature2D);
+            }
+            return listCurvature;
+        }
+
         #endregion
 
         //**********************************************************************************************************************************************************************************************
@@ -268,16 +328,27 @@ namespace JigsawPuzzleSolver
         /// <returns>List of all images in directory</returns>
         public static List<Image<Rgb, byte>> GetImagesFromDirectory(string path)
         {
-            List<string> imageExtensions = new List<string>() { ".jpg", ".png", ".bmp" };
+            List<string> imageExtensions = new List<string>() { ".jpg", ".png", ".bmp", ".tiff" };
             List<Image<Rgb, byte>> imageList = new List<Image<Rgb, byte>>();
 
-            DirectoryInfo folderInfo = new DirectoryInfo(path);
-            List<FileInfo> imageFiles = folderInfo.GetFiles().ToList();
+            FileAttributes attr = File.GetAttributes(path);
+            List<FileInfo> imageFiles = new List<FileInfo>();
+            if ((attr & FileAttributes.Directory) == FileAttributes.Directory)      //detect whether its a directory or file
+            {
+                DirectoryInfo folderInfo = new DirectoryInfo(path);
+                imageFiles = folderInfo.GetFiles().ToList();
+            }
+            else
+            {
+                FileInfo fileInfo = new FileInfo(path);
+                imageFiles.Add(fileInfo);
+            }
+            
             imageFiles = imageFiles.Where(f => imageExtensions.Contains(f.Extension)).ToList();
 
             for (int i = 0; i < imageFiles.Count; i++)
             {
-                imageList.Add(CvInvoke.Imread(path + "/" + imageFiles[i].Name).ToImage<Rgb, byte>());
+                imageList.Add(CvInvoke.Imread(imageFiles[i].FullName).ToImage<Rgb, byte>());
 
                 ProcessedImagesStorage.AddImage("Image Loaded " + i.ToString(), imageList.Last().Bitmap);
             }
@@ -385,14 +456,14 @@ namespace JigsawPuzzleSolver
         /// <param name="images">List of images to filter with median blur</param>
         /// <param name="k">Kernel size</param>
         /// <returns>List of filtered images</returns>
-        public static List<Mat> MedianBlur(List<Mat> images, int k)
+        public static List<Image<Rgb, byte>> MedianBlur(List<Image<Rgb, byte>> images, int k)
         {
-            List<Mat> filtered_images = new List<Mat>();
+            List<Image<Rgb, byte>> filtered_images = new List<Image<Rgb, byte>>();
             for (int i = 0; i < images.Count; i++)
             {
                 Mat m = new Mat();
                 CvInvoke.MedianBlur(images[i], m, k);
-                filtered_images.Add(m);
+                filtered_images.Add(m.ToImage<Rgb, byte>());
 
                 ProcessedImagesStorage.AddImage("Image MedianBlur " + i.ToString(), m.Bitmap);
             }

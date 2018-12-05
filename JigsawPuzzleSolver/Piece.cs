@@ -103,19 +103,22 @@ namespace JigsawPuzzleSolver
         /// </summary>
         private void process()
         {
-            find_corners2();
+            //find_corners_Curvature();
+            find_corners_GFTT();
+            
             extract_edges();
             classify();
         }
 
         //**********************************************************************************************************************************************************************************************
 
-#warning OBSOLETE
+        #region find_corners functions
+            
         /// <summary>
         /// Find the 4 strongest corners.
         /// </summary>
         /// see: http://docs.opencv.org/doc/tutorials/features2d/trackingmotion/corner_subpixeles/corner_subpixeles.html
-        private void find_corners()
+        private void find_corners_GFTT()
         {
             double minDistance = piece_size;        //How close can 2 corners be?
             int blockSize = 5; //25;                     //How big of an area to look for the corner in.
@@ -134,15 +137,11 @@ namespace JigsawPuzzleSolver
             {
                 corners.Clear();
                 double qualityLevel = (min + max) / 2;
-
-#warning Test!!!
+                
                 VectorOfKeyPoint keyPoints = new VectorOfKeyPoint();
                 GFTTDetector featureDetector = new GFTTDetector(100, qualityLevel, minDistance, blockSize, useHarrisDetector, k);
                 
                 featureDetector.DetectRaw(bw_clone, keyPoints);
-                //Mat c = new Mat();
-                //featureDetector.Compute(bw_clone, keyPoints, corners);
-                //featureDetector.DetectAndCompute(bw_clone, null, keyPoints, corners, false);
 
                 for (int i = 0; i < keyPoints.Size; i++)
                 {
@@ -165,13 +164,12 @@ namespace JigsawPuzzleSolver
             }
 
             //Find the sub-pixel locations of the corners.
-            Size winSize = new Size(blockSize, blockSize);
-            Size zeroZone = new Size(-1, -1);
-            MCvTermCriteria criteria = new MCvTermCriteria(40, 0.001);
-            //cv::TermCriteria criteria = cv::TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 40, 0.001);
-
+            //Size winSize = new Size(blockSize, blockSize);
+            //Size zeroZone = new Size(-1, -1);
+            //MCvTermCriteria criteria = new MCvTermCriteria(40, 0.001);
+            
             // Calculate the refined corner locations
-            CvInvoke.CornerSubPix(bw_clone, corners, winSize, zeroZone, criteria);
+            //CvInvoke.CornerSubPix(bw_clone, corners, winSize, zeroZone, criteria);
             
             //More debug stuff, this will mark the corners with a white circle and save the image
             for( int i = 0; i < corners.Size; i++ )
@@ -188,7 +186,7 @@ namespace JigsawPuzzleSolver
 
         //**********************************************************************************************************************************************************************************************
 
-        private void find_corners2()
+        private void find_corners_ArcLen()
         {
             corners.Clear();
 
@@ -303,12 +301,63 @@ namespace JigsawPuzzleSolver
 
         //**********************************************************************************************************************************************************************************************
 
+        private void find_corners_Curvature()
+        {
+            corners.Clear();
+            Image<Rgb, byte> color_clone = Full_color.Clone();
+
+            VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint();
+            CvInvoke.FindContours(Bw.Clone(), contours, null, RetrType.List, ChainApproxMethod.ChainApproxNone); //ChainApproxMethod.ChainApproxSimple);
+            VectorOfPoint contour = contours[0];
+            List<Point> contourList = contour.ToArray().ToList();
+
+            CvInvoke.DrawContours(color_clone, contours, 0, new MCvScalar(0, 0, 255), 1);
+            ProcessedImagesStorage.AddImage(PieceID + " Contour", color_clone.Bitmap);
+
+            List<double> curvature = Utils.CalculateCurvature(contourList, 2);
+
+            Image<Rgb, byte> color_clone2 = Full_color.Clone();
+            for (int i = 0; i < curvature.Count; i++)
+            {
+                if (curvature[i] > 0.1) { CvInvoke.Circle(color_clone2, Point.Round(contour[i]), 4, new MCvScalar(0, 255, 0), 1); }
+            }
+
+            List<double> curvatureSorted = new List<double>(curvature);
+            curvatureSorted.Sort();
+            curvatureSorted.Reverse();
+            int cntHighestCurvatures = 0;
+            for (int i = 0; i < curvatureSorted.Count; i++)
+            {
+                if (double.IsInfinity(curvatureSorted[i])) { CvInvoke.Circle(color_clone2, Point.Round(contour[curvature.IndexOf(curvatureSorted[i])]), 4, new MCvScalar(255, 0, 0), 1); }
+                else { CvInvoke.Circle(color_clone2, Point.Round(contour[curvature.IndexOf(curvatureSorted[i])]), 4, new MCvScalar(0, 0, 255), 1); cntHighestCurvatures++; }
+
+                if(cntHighestCurvatures == 4) { break; }
+            }
+            ProcessedImagesStorage.AddImage(PieceID + " Curvature", color_clone2.Bitmap);
+            
+
+            if (corners.Size != 4)
+            {
+                //System.Windows.MessageBox.Show("Failed to find correct number of corners: " + corners.Size + " found.");
+                return;
+            }
+
+            for (int i = 0; i < 4; i++) { CvInvoke.Circle(color_clone, Point.Round(corners[i]), 4, new MCvScalar(0, 255, 0), 3); }
+            ProcessedImagesStorage.AddImage(PieceID + " Corners", color_clone.Bitmap);
+        }
+
+        #endregion
+
+        //**********************************************************************************************************************************************************************************************
+
         /// <summary>
         /// Extract the contour.
         /// TODO: probably should have this passed in from the puzzle, since it already does this. It was done this way because the contours don't correspond to the correct pixel locations in this cropped version of the image.
         /// </summary>
         private void extract_edges()
         {
+            if(corners.Size != 4) { return; }
+
             VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint();
             CvInvoke.FindContours(Bw.Clone(), contours, null, RetrType.List, ChainApproxMethod.ChainApproxNone);
             if (contours.Size != 1)
@@ -373,6 +422,7 @@ namespace JigsawPuzzleSolver
             int count = 0;
             for (int i = 0; i < 4; i++)
             {
+                if(Edges[i] == null) { return; }
                 if (Edges[i].EdgeType == EdgeTypes.LINE) count++;
             }
             if (count == 0)
