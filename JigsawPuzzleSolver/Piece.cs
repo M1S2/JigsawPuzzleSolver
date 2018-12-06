@@ -120,6 +120,8 @@ namespace JigsawPuzzleSolver
         /// see: http://docs.opencv.org/doc/tutorials/features2d/trackingmotion/corner_subpixeles/corner_subpixeles.html
         private void find_corners_GFTT()
         {
+            string id = PieceID;
+
             double minDistance = piece_size;        //How close can 2 corners be?
             int blockSize = 5; //25;                     //How big of an area to look for the corner in.
             bool useHarrisDetector = true;
@@ -142,22 +144,22 @@ namespace JigsawPuzzleSolver
                 GFTTDetector featureDetector = new GFTTDetector(100, qualityLevel, minDistance, blockSize, useHarrisDetector, k);
                 
                 featureDetector.DetectRaw(bw_clone, keyPoints);
-
-                for (int i = 0; i < keyPoints.Size; i++)
-                {
-                    corners.Push(new Point[1] { Point.Round(keyPoints[i].Point) });
-                }
-
-                if (corners.Size > 4)
+                
+                if (keyPoints.Size > 4)
                 {
                     min = qualityLevel;     //Found too many corners increase quality
                 }
-                else if (corners.Size < 4)
+                else if (keyPoints.Size < 4)
                 {
                     max = qualityLevel;
                 }
                 else
                 {
+                    for (int i = 0; i < keyPoints.Size; i++)
+                    {
+                        corners.Push(new Point[1] { Point.Round(keyPoints[i].Point) });
+                    }
+
                     found_all_corners = true;       //found all corners
                     break;
                 }
@@ -360,12 +362,21 @@ namespace JigsawPuzzleSolver
 
             VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint();
             CvInvoke.FindContours(Bw.Clone(), contours, null, RetrType.List, ChainApproxMethod.ChainApproxNone);
-            if (contours.Size != 1)
+            if (contours.Size == 0)
             {
-                System.Windows.MessageBox.Show("Found incorrect number of contours " + contours.Size);
+                System.Windows.MessageBox.Show("Found no contours!");
                 return;
             }
-            VectorOfPoint contour = contours[0];
+
+            int indexLargestContour = 0;                // Find the largest contour
+            double largestContourArea = 0;
+            for(int i = 0; i < contours.Size; i++)
+            {
+                double contourAreaTmp = CvInvoke.ContourArea(contours[i]);
+                if(contourAreaTmp > largestContourArea) { largestContourArea = contourAreaTmp; indexLargestContour = i; }
+            }
+
+            VectorOfPoint contour = contours[indexLargestContour];
             //contour = Utils.RemoveDuplicates(contour);
 
             Image<Rgb, byte> edge_img = Full_color.Clone();

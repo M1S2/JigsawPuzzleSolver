@@ -36,7 +36,7 @@ namespace JigsawPuzzleSolver
             piece_size = estimated_piece_size;
             extract_pieces2(path, filter);
             solved = false;
-            // print_edges();
+            print_edges();
         }
 
         //##############################################################################################################################################################################################
@@ -154,7 +154,7 @@ namespace JigsawPuzzleSolver
                         pieceSourceImg = sourceImg.Copy(roi);
                         pieceMask = mask.Copy(roi);
                     }
-                    catch(Exception ex)
+                    catch(Exception)
                     {
                         roi = blob.BoundingBox;
                         pieceSourceImg = sourceImg.Copy(roi);
@@ -208,9 +208,9 @@ namespace JigsawPuzzleSolver
                     contours.Push(pieces[i].Edges[j].GetTranslatedContour(200, 0));
 
                     CvInvoke.DrawContours(m, contours, -1, new MCvScalar(255), 2);
-                    CvInvoke.PutText(m, pieces[i].Edges[j].EdgeType.ToString(), new Point(300, 300), FontFace.HersheyComplexSmall, 0.8, new MCvScalar(255), 1, LineType.AntiAlias);
+                    CvInvoke.PutText(m, pieces[i].Edges[j].EdgeType.ToString(), new Point(300, 300), FontFace.HersheyComplexSmall, 2, new MCvScalar(255), 1, LineType.AntiAlias);
 
-                    ProcessedImagesStorage.AddImage("Contour" + i.ToString() + "_" + j.ToString(), m.Bitmap);
+                    ProcessedImagesStorage.AddImage("Contour " + pieces[i].PieceID + " Edge " + j.ToString(), m.Bitmap);
                 }
             }
         }
@@ -228,23 +228,25 @@ namespace JigsawPuzzleSolver
             {
                 for (int j = i; j < no_edges; j++)
                 {
-                    MatchScore score = new MatchScore();
-                    score.edgeIndex1 = i;
-                    score.edgeIndex2 = j;
-                    score.score = pieces[i / 4].Edges[i % 4].Compare2(pieces[j / 4].Edges[j % 4]);
-                    {
-                        matches.Add(score);
-                    }
+                    MatchScore matchScore = new MatchScore();
+                    matchScore.edgeIndex1 = i;
+                    matchScore.edgeIndex2 = j;
+                    matchScore.score = pieces[i / 4].Edges[i % 4].Compare2(pieces[j / 4].Edges[j % 4]);
+
+                    matches.Add(matchScore);
+                    ProcessedImagesStorage.AddImage("MatchScore " + pieces[i / 4].PieceID + "_Edge" + (i % 4).ToString() + " <-->" + pieces[j / 4].PieceID + "_Edge" + (j % 4).ToString() + " = " + matchScore.score.ToString(), Utils.Combine2ImagesHorizontal(pieces[i / 4].Edges[i % 4].ContourImg, pieces[j / 4].Edges[j % 4].ContourImg, 20).ToBitmap());
                 }
             }
-            matches.Sort(new MatchScoreComparer());
+            matches.Sort(new MatchScoreComparer(ScoreOrders.LOWEST_FIRST));
         }
 
         //##############################################################################################################################################################################################
 
         public void solve()
         {
-            throw new NotImplementedException();
+#warning Not completed !!!
+
+            fill_costs();
         }
 
         //**********************************************************************************************************************************************************************************************

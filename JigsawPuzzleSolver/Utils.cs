@@ -443,7 +443,7 @@ namespace JigsawPuzzleSolver
                 CvInvoke.Threshold(bw, bw, threshold, 255, ThresholdType.Binary);
                 black_and_white.Add(bw);
 
-                ProcessedImagesStorage.AddImage("Image BlackWhite " + i.ToString(), bw.Bitmap);
+                ProcessedImagesStorage.AddImage("Image BlackWhite " + i.ToString(), bw.Clone().Bitmap);
             }
             return black_and_white;
         }
@@ -465,7 +465,7 @@ namespace JigsawPuzzleSolver
                 CvInvoke.MedianBlur(images[i], m, k);
                 filtered_images.Add(m.ToImage<Rgb, byte>());
 
-                ProcessedImagesStorage.AddImage("Image MedianBlur " + i.ToString(), m.Bitmap);
+                //ProcessedImagesStorage.AddImage("Image MedianBlur " + i.ToString(), m.Clone().Bitmap);
             }
             return filtered_images;
         }
@@ -487,7 +487,7 @@ namespace JigsawPuzzleSolver
                 CvInvoke.MorphologyEx(images[i], bw, MorphOp.Open, k, new Point(-1, -1), 1, BorderType.Default, new MCvScalar(0));
                 CvInvoke.MorphologyEx(bw, images[i], MorphOp.Close, k, new Point(-1, -1), 1, BorderType.Default, new MCvScalar(0));
 
-                ProcessedImagesStorage.AddImage("Image Filter " + i.ToString(), bw.Bitmap);
+                ProcessedImagesStorage.AddImage("Image Filter " + i.ToString(), bw.Clone().Bitmap);
             }
         }
 

@@ -75,6 +75,7 @@
     <Compile Include="Edge.cs" />
     <Compile Include="Enumerations\EdgeTypes.cs" />
     <Compile Include="Enumerations\PieceTypes.cs" />
+    <Compile Include="MatchScoreComparer.cs" />
     <Compile Include="old files\Piece_old.cs" />
     <Compile Include="old files\PieceCollection_old.cs" />
     <Compile Include="old files\PieceEdge_old.cs" />
