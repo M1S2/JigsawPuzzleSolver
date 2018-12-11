@@ -58,7 +58,7 @@ namespace JigsawPuzzleSolver
         private void classify()
         {
             EdgeType = EdgeTypes.UNKNOWN;
-            if(normalized_contour.Size == 1) { return; }
+            if(normalized_contour.Size <= 1) { return; }
 
             ContourImg = Full_color.Clone();
 
@@ -106,6 +106,8 @@ namespace JigsawPuzzleSolver
         /// <returns>normalized contour</returns>
         private VectorOfPoint normalize(VectorOfPoint contour)
         {
+            if(contour.Size == 0) { return contour; }
+
             VectorOfPoint ret_contour = new VectorOfPoint();
             PointF a = new PointF(contour.ToArray().First().X, contour.ToArray().First().Y);
             PointF b = new PointF(contour.ToArray().Last().X, contour.ToArray().Last().Y);
@@ -126,7 +128,7 @@ namespace JigsawPuzzleSolver
                 //Apply roatation
                 double new_x = Math.Cos(theta) * temp_point.X - Math.Sin(theta) * temp_point.Y;
                 double new_y = Math.Sin(theta) * temp_point.X + Math.Cos(theta) * temp_point.Y;
-                ret_contour.Push(new Point[1] { new Point((int)new_x, (int)new_y) });
+                ret_contour.Push(new Point((int)new_x, (int)new_y));
             }
     
             return ret_contour;

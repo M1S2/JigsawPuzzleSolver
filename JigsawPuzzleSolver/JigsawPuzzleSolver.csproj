@@ -84,6 +84,8 @@
     <Compile Include="Piece.cs" />
     <Compile Include="ProcessedImagesStorage.cs" />
     <Compile Include="Puzzle.cs" />
+    <Compile Include="PuzzleDisjointSet.cs" />
+    <Compile Include="Forest.cs" />
     <Compile Include="Structures\MatchScore.cs" />
     <Compile Include="Utils.cs" />
     <Page Include="MainWindow.xaml">

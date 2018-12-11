@@ -79,6 +79,7 @@ namespace JigsawPuzzleSolver
         private void btn_solve_puzzle_Click(object sender, RoutedEventArgs e)
         {
             puzzle.solve();
+            puzzle.GenerateSolutionImage();
         }
 
         private void list_imageDescriptions_SelectionChanged(object sender, SelectionChangedEventArgs e)

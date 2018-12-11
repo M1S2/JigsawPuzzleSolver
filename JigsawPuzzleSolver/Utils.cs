@@ -136,7 +136,7 @@ namespace JigsawPuzzleSolver
             VectorOfPoint ret_contour = new VectorOfPoint();
             for (int i = 0; i < contourIn.Size; i++)
             {
-                ret_contour.Push(new Point[1] { new Point((int)(contourIn[i].X + offset_x + 0.5), (int)(contourIn[i].Y + offset_y + 0.5)) });
+                ret_contour.Push(new Point((int)(contourIn[i].X + offset_x + 0.5), (int)(contourIn[i].Y + offset_y + 0.5)));
             }
             return ret_contour;
         }
@@ -153,7 +153,7 @@ namespace JigsawPuzzleSolver
             VectorOfPointF ret_contour = new VectorOfPointF();
             for (int i = 0; i < contourIn.Size; i++)
             {
-                ret_contour.Push(new PointF[1] { new PointF((float)(contourIn[i].X + offset_x + 0.5), (float)(contourIn[i].Y + offset_y + 0.5)) });
+                ret_contour.Push(new PointF((float)(contourIn[i].X + offset_x + 0.5), (float)(contourIn[i].Y + offset_y + 0.5)));
             }
             return ret_contour;
         }
@@ -278,7 +278,19 @@ namespace JigsawPuzzleSolver
 
         //**********************************************************************************************************************************************************************************************
 
-        /*
+        public static void CopyToROI(this Matrix<int> src, Matrix<int> dst, Rectangle dstRegion)
+        {
+            for (int i = dstRegion.X; i < dstRegion.X + dstRegion.Width; i++)
+            {
+                for (int j = dstRegion.Y; j < dstRegion.Y + dstRegion.Height; j++)
+                {
+                    dst[j, i] = src[j - dstRegion.Y, i - dstRegion.X];      // elements are indexed by [row, column]
+                }
+            }
+        }
+
+        //**********************************************************************************************************************************************************************************************
+        
         /// <summary>
         /// Rotate the array count times
         /// </summary>
@@ -311,7 +323,29 @@ namespace JigsawPuzzleSolver
                     array[0] = temp;
                 }
             }
-        }*/
+        }
+
+        //**********************************************************************************************************************************************************************************************
+
+        /// <summary>
+        /// Push a single point to a vector of points
+        /// </summary>
+        /// <param name="vector">Vector to push the point to</param>
+        /// <param name="point">Point to push to the vector</param>
+        public static void Push(this VectorOfPoint vector, Point point)
+        {
+            vector.Push(new Point[] { point });
+        }
+
+        /// <summary>
+        /// Push a single point to a vector of points
+        /// </summary>
+        /// <param name="vector">Vector to push the point to</param>
+        /// <param name="point">Point to push to the vector</param>
+        public static void Push(this VectorOfPointF vector, PointF point)
+        {
+            vector.Push(new PointF[] { point });
+        }
 
         #endregion
 

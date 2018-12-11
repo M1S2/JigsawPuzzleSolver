@@ -205,7 +205,9 @@ namespace JigsawPuzzleSolver
                     Mat m = Mat.Zeros(500, 500, DepthType.Cv8U, 1);
 
                     VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint();
-                    contours.Push(pieces[i].Edges[j].GetTranslatedContour(200, 0));
+                    VectorOfPoint contour = pieces[i].Edges[j].GetTranslatedContour(200, 0);
+                    if(contour.Size == 0) { continue; }
+                    contours.Push(contour);
 
                     CvInvoke.DrawContours(m, contours, -1, new MCvScalar(255), 2);
                     CvInvoke.PutText(m, pieces[i].Edges[j].EdgeType.ToString(), new Point(300, 300), FontFace.HersheyComplexSmall, 2, new MCvScalar(255), 1, LineType.AntiAlias);
@@ -222,6 +224,7 @@ namespace JigsawPuzzleSolver
         /// </summary>
         private void fill_costs()
         {
+            matches.Clear();
             int no_edges = (int)pieces.Count * 4;
 
             for (int i = 0; i < no_edges; i++)
@@ -229,9 +232,14 @@ namespace JigsawPuzzleSolver
                 for (int j = i; j < no_edges; j++)
                 {
                     MatchScore matchScore = new MatchScore();
-                    matchScore.edgeIndex1 = i;
-                    matchScore.edgeIndex2 = j;
-                    matchScore.score = pieces[i / 4].Edges[i % 4].Compare2(pieces[j / 4].Edges[j % 4]);
+                    //matchScore.edgeIndex1 = i;
+                    //matchScore.edgeIndex2 = j;
+                    //matchScore.score = pieces[i / 4].Edges[i % 4].Compare2(pieces[j / 4].Edges[j % 4]);
+                    matchScore.PieceIndex1 = i / 4;
+                    matchScore.PieceIndex2 = j / 4;
+                    matchScore.EdgeIndex1 = i % 4;
+                    matchScore.EdgeIndex2 = j % 4;
+                    matchScore.score = pieces[matchScore.PieceIndex1].Edges[matchScore.EdgeIndex1].Compare2(pieces[matchScore.PieceIndex2].Edges[matchScore.EdgeIndex2]);
 
                     matches.Add(matchScore);
                     ProcessedImagesStorage.AddImage("MatchScore " + pieces[i / 4].PieceID + "_Edge" + (i % 4).ToString() + " <-->" + pieces[j / 4].PieceID + "_Edge" + (j % 4).ToString() + " = " + matchScore.score.ToString(), Utils.Combine2ImagesHorizontal(pieces[i / 4].Edges[i % 4].ContourImg, pieces[j / 4].Edges[j % 4].ContourImg, 20).ToBitmap());
@@ -244,16 +252,145 @@ namespace JigsawPuzzleSolver
 
         public void solve()
         {
-#warning Not completed !!!
+#warning Test!!!
 
             fill_costs();
+
+            PuzzleDisjointSet p = new PuzzleDisjointSet(pieces.Count);
+            
+            //You can save the individual pieces with their id numbers in the file name
+            //If the following loop is uncommented.
+            //    for(int i=0; i<pieces.size(); i++){
+            //        std::stringstream filename;
+            //        filename << "/tmp/final/p" << i << ".png";
+            //        cv::imwrite(filename.str(), pieces[i].full_color);
+            //    }
+
+            //int output_id = 0;
+            for(int i = 0; i < matches.Count; i++)
+            {
+                if(p.InOneSet()) { break; }
+
+                int p1 = matches[i].PieceIndex1;    //edgeIndex1 / 4;
+                int e1 = matches[i].EdgeIndex1;     //edgeIndex1 % 4;
+                int p2 = matches[i].PieceIndex2;    //edgeIndex2 / 4;
+                int e2 = matches[i].EdgeIndex2;     //edgeIndex2 % 4;
+
+                //Uncomment the following lines to spit out pictures of the matched edges...
+                //        cv::Mat m = cv::Mat::zeros(500,500,CV_8UC1);
+                //        std::stringstream out_file_name;
+                //        out_file_name << "/tmp/final/match" << output_id++ << "_" << p1<< "_" << e1 << "_" <<p2 << "_" <<e2 << ".png";
+                //        std::vector<std::vector<cv::Point> > contours;
+                //        contours.push_back(pieces[p1].edges[e1].get_translated_contour(200, 0));
+                //        contours.push_back(pieces[p2].edges[e2].get_translated_contour_reverse(200, 0));
+                //        cv::drawContours(m, contours, -1, cv::Scalar(255));
+                //        std::cout << out_file_name.str() << std::endl;
+                //        cv::imwrite(out_file_name.str(), m);
+                //        std::cout << "Attempting to merge: " << p1 << " with: " << p2 << " using edges:" << e1 << ", " << e2 << " c:" << i->score << " count: "  << output_id++ <<std::endl;
+                p.JoinSets(p1, p2, e1, e2);
+                i++;
+            }
+            
+            if (p.InOneSet())
+            {
+                System.Windows.MessageBox.Show("Possible solution found.");
+                solved = true;
+                solution = p.Get(p.Find(1)).locations;
+                solution_rotations = p.Get(p.Find(1)).rotations;
+
+                for (int i = 0; i < solution.Size.Width; i++)
+                {
+                    for (int j = 0; j < solution.Size.Height; j++)
+                    {
+                        int piece_number = solution[j, i];
+                        pieces[piece_number].Rotate(4 - solution_rotations[j, i]);
+                    }
+                }
+            }
         }
 
         //**********************************************************************************************************************************************************************************************
 
-        public void save_image(string filepath)
+        public void GenerateSolutionImage()
         {
-            throw new NotImplementedException();
+            if (!solved) { solve(); }
+
+            // Use get affine to map points...
+            int out_image_size = 1000; //6000;
+            Image<Rgb, byte> final_out_image = new Image<Rgb, byte>(out_image_size, out_image_size);
+            int border = 10;
+
+            PointF[,] points = new PointF[solution.Size.Width + 1, solution.Size.Height +1];
+            bool failed = false;
+            
+            for (int i = 0; i < solution.Size.Width; i++)
+            {
+                for (int j = 0; j < solution.Size.Height; j++)
+                {
+                    int piece_number = solution[j, i];
+
+                    if (piece_number == -1)
+                    {
+                        failed = true;
+                        break;
+                    }
+                    float x_dist = (float)Utils.Distance(pieces[piece_number].GetCorner(0), pieces[piece_number].GetCorner(3));
+                    float y_dist = (float)Utils.Distance(pieces[piece_number].GetCorner(0), pieces[piece_number].GetCorner(1));
+                    VectorOfPointF src = new VectorOfPointF();
+                    VectorOfPointF dst = new VectorOfPointF();
+
+                    if (i == 0 && j == 0)
+                    {
+                        points[i, j] = new PointF(border, border);
+                    }
+                    if (i == 0)
+                    {
+                        points[i, j + 1] = new PointF(border, points[i, j].Y + border + y_dist); //new PointF(points[i, j].X + border + x_dist, border);
+                    }
+                    if (j == 0)
+                    {
+                        points[i + 1, j] = new PointF(points[i, j].X + border + x_dist, border); //new PointF(border, points[i, j].Y + border + y_dist);
+                    }
+
+                    dst.Push(points[i, j]);
+                    //dst.Push(points[i + 1, j]);
+                    //dst.Push(points[i, j + 1]);
+                    dst.Push(points[i, j + 1]);
+                    dst.Push(points[i + 1, j]);
+                    src.Push(pieces[piece_number].GetCorner(0));
+                    src.Push(pieces[piece_number].GetCorner(1));
+                    src.Push(pieces[piece_number].GetCorner(3));
+
+                    //true means use affine transform
+                    Mat a_trans_mat = CvInvoke.EstimateRigidTransform(src, dst, true);
+
+                    Matrix<double> A = new Matrix<double>(a_trans_mat.Rows, a_trans_mat.Cols);
+                    a_trans_mat.CopyTo(A);
+                    
+                    PointF l_r_c = pieces[piece_number].GetCorner(2);       //Lower right corner of each piece
+
+                    //Doing my own matrix multiplication
+                    points[i + 1, j + 1] = new PointF((float)(A[0, 0] * l_r_c.X + A[0, 1] * l_r_c.Y + A[0, 2]), (float)(A[1, 0] * l_r_c.X + A[1, 1] * l_r_c.Y + A[1, 2]));
+
+                    Mat layer = new Mat();
+                    Mat layer_mask = new Mat();
+
+                    int layer_size = out_image_size;
+
+                    CvInvoke.WarpAffine(pieces[piece_number].Full_color, layer, a_trans_mat, new Size(layer_size, layer_size), Inter.Linear, Warp.Default, BorderType.Transparent);
+                    CvInvoke.WarpAffine(pieces[piece_number].Bw, layer_mask, a_trans_mat, new Size(layer_size, layer_size), Inter.Nearest, Warp.Default, BorderType.Transparent);
+
+                    layer.CopyTo(final_out_image, layer_mask);
+                }
+
+                if (failed)
+                {
+                    System.Windows.MessageBox.Show("Failed, only partial image generated.");
+                    break;
+                }
+            }
+
+            ProcessedImagesStorage.AddImage("Solution", final_out_image.Clone().Bitmap);
         }
         
     }

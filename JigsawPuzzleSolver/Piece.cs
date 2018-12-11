@@ -54,6 +54,11 @@ namespace JigsawPuzzleSolver
             ProcessedImagesStorage.AddImage(PieceID + " Color", color.Clone().Bitmap);
             ProcessedImagesStorage.AddImage(PieceID + " Bw", bw.Clone().Bitmap);
 
+            Edges[0] = new Edge(PieceID, 0, Full_color, new VectorOfPoint());
+            Edges[1] = new Edge(PieceID, 1, Full_color, new VectorOfPoint());
+            Edges[2] = new Edge(PieceID, 2, Full_color, new VectorOfPoint());
+            Edges[3] = new Edge(PieceID, 3, Full_color, new VectorOfPoint());
+
             process();
         }
 
@@ -157,7 +162,7 @@ namespace JigsawPuzzleSolver
                 {
                     for (int i = 0; i < keyPoints.Size; i++)
                     {
-                        corners.Push(new Point[1] { Point.Round(keyPoints[i].Point) });
+                        corners.Push(Point.Round(keyPoints[i].Point));
                     }
 
                     found_all_corners = true;       //found all corners
@@ -211,25 +216,25 @@ namespace JigsawPuzzleSolver
             possibleCornersSorted.Sort(new DistanceToPointComparer(new Point(0, 0), DistanceOrders.NEAREST_FIRST));
             foreach (Point possibleCorner in possibleCornersSorted)
             {
-                if (CheckPossibleCorner(possibleCorner)) { corners.Push(new Point[1] { possibleCorner }); break; }
+                if (CheckPossibleCorner(possibleCorner)) { corners.Push(possibleCorner); break; }
             }
 
             possibleCornersSorted.Sort(new DistanceToPointComparer(new Point(Bw.Width, 0), DistanceOrders.NEAREST_FIRST));
             foreach (Point possibleCorner in possibleCornersSorted)
             {
-                if (CheckPossibleCorner(possibleCorner)) { corners.Push(new Point[1] { possibleCorner }); break; }
+                if (CheckPossibleCorner(possibleCorner)) { corners.Push(possibleCorner); break; }
             }
 
             possibleCornersSorted.Sort(new DistanceToPointComparer(new Point(Bw.Width, Bw.Height), DistanceOrders.NEAREST_FIRST));
             foreach (Point possibleCorner in possibleCornersSorted)
             {
-                if (CheckPossibleCorner(possibleCorner)) { corners.Push(new Point[1] { possibleCorner }); break; }
+                if (CheckPossibleCorner(possibleCorner)) { corners.Push(possibleCorner); break; }
             }
 
             possibleCornersSorted.Sort(new DistanceToPointComparer(new Point(0, Bw.Height), DistanceOrders.NEAREST_FIRST));
             foreach (Point possibleCorner in possibleCornersSorted)
             {
-                if (CheckPossibleCorner(possibleCorner)) { corners.Push(new Point[1] { possibleCorner }); break; }
+                if (CheckPossibleCorner(possibleCorner)) { corners.Push(possibleCorner); break; }
             }
 
             if(corners.Size != 4)
@@ -395,7 +400,7 @@ namespace JigsawPuzzleSolver
                         closest_point = contour[j];
                     }
                 }
-                new_corners.Push(new Point[] { closest_point });
+                new_corners.Push(closest_point);
             }
             corners = new_corners;
             
@@ -413,7 +418,7 @@ namespace JigsawPuzzleSolver
             VectorOfPoint new_corners2 = new VectorOfPoint();
             for (int i = 0; i < 4; i++)
             {
-                new_corners2.Push(new Point[] { contour[sections[i]] });
+                new_corners2.Push(contour[sections[i]]);
             }
             corners = new_corners2;
             
@@ -465,7 +470,7 @@ namespace JigsawPuzzleSolver
 
         //**********************************************************************************************************************************************************************************************
         
-        /*
+        
         /// <summary>
         /// This method "rotates the corners and edges so they are in a correct order.
         /// </summary>
@@ -479,7 +484,7 @@ namespace JigsawPuzzleSolver
             Point[] cornersArray = corners.ToArray();
             cornersArray.Rotate(times_to_rotate);
             corners = new VectorOfPoint(cornersArray);   
-        }*/
+        }
 
     }
 }

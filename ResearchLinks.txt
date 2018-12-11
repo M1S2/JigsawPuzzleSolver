@@ -2,3 +2,4 @@
 - https://github.com/jzeimen/PuzzleSolver
 - https://nerdshack.co.uk/solving-jigsaw-puzzles/
 - http://www.towardsdatascience.com/solving-jigsaw-puzzles-with-python-and-opencv-d775ba730660
+- http://erikdemaine.org/papers/Jigsaw_GC/paper.pdf
