@@ -39,6 +39,9 @@ namespace JigsawPuzzleSolver
             print_edges();
         }
 
+        public Puzzle()
+        { }
+
         //##############################################################################################################################################################################################
 
 #warning OBSOLETE
@@ -232,68 +235,83 @@ namespace JigsawPuzzleSolver
                 for (int j = i; j < no_edges; j++)
                 {
                     MatchScore matchScore = new MatchScore();
-                    //matchScore.edgeIndex1 = i;
-                    //matchScore.edgeIndex2 = j;
-                    //matchScore.score = pieces[i / 4].Edges[i % 4].Compare2(pieces[j / 4].Edges[j % 4]);
                     matchScore.PieceIndex1 = i / 4;
                     matchScore.PieceIndex2 = j / 4;
                     matchScore.EdgeIndex1 = i % 4;
                     matchScore.EdgeIndex2 = j % 4;
-                    matchScore.score = pieces[matchScore.PieceIndex1].Edges[matchScore.EdgeIndex1].Compare2(pieces[matchScore.PieceIndex2].Edges[matchScore.EdgeIndex2]);
+                    matchScore.score = pieces[matchScore.PieceIndex1].Edges[matchScore.EdgeIndex1].Compare(pieces[matchScore.PieceIndex2].Edges[matchScore.EdgeIndex2]);
 
                     matches.Add(matchScore);
-                    ProcessedImagesStorage.AddImage("MatchScore " + pieces[i / 4].PieceID + "_Edge" + (i % 4).ToString() + " <-->" + pieces[j / 4].PieceID + "_Edge" + (j % 4).ToString() + " = " + matchScore.score.ToString(), Utils.Combine2ImagesHorizontal(pieces[i / 4].Edges[i % 4].ContourImg, pieces[j / 4].Edges[j % 4].ContourImg, 20).ToBitmap());
                 }
             }
+
+            
+/*#warning Only for AngryBirds/ScannerOpen/Test1.png !!!
+            
+            //#1_1 - #2_3, score 1
+            //#0_0 - #1_2, score 2
+            //#2_2 - #3_0, score 3
+            //#0_1 - #3_3, score 4
+
+            //#0 = 2
+            //#1 = 1
+            //#2 = 7
+            //#3 = 8 
+
+            matches.Add(new MatchScore() { PieceIndex1 = 1, EdgeIndex1 = 1, PieceIndex2 = 2, EdgeIndex2 = 3, score = 1 });
+            matches.Add(new MatchScore() { PieceIndex1 = 0, EdgeIndex1 = 0, PieceIndex2 = 1, EdgeIndex2 = 2, score = 2 });
+            matches.Add(new MatchScore() { PieceIndex1 = 2, EdgeIndex1 = 2, PieceIndex2 = 3, EdgeIndex2 = 0, score = 3 });
+            matches.Add(new MatchScore() { PieceIndex1 = 0, EdgeIndex1 = 1, PieceIndex2 = 3, EdgeIndex2 = 3, score = 4 });*/
+
+/*#warning Only for AngryBirds/ScannerOpen/Test2.png !!!
+
+            //#1_2 - #2_1, score 1
+            //#0_0 - #1_3, score 2
+            //#2_0 - #3_3, score 3
+            //#0_1 - #3_2, score 4
+
+            //#0 = 2
+            //#1 = 1
+            //#2 = 7
+            //#3 = 8 
+
+            matches.Add(new MatchScore() { PieceIndex1 = 1, EdgeIndex1 = 2, PieceIndex2 = 2, EdgeIndex2 = 1, score = 1 });
+            matches.Add(new MatchScore() { PieceIndex1 = 0, EdgeIndex1 = 0, PieceIndex2 = 1, EdgeIndex2 = 3, score = 2 });
+            matches.Add(new MatchScore() { PieceIndex1 = 2, EdgeIndex1 = 0, PieceIndex2 = 3, EdgeIndex2 = 3, score = 3 });
+            matches.Add(new MatchScore() { PieceIndex1 = 0, EdgeIndex1 = 1, PieceIndex2 = 3, EdgeIndex2 = 2, score = 4 });*/
+
+            matches = matches.Where(m => m.score < 100000000).ToList();
             matches.Sort(new MatchScoreComparer(ScoreOrders.LOWEST_FIRST));
+
+            foreach(MatchScore matchScore in matches)
+            {
+                ProcessedImagesStorage.AddImage("MatchScore " + pieces[matchScore.PieceIndex1].PieceID + "_Edge" + (matchScore.EdgeIndex1).ToString() + " <-->" + pieces[matchScore.PieceIndex2].PieceID + "_Edge" + (matchScore.EdgeIndex2).ToString() + " = " + matchScore.score.ToString(), Utils.Combine2ImagesHorizontal(pieces[matchScore.PieceIndex1].Edges[matchScore.EdgeIndex1].ContourImg, pieces[matchScore.PieceIndex2].Edges[matchScore.EdgeIndex2].ContourImg, 20).ToBitmap());
+            }
         }
 
         //##############################################################################################################################################################################################
 
         public void solve()
         {
-#warning Test!!!
-
             fill_costs();
 
             PuzzleDisjointSet p = new PuzzleDisjointSet(pieces.Count);
             
-            //You can save the individual pieces with their id numbers in the file name
-            //If the following loop is uncommented.
-            //    for(int i=0; i<pieces.size(); i++){
-            //        std::stringstream filename;
-            //        filename << "/tmp/final/p" << i << ".png";
-            //        cv::imwrite(filename.str(), pieces[i].full_color);
-            //    }
-
-            //int output_id = 0;
             for(int i = 0; i < matches.Count; i++)
             {
                 if(p.InOneSet()) { break; }
 
-                int p1 = matches[i].PieceIndex1;    //edgeIndex1 / 4;
-                int e1 = matches[i].EdgeIndex1;     //edgeIndex1 % 4;
-                int p2 = matches[i].PieceIndex2;    //edgeIndex2 / 4;
-                int e2 = matches[i].EdgeIndex2;     //edgeIndex2 % 4;
+                int p1 = matches[i].PieceIndex1;
+                int e1 = matches[i].EdgeIndex1;
+                int p2 = matches[i].PieceIndex2;
+                int e2 = matches[i].EdgeIndex2;
 
-                //Uncomment the following lines to spit out pictures of the matched edges...
-                //        cv::Mat m = cv::Mat::zeros(500,500,CV_8UC1);
-                //        std::stringstream out_file_name;
-                //        out_file_name << "/tmp/final/match" << output_id++ << "_" << p1<< "_" << e1 << "_" <<p2 << "_" <<e2 << ".png";
-                //        std::vector<std::vector<cv::Point> > contours;
-                //        contours.push_back(pieces[p1].edges[e1].get_translated_contour(200, 0));
-                //        contours.push_back(pieces[p2].edges[e2].get_translated_contour_reverse(200, 0));
-                //        cv::drawContours(m, contours, -1, cv::Scalar(255));
-                //        std::cout << out_file_name.str() << std::endl;
-                //        cv::imwrite(out_file_name.str(), m);
-                //        std::cout << "Attempting to merge: " << p1 << " with: " << p2 << " using edges:" << e1 << ", " << e2 << " c:" << i->score << " count: "  << output_id++ <<std::endl;
                 p.JoinSets(p1, p2, e1, e2);
-                i++;
             }
             
             if (p.InOneSet())
             {
-                System.Windows.MessageBox.Show("Possible solution found.");
+                System.Windows.MessageBox.Show("Possible solution found (all in one set).");
                 solved = true;
                 solution = p.Get(p.Find(1)).locations;
                 solution_rotations = p.Get(p.Find(1)).rotations;
@@ -303,39 +321,83 @@ namespace JigsawPuzzleSolver
                     for (int j = 0; j < solution.Size.Height; j++)
                     {
                         int piece_number = solution[j, i];
+                        if(piece_number < 0 || piece_number >= pieces.Count) { continue; }
                         pieces[piece_number].Rotate(4 - solution_rotations[j, i]);
                     }
+                }
+                GenerateSolutionImage2(solution, 1);
+            }
+            else
+            {
+                System.Windows.MessageBox.Show("Possible solution found (multiple sets).");
+                solved = true;
+                int setNo = 0;
+                foreach (Forest jointSet in p.GetJointSets())
+                {
+                    solution = jointSet.locations;
+                    solution_rotations = jointSet.rotations;
+
+                    for (int i = 0; i < solution.Size.Width; i++)
+                    {
+                        for (int j = 0; j < solution.Size.Height; j++)
+                        {
+                            int piece_number = solution[j, i];
+                            pieces[piece_number].Rotate(4 - solution_rotations[j, i]);
+                        }
+                    }
+                    GenerateSolutionImage2(solution, setNo);
+                    setNo++;
                 }
             }
         }
 
         //**********************************************************************************************************************************************************************************************
 
-        public void GenerateSolutionImage()
+        #region Generate Solution Image
+
+        private void GenerateSolutionImage(Matrix<int> solutionLocations, int solutionID)
         {
             if (!solved) { solve(); }
 
-            // Use get affine to map points...
-            int out_image_size = 1000; //6000;
-            Image<Rgb, byte> final_out_image = new Image<Rgb, byte>(out_image_size, out_image_size);
             int border = 10;
+            float out_image_width = 0, out_image_height = 0;
 
-            PointF[,] points = new PointF[solution.Size.Width + 1, solution.Size.Height +1];
+            for (int i = 0; i < solutionLocations.Size.Width; i++)           // Calculate output image size
+            {
+                for (int j = 0; j < solutionLocations.Size.Height; j++)
+                {
+                    int piece_number = solutionLocations[j, i];
+                    if (piece_number == -1) { continue; }
+
+                    float piece_size_x = (float)Utils.Distance(pieces[piece_number].GetCorner(0), pieces[piece_number].GetCorner(3));
+                    float piece_size_y = (float)Utils.Distance(pieces[piece_number].GetCorner(0), pieces[piece_number].GetCorner(1));
+
+                    out_image_width += piece_size_x;
+                    out_image_height += piece_size_y;
+                }
+            }
+            out_image_width = (out_image_width / solutionLocations.Size.Height) * 1.5f + border;
+            out_image_height = (out_image_height / solutionLocations.Size.Width) * 1.5f + border;
+            
+            // Use get affine to map points...
+            Image<Rgb, byte> final_out_image = new Image<Rgb, byte>((int)out_image_width, (int)out_image_height);
+            
+            PointF[,] points = new PointF[solutionLocations.Size.Width + 1, solutionLocations.Size.Height +1];
             bool failed = false;
             
-            for (int i = 0; i < solution.Size.Width; i++)
+            for (int i = 0; i < solutionLocations.Size.Width; i++)
             {
-                for (int j = 0; j < solution.Size.Height; j++)
+                for (int j = 0; j < solutionLocations.Size.Height; j++)
                 {
-                    int piece_number = solution[j, i];
+                    int piece_number = solutionLocations[j, i];
 
                     if (piece_number == -1)
                     {
                         failed = true;
                         break;
                     }
-                    float x_dist = (float)Utils.Distance(pieces[piece_number].GetCorner(0), pieces[piece_number].GetCorner(3));
-                    float y_dist = (float)Utils.Distance(pieces[piece_number].GetCorner(0), pieces[piece_number].GetCorner(1));
+                    float piece_size_x = (float)Utils.Distance(pieces[piece_number].GetCorner(0), pieces[piece_number].GetCorner(3));
+                    float piece_size_y = (float)Utils.Distance(pieces[piece_number].GetCorner(0), pieces[piece_number].GetCorner(1));
                     VectorOfPointF src = new VectorOfPointF();
                     VectorOfPointF dst = new VectorOfPointF();
 
@@ -345,11 +407,11 @@ namespace JigsawPuzzleSolver
                     }
                     if (i == 0)
                     {
-                        points[i, j + 1] = new PointF(border, points[i, j].Y + border + y_dist); //new PointF(points[i, j].X + border + x_dist, border);
+                        points[i, j + 1] = new PointF(border, points[i, j].Y + border + piece_size_y); //new PointF(points[i, j].X + border + x_dist, border);
                     }
                     if (j == 0)
                     {
-                        points[i + 1, j] = new PointF(points[i, j].X + border + x_dist, border); //new PointF(border, points[i, j].Y + border + y_dist);
+                        points[i + 1, j] = new PointF(points[i, j].X + border + piece_size_x, border); //new PointF(border, points[i, j].Y + border + y_dist);
                     }
 
                     dst.Push(points[i, j]);
@@ -375,10 +437,8 @@ namespace JigsawPuzzleSolver
                     Mat layer = new Mat();
                     Mat layer_mask = new Mat();
 
-                    int layer_size = out_image_size;
-
-                    CvInvoke.WarpAffine(pieces[piece_number].Full_color, layer, a_trans_mat, new Size(layer_size, layer_size), Inter.Linear, Warp.Default, BorderType.Transparent);
-                    CvInvoke.WarpAffine(pieces[piece_number].Bw, layer_mask, a_trans_mat, new Size(layer_size, layer_size), Inter.Nearest, Warp.Default, BorderType.Transparent);
+                    CvInvoke.WarpAffine(pieces[piece_number].Full_color, layer, a_trans_mat, new Size((int)out_image_width, (int)out_image_height), Inter.Linear, Warp.Default, BorderType.Transparent);
+                    CvInvoke.WarpAffine(pieces[piece_number].Bw, layer_mask, a_trans_mat, new Size((int)out_image_width, (int)out_image_height), Inter.Nearest, Warp.Default, BorderType.Transparent);
 
                     layer.CopyTo(final_out_image, layer_mask);
                 }
@@ -390,8 +450,50 @@ namespace JigsawPuzzleSolver
                 }
             }
 
-            ProcessedImagesStorage.AddImage("Solution", final_out_image.Clone().Bitmap);
+            ProcessedImagesStorage.AddImage("Solution #" + solutionID.ToString(), final_out_image.Clone().Bitmap);
         }
-        
+
+        //**********************************************************************************************************************************************************************************************
+
+        private void GenerateSolutionImage2(Matrix<int> solutionLocations, int solutionID)
+        {
+            if (!solved) { solve(); }
+            
+            int out_image_width = 0, out_image_height = 0;
+            int max_piece_width = 0, max_piece_height = 0;
+
+            for (int i = 0; i < solutionLocations.Size.Width; i++)           // Calculate output image size
+            {
+                for (int j = 0; j < solutionLocations.Size.Height; j++)
+                {
+                    int piece_number = solutionLocations[j, i];
+                    if (piece_number == -1) { continue; }
+
+                    max_piece_width = Math.Max(max_piece_width, pieces[piece_number].Full_color.Width);
+                    max_piece_height = Math.Max(max_piece_height, pieces[piece_number].Full_color.Height);
+                }
+            }
+            out_image_width = max_piece_width * solutionLocations.Size.Width;
+            out_image_height = max_piece_height * solutionLocations.Size.Height;
+
+            Bitmap outImg = new Bitmap(out_image_width, out_image_height);
+            Graphics g = Graphics.FromImage(outImg);
+
+            for (int i = 0; i < solutionLocations.Size.Width; i++)
+            {
+                for (int j = 0; j < solutionLocations.Size.Height; j++)
+                {
+                    int piece_number = solutionLocations[j, i];
+                    if (piece_number == -1) { continue; }
+
+                    g.DrawImage(pieces[piece_number].Full_color.Bitmap, i * max_piece_width, j * max_piece_height);
+                }
+            }
+
+            ProcessedImagesStorage.AddImage("Solution #" + solutionID.ToString(), outImg);
+        }
+
+        #endregion
+
     }
 }

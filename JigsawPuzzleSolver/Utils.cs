@@ -440,6 +440,9 @@ namespace JigsawPuzzleSolver
         /// see: https://stackoverflow.com/questions/29488507/add-two-sub-images-into-one-new-image-using-emgu-cv
         public static Image<Rgb, byte> Combine2ImagesHorizontal(Image<Rgb, byte> image1, Image<Rgb, byte> image2, int spacing)
         {
+            if (image1 == null) { image1 = new Image<Rgb, byte>(1, 1); }
+            if (image2 == null) { image2 = new Image<Rgb, byte>(1, 1); }
+
             int ImageWidth = image1.Width + image2.Width + spacing;
             int ImageHeight = Math.Max(image1.Height, image2.Height);
 
@@ -451,6 +454,57 @@ namespace JigsawPuzzleSolver
             }
 
             return new Image<Rgb, byte>(combinedBitmap);
+        }
+
+        //**********************************************************************************************************************************************************************************************
+
+        public static Mat RotateMat(Mat src, int angle)
+        {
+            if (angle % 90 != 0) { return src; }
+            ProcessedImagesStorage.AddImage("src", src.Bitmap);
+
+            System.Drawing.Size rotatedSize;
+            if (Math.Abs(angle) == 90 || angle == 270) { rotatedSize = new System.Drawing.Size(src.Cols, src.Rows); }
+            else { rotatedSize = new System.Drawing.Size(src.Rows, src.Cols); }
+
+            Mat rotated = new Mat(rotatedSize.Width, rotatedSize.Height, DepthType.Cv8U, 1);
+
+            switch (angle)
+            {
+                case 0: rotated = src.Clone(); break;
+                case 90: CvInvoke.Rotate(src, rotated, RotateFlags.Rotate90CounterClockwise); break;
+                case 180: CvInvoke.Rotate(src, rotated, RotateFlags.Rotate180); break;
+                case 270:
+                case -90: CvInvoke.Rotate(src, rotated, RotateFlags.Rotate90Clockwise); break;
+            }
+
+            ProcessedImagesStorage.AddImage("rotated " + angle.ToString(), rotated.Bitmap);
+            return rotated;
+        }
+
+        //**********************************************************************************************************************************************************************************************
+
+        /// <summary>
+        /// Rotate the given matrix counter clockwise
+        /// </summary>
+        /// <param name="oldMatrix">Matrix to rotate</param>
+        /// <returns>oldMatrix rotated counter clockwise</returns>
+        /// see: https://stackoverflow.com/questions/18034805/rotate-mn-matrix-90-degrees
+        public static Matrix<int> RotateMatrixCounterClockwise(Matrix<int> oldMatrix)
+        {
+            Matrix<int> newMatrix = new Matrix<int>(oldMatrix.Cols, oldMatrix.Rows);
+            int newColumn, newRow = 0;
+            for (int oldColumn = oldMatrix.Cols - 1; oldColumn >= 0; oldColumn--)
+            {
+                newColumn = 0;
+                for (int oldRow = 0; oldRow < oldMatrix.Rows; oldRow++)
+                {
+                    newMatrix[newRow, newColumn] = oldMatrix[oldRow, oldColumn];
+                    newColumn++;
+                }
+                newRow++;
+            }
+            return newMatrix;
         }
 
         #endregion

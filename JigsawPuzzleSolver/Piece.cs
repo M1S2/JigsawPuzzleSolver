@@ -465,6 +465,7 @@ namespace JigsawPuzzleSolver
 
         public PointF GetCorner(int id)
         {
+            if(corners.Size == 0) { return new PointF(0, 0); }
             return corners[id];
         }
 
@@ -477,13 +478,15 @@ namespace JigsawPuzzleSolver
         /// <param name="times">Number of times to rotate</param>
         public void Rotate(int times)
         {
-#warning Test !!!
             int times_to_rotate = times % 4;
             Edges.Rotate(times_to_rotate);
 
             Point[] cornersArray = corners.ToArray();
             cornersArray.Rotate(times_to_rotate);
-            corners = new VectorOfPoint(cornersArray);   
+            corners = new VectorOfPoint(cornersArray);
+
+            Full_color = Full_color.Rotate(times_to_rotate * 90, new Rgb(Color.Transparent), false);
+            Bw = Bw.Rotate(times_to_rotate * 90, new Gray(0), false);
         }
 
     }

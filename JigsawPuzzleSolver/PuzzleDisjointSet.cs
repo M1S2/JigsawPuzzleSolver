@@ -18,14 +18,15 @@ namespace JigsawPuzzleSolver
     /// see: https://github.com/jzeimen/PuzzleSolver/blob/master/PuzzleSolver/PuzzleDisjointSet.cpp
     public class PuzzleDisjointSet
     {
-        private int set_count;          //A count of how many sets are left.
+        public int SetCount { get; set; }          //A count of how many sets are left.
+
         private List<Forest> sets = new List<Forest>();
 
         //##############################################################################################################################################################################################
 
         public PuzzleDisjointSet(int number)
         {
-            set_count = 0;
+            SetCount = 0;
             for (int i = 0; i < number; i++)
             {
                 make_set(i);
@@ -37,32 +38,13 @@ namespace JigsawPuzzleSolver
         private void rotate_ccw(int id, int times)
         {
             int direction = times % 4;
-            switch (direction)
+
+            for (int i = 0; i < direction; i++)
             {
-                case 0:         //Don't rotate
-                    return;
-                case 1:         //Rotate ccw 90 degrees
-                    CvInvoke.Flip(sets[id].locations, sets[id].locations, FlipType.Horizontal); //flip around y axis
-                    CvInvoke.Transpose(sets[id].locations, sets[id].locations);
-                    CvInvoke.Flip(sets[id].rotations, sets[id].rotations, FlipType.Horizontal);
-                    CvInvoke.Transpose(sets[id].rotations, sets[id].rotations);
-                    sets[id].rotations += 1;
-                    break;
-                case 2:         //rotate 180
-                    CvInvoke.Flip(sets[id].locations, sets[id].locations, FlipType.Horizontal); //flip around both axises
-                    CvInvoke.Flip(sets[id].rotations, sets[id].rotations, FlipType.Vertical); //flip around both axises
-                    sets[id].rotations += 2;
-                    break;
-                case 3:         //rotate cw 90 degrees
-                    CvInvoke.Transpose(sets[id].locations, sets[id].locations);
-                    CvInvoke.Flip(sets[id].locations, sets[id].locations, FlipType.Horizontal); //flip around y axis
-                    CvInvoke.Transpose(sets[id].rotations, sets[id].rotations);
-                    CvInvoke.Flip(sets[id].rotations, sets[id].rotations, FlipType.Horizontal);
-                    sets[id].rotations += 3;
-                    break;
-                default:        //Should never get here!!!
-                    return;
+                sets[id].locations = Utils.RotateMatrixCounterClockwise(sets[id].locations);
+                sets[id].rotations = Utils.RotateMatrixCounterClockwise(sets[id].rotations);
             }
+            sets[id].rotations += direction;
 
             //If there is no piece at the location, the rotation needs to be set back to zero
             for (int i = 0; i < sets[id].locations.Size.Width; i++)
@@ -74,7 +56,6 @@ namespace JigsawPuzzleSolver
             }
 
             //basically rotations%4 (opencv does not have an operator to do this). Luckly the last 2 bits are all that is needed
-#warning Test!!!
             CvInvoke.BitwiseAnd(sets[id].rotations, new ScalarArray(3), sets[id].rotations);
             return;
         }
@@ -91,7 +72,7 @@ namespace JigsawPuzzleSolver
             f.rotations = new Matrix<int>(1, 1);
             f.rotations.SetValue(0);
             sets.Add(f);
-            set_count++;
+            SetCount++;
         }
 
         //**********************************************************************************************************************************************************************************************
@@ -169,7 +150,7 @@ namespace JigsawPuzzleSolver
                     //If both have a real value for a piece, it becomes impossible, reject
                     if (new_a_locs[i, j] != -1 && new_b_locs[i, j] != -1)
                     {
-                        System.Windows.MessageBox.Show("Failed to merge because of overlap.");
+                        //System.Windows.MessageBox.Show("Failed to merge because of overlap.");
                         return false;
                     }
 
@@ -184,9 +165,9 @@ namespace JigsawPuzzleSolver
             //Set the new representative a, to have this Mat
             sets[rep_a].locations = new_a_locs;
             sets[rep_a].rotations = new_a_rots;
-            
+
             //Updating the number of sets left
-            set_count--;
+            SetCount--;
 
             //Representative is the same idea as a disjoint set datastructure
             sets[rep_b].representative = rep_a;
@@ -216,7 +197,7 @@ namespace JigsawPuzzleSolver
 
         public bool InOneSet()
         {
-            return (1 == set_count);
+            return (1 == SetCount);
         }
 
         //**********************************************************************************************************************************************************************************************
@@ -224,6 +205,13 @@ namespace JigsawPuzzleSolver
         public Forest Get(int id)
         {
             return sets[id];
+        }
+
+        //**********************************************************************************************************************************************************************************************
+
+        public List<Forest> GetJointSets()
+        {
+            return sets.Where(s => s.representative == -1).ToList();
         }
     }
 }

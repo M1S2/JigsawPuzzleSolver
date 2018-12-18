@@ -30,7 +30,7 @@ namespace JigsawPuzzleSolver
         public static void AddImage(string description, Bitmap image)
         {
             if(ImageList.ContainsKey(description)) { return; }
-            ImageList.Add(description, image);
+            ImageList.Add(description, (Bitmap)image.Clone());
             ImageDescriptions.Add(description);
         }
 
@@ -43,6 +43,15 @@ namespace JigsawPuzzleSolver
         {
             if(!ImageList.ContainsKey(description)) { return null; }
             return ImageList[description];
+        }
+
+        /// <summary>
+        /// Clear all images in the dictionary
+        /// </summary>
+        public static void ClearAllImages()
+        {
+            ImageList.Clear();
+            ImageDescriptions.Clear();
         }
 
     }

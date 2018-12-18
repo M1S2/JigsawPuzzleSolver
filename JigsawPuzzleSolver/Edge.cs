@@ -172,9 +172,24 @@ namespace JigsawPuzzleSolver
             //Return large numbers if we know that these shapes simply wont match...
             if (PieceID == edge2.PieceID) { return 300000000; }
             if (EdgeType == EdgeTypes.LINE || edge2.EdgeType == EdgeTypes.LINE) { return 200000000; }
-            if (EdgeType == edge2.EdgeType) { return 100000000; }
+            if (EdgeType == edge2.EdgeType) { return 150000000; }
+            if (normalized_contour.Size == 0 || edge2.reverse_normalized_contour.Size == 0) { return 100000000; }
 
-            return CvInvoke.MatchShapes(contour, edge2.contour, ContoursMatchType.I2, 0);
+            double distEndpoints1 = Utils.Distance(normalized_contour[0], normalized_contour[normalized_contour.Size - 1]);
+            double distEndpoints2 = Utils.Distance(edge2.reverse_normalized_contour[0], edge2.reverse_normalized_contour[edge2.reverse_normalized_contour.Size - 1]);
+            //double distEndpointRatio = (distEndpoints1 > distEndpoints2) ? (distEndpoints1 / distEndpoints2) : (distEndpoints2 / distEndpoints1);
+            double distEndpointDiff = Math.Abs(distEndpoints1 - distEndpoints2);
+            if (distEndpointDiff <= 3) { distEndpointDiff = 0; }
+
+            double matchShapesResultI1 = CvInvoke.MatchShapes(normalized_contour, edge2.reverse_normalized_contour, ContoursMatchType.I1, 0);
+            double matchShapesResultI2 = CvInvoke.MatchShapes(normalized_contour, edge2.reverse_normalized_contour, ContoursMatchType.I2, 0);
+            double matchShapesResultI3 = CvInvoke.MatchShapes(normalized_contour, edge2.reverse_normalized_contour, ContoursMatchType.I3, 0);
+
+            double meanMatchResult = (matchShapesResultI1 + matchShapesResultI2 + matchShapesResultI3) / 3;
+
+            ProcessedImagesStorage.AddImage("Compare " + PieceID + "_Edge" + EdgeNumber + " <-->" + edge2.PieceID + "_Edge" + edge2.EdgeNumber + " ==> distEndpoint = " + distEndpointDiff.ToString() + ", I1 = " + matchShapesResultI1 + ", I2 = " + matchShapesResultI2 + ", I3 = " + matchShapesResultI3 + ", Mean = " + meanMatchResult, Utils.Combine2ImagesHorizontal(ContourImg, edge2.ContourImg, 20).ToBitmap());
+
+            return distEndpointDiff + meanMatchResult; //3 * matchShapesResultI2;
         }
 
         //**********************************************************************************************************************************************************************************************
@@ -190,10 +205,11 @@ namespace JigsawPuzzleSolver
             //Return large number if an impossible situation is happening
             if (PieceID == edge2.PieceID) { return 300000000; }
             if (EdgeType == EdgeTypes.LINE || edge2.EdgeType == EdgeTypes.LINE) { return 200000000; }
-            if (EdgeType == edge2.EdgeType) { return 100000000; }
+            if (EdgeType == edge2.EdgeType) { return 150000000; }
+            if(normalized_contour.Size == 0 || edge2.reverse_normalized_contour.Size == 0) { return 100000000; }
             double cost = 0;
             double total_length = CvInvoke.ArcLength(normalized_contour, false) + CvInvoke.ArcLength(edge2.reverse_normalized_contour, false);
-
+            
             for(int i = 0; i < normalized_contour.Size; i++)
             {
                 double min = 10000000;
@@ -204,7 +220,13 @@ namespace JigsawPuzzleSolver
                 }
                 cost += min;
             }
-            return cost / total_length;
+            
+            double distEndpoints1 = Utils.Distance(normalized_contour[0], normalized_contour[normalized_contour.Size - 1]);
+            double distEndpoints2 = Utils.Distance(edge2.reverse_normalized_contour[0], edge2.reverse_normalized_contour[edge2.reverse_normalized_contour.Size - 1]);
+            double distEndpointDiff = Math.Abs(distEndpoints1 - distEndpoints2);
+            if(distEndpointDiff <= 3) { distEndpointDiff = 0; }
+
+            return distEndpointDiff + 3 * (cost / total_length);
         }
 
     }
