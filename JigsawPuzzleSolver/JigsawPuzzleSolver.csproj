@@ -88,6 +88,9 @@
     <Compile Include="Forest.cs" />
     <Compile Include="Structures\MatchScore.cs" />
     <Compile Include="Utils.cs" />
+    <Compile Include="GUI Elements\ZoomBorder.xaml.cs">
+      <DependentUpon>ZoomBorder.xaml</DependentUpon>
+    </Compile>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -100,6 +103,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="GUI Elements\ZoomBorder.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">

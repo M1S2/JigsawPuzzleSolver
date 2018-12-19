@@ -26,12 +26,28 @@ namespace JigsawPuzzleSolver
     /// </summary>
     public partial class MainWindow : Window
     {
+        public static readonly DependencyProperty ProcessedImgSourceProperty = DependencyProperty.Register("ProcessedImgSource", typeof(ImageSource), typeof(MainWindow), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+
+        /// <summary>
+        /// Processed Image source property
+        /// </summary>
+        public ImageSource ProcessedImgSource
+        {
+            get { return (ImageSource)GetValue(ProcessedImgSourceProperty); }
+            set { SetValue(ProcessedImgSourceProperty, value); }
+        }
+
+        //##############################################################################################################################################################################################
+
         public MainWindow()
         {
             InitializeComponent();
             list_imageDescriptions.ItemsSource = ProcessedImagesStorage.ImageDescriptions;
+            this.DataContext = this;
         }
-        
+
+        //##############################################################################################################################################################################################
+
         Puzzle puzzle;
         
         private void btn_init_puzzle_Click(object sender, RoutedEventArgs e)
@@ -52,7 +68,7 @@ namespace JigsawPuzzleSolver
         private void list_imageDescriptions_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if(list_imageDescriptions.SelectedItem == null) { return; }
-            img_Processed.Source = Utils.BitmapToImageSource(ProcessedImagesStorage.GetImage(list_imageDescriptions.SelectedItem.ToString()));
+            ProcessedImgSource = Utils.BitmapToImageSource(ProcessedImagesStorage.GetImage(list_imageDescriptions.SelectedItem.ToString()));
         }
     }
 }

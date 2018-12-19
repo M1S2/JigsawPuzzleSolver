@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:JigsawPuzzleSolver"
+        xmlns:gui="clr-namespace:GUIElements"
         mc:Ignorable="d"
         Title="Puzzle Solver" Height="700" Width="800">
     <Grid>
@@ -15,8 +16,12 @@
 
         <Button x:Name="btn_init_puzzle" Grid.Row="0" Content="Init Puzzle" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="10,10,0,0" Click="btn_init_puzzle_Click"/>
         <Button x:Name="btn_solve_puzzle" Grid.Row="0" Content="Solve Puzzle" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="90,10,0,0" Click="btn_solve_puzzle_Click"/>
-        <Image x:Name="img_Processed" Grid.Row="2" Margin="5"/>
+        <!-- <Image x:Name="img_Processed" Grid.Row="2" Margin="5"/> -->
         <ListBox x:Name="list_imageDescriptions" Margin="5" Grid.Row="1" SelectionChanged="list_imageDescriptions_SelectionChanged"/>
+        <gui:ZoomBorder Grid.Row="2" BorderBrush="Black" BorderThickness="1" ClipToBounds="True" Margin="5" >
+            <Image Source="{Binding Path=ProcessedImgSource}"/>
+        </gui:ZoomBorder>
+        
 
     </Grid>
 </Window>
