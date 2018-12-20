@@ -239,49 +239,14 @@ namespace JigsawPuzzleSolver
                     matchScore.PieceIndex2 = j / 4;
                     matchScore.EdgeIndex1 = i % 4;
                     matchScore.EdgeIndex2 = j % 4;
-                    matchScore.score = pieces[matchScore.PieceIndex1].Edges[matchScore.EdgeIndex1].Compare(pieces[matchScore.PieceIndex2].Edges[matchScore.EdgeIndex2]);
+                    matchScore.score = pieces[matchScore.PieceIndex1].Edges[matchScore.EdgeIndex1].Compare2(pieces[matchScore.PieceIndex2].Edges[matchScore.EdgeIndex2]);
 
                     matches.Add(matchScore);
                 }
             }
 
-            
-/*#warning Only for AngryBirds/ScannerOpen/Test1.png !!!
-            
-            //#1_1 - #2_3, score 1
-            //#0_0 - #1_2, score 2
-            //#2_2 - #3_0, score 3
-            //#0_1 - #3_3, score 4
-
-            //#0 = 2
-            //#1 = 1
-            //#2 = 7
-            //#3 = 8 
-
-            matches.Add(new MatchScore() { PieceIndex1 = 1, EdgeIndex1 = 1, PieceIndex2 = 2, EdgeIndex2 = 3, score = 1 });
-            matches.Add(new MatchScore() { PieceIndex1 = 0, EdgeIndex1 = 0, PieceIndex2 = 1, EdgeIndex2 = 2, score = 2 });
-            matches.Add(new MatchScore() { PieceIndex1 = 2, EdgeIndex1 = 2, PieceIndex2 = 3, EdgeIndex2 = 0, score = 3 });
-            matches.Add(new MatchScore() { PieceIndex1 = 0, EdgeIndex1 = 1, PieceIndex2 = 3, EdgeIndex2 = 3, score = 4 });*/
-
-/*#warning Only for AngryBirds/ScannerOpen/Test2.png !!!
-
-            //#1_2 - #2_1, score 1
-            //#0_0 - #1_3, score 2
-            //#2_0 - #3_3, score 3
-            //#0_1 - #3_2, score 4
-
-            //#0 = 2
-            //#1 = 1
-            //#2 = 7
-            //#3 = 8 
-
-            matches.Add(new MatchScore() { PieceIndex1 = 1, EdgeIndex1 = 2, PieceIndex2 = 2, EdgeIndex2 = 1, score = 1 });
-            matches.Add(new MatchScore() { PieceIndex1 = 0, EdgeIndex1 = 0, PieceIndex2 = 1, EdgeIndex2 = 3, score = 2 });
-            matches.Add(new MatchScore() { PieceIndex1 = 2, EdgeIndex1 = 0, PieceIndex2 = 3, EdgeIndex2 = 3, score = 3 });
-            matches.Add(new MatchScore() { PieceIndex1 = 0, EdgeIndex1 = 1, PieceIndex2 = 3, EdgeIndex2 = 2, score = 4 });*/
-
-            matches = matches.Where(m => m.score < 100000000).ToList();
-            matches.Sort(new MatchScoreComparer(ScoreOrders.LOWEST_FIRST));
+            matches = matches.Where(m => m.score < 100000000).ToList();     // Get only the matches that make sense (all scores above or equal 100000000 mean that the edges won't match)
+            matches.Sort(new MatchScoreComparer(ScoreOrders.LOWEST_FIRST)); // Sort the matches to get the best scores first. The puzzle is solved by the order of the MatchScores
 
             foreach(MatchScore matchScore in matches)
             {
@@ -325,7 +290,7 @@ namespace JigsawPuzzleSolver
                         pieces[piece_number].Rotate(4 - solution_rotations[j, i]);
                     }
                 }
-                GenerateSolutionImage2(solution, 1);
+                GenerateSolutionImage(solution, 1);
             }
             else
             {
@@ -345,7 +310,7 @@ namespace JigsawPuzzleSolver
                             pieces[piece_number].Rotate(4 - solution_rotations[j, i]);
                         }
                     }
-                    GenerateSolutionImage2(solution, setNo);
+                    GenerateSolutionImage(solution, setNo);
                     setNo++;
                 }
             }

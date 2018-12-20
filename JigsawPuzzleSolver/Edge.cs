@@ -160,8 +160,9 @@ namespace JigsawPuzzleSolver
             return Utils.TranslateContour(reverse_normalized_contour, offset_x, offset_y);
         }
 
-        //**********************************************************************************************************************************************************************************************
-        
+        //##############################################################################################################################################################################################
+
+        /*
         /// <summary>
         /// Trying OpenCV's match shapes, hasn't worked as well as Compare2 function.
         /// </summary>
@@ -187,46 +188,72 @@ namespace JigsawPuzzleSolver
 
             double meanMatchResult = (matchShapesResultI1 + matchShapesResultI2 + matchShapesResultI3) / 3;
 
-            ProcessedImagesStorage.AddImage("Compare " + PieceID + "_Edge" + EdgeNumber + " <-->" + edge2.PieceID + "_Edge" + edge2.EdgeNumber + " ==> distEndpoint = " + distEndpointDiff.ToString() + ", I1 = " + matchShapesResultI1 + ", I2 = " + matchShapesResultI2 + ", I3 = " + matchShapesResultI3 + ", Mean = " + meanMatchResult, Utils.Combine2ImagesHorizontal(ContourImg, edge2.ContourImg, 20).ToBitmap());
+            Image<Rgb, byte> contourOverlay = new Image<Rgb, byte>(500, 500);
+            VectorOfPoint contour1 = GetTranslatedContour(100, 0);
+            VectorOfPoint contour2 = edge2.GetTranslatedContourReverse(100, 0);
+            CvInvoke.DrawContours(contourOverlay, new VectorOfVectorOfPoint(contour1), -1, new MCvScalar(0, 255, 0), 2);
+            CvInvoke.DrawContours(contourOverlay, new VectorOfVectorOfPoint(contour2), -1, new MCvScalar(0, 0, 255), 2);
+
+            ProcessedImagesStorage.AddImage("Compare " + PieceID + "_Edge" + EdgeNumber + " <-->" + edge2.PieceID + "_Edge" + edge2.EdgeNumber + " ==> distEndpoint = " + distEndpointDiff.ToString() + ", I1 = " + matchShapesResultI1 + ", I2 = " + matchShapesResultI2 + ", I3 = " + matchShapesResultI3 + ", Mean = " + meanMatchResult, contourOverlay.Bitmap); //Utils.Combine2ImagesHorizontal(ContourImg, edge2.ContourImg, 20).ToBitmap());
 
             return distEndpointDiff + meanMatchResult; //3 * matchShapesResultI2;
         }
+        */
 
         //**********************************************************************************************************************************************************************************************
 
         /// <summary>
         /// This comparison iterates over every point in "this" contour, finds the closest point in "edge2" contour and sums those distances up.
-        /// The end result is the sum divided by length of the 2 contours
+        /// The end result is the sum divided by length of the 2 contours.
+        /// It also takes the difference of the distances of the contour endpoints into account.
         /// </summary>
         /// <param name="edge2">Edge to compare to this edge</param>
-        /// <returns>Similarity factor of edges</returns>
+        /// <returns>Similarity factor of edges. Special values are:
+        /// 300000000: Same piece
+        /// 200000000: At least one edge is a line edge
+        /// 150000000: The pieces have the same edge type
+        /// 100000000: One of the contour sizes is 0</returns>
         public double Compare2(Edge edge2)
         {
-            //Return large number if an impossible situation is happening
+            //Return large numbers if we know that these shapes simply wont match...
             if (PieceID == edge2.PieceID) { return 300000000; }
             if (EdgeType == EdgeTypes.LINE || edge2.EdgeType == EdgeTypes.LINE) { return 200000000; }
             if (EdgeType == edge2.EdgeType) { return 150000000; }
-            if(normalized_contour.Size == 0 || edge2.reverse_normalized_contour.Size == 0) { return 100000000; }
+            if (normalized_contour.Size == 0 || edge2.reverse_normalized_contour.Size == 0) { return 100000000; }
             double cost = 0;
             double total_length = CvInvoke.ArcLength(normalized_contour, false) + CvInvoke.ArcLength(edge2.reverse_normalized_contour, false);
-            
+
+            double windowSizePercent = 0.15;     // Not all points are taken into account to speed up the calculation. Therefore a window is defined by the percentage of total points in the longer contour
+            int windowSizePoints = (int)(Math.Max(normalized_contour.Size, edge2.reverse_normalized_contour.Size) * windowSizePercent); 
+
             for(int i = 0; i < normalized_contour.Size; i++)
             {
                 double min = 10000000;
-                for(int j = 0; j < reverse_normalized_contour.Size; j++)
+                for(int j = Math.Max(0, i - windowSizePoints); j < Math.Min(edge2.reverse_normalized_contour.Size, i + windowSizePoints); j++)
                 {
-                    double dist = Math.Sqrt(Math.Pow(normalized_contour[i].X - reverse_normalized_contour[j].X, 2) + Math.Pow(normalized_contour[i].Y - reverse_normalized_contour[j].Y, 2));
+                    double dist = Utils.Distance(normalized_contour[i], edge2.reverse_normalized_contour[j]);
                     if (dist < min) min = dist;
                 }
                 cost += min;
             }
+            double matchResult = cost / total_length;
             
             double distEndpoints1 = Utils.Distance(normalized_contour[0], normalized_contour[normalized_contour.Size - 1]);
             double distEndpoints2 = Utils.Distance(edge2.reverse_normalized_contour[0], edge2.reverse_normalized_contour[edge2.reverse_normalized_contour.Size - 1]);
             double distEndpointDiff = Math.Abs(distEndpoints1 - distEndpoints2);
             if(distEndpointDiff <= 3) { distEndpointDiff = 0; }
 
-            return distEndpointDiff + 3 * (cost / total_length);
+
+            Image<Rgb, byte> contourOverlay = new Image<Rgb, byte>(500, 500);
+            VectorOfPoint contour1 = GetTranslatedContour(100, 0);
+            VectorOfPoint contour2 = edge2.GetTranslatedContourReverse(100, 0);
+            CvInvoke.DrawContours(contourOverlay, new VectorOfVectorOfPoint(contour1), -1, new MCvScalar(0, 255, 0), 2);
+            CvInvoke.DrawContours(contourOverlay, new VectorOfVectorOfPoint(contour2), -1, new MCvScalar(0, 0, 255), 2);
+
+            ProcessedImagesStorage.AddImage("Compare " + PieceID + "_Edge" + EdgeNumber + " <-->" + edge2.PieceID + "_Edge" + edge2.EdgeNumber + " ==> distEndpoint = " + distEndpointDiff.ToString() + ", MatchResult = " + matchResult, contourOverlay.Bitmap);
+
+
+            return distEndpointDiff + matchResult;
         }
 
     }
