@@ -241,7 +241,7 @@ namespace JigsawPuzzleSolver
             double distEndpoints1 = Utils.Distance(normalized_contour[0], normalized_contour[normalized_contour.Size - 1]);
             double distEndpoints2 = Utils.Distance(edge2.reverse_normalized_contour[0], edge2.reverse_normalized_contour[edge2.reverse_normalized_contour.Size - 1]);
             double distEndpointDiff = Math.Abs(distEndpoints1 - distEndpoints2);
-            if(distEndpointDiff <= 3) { distEndpointDiff = 0; }
+            if(distEndpointDiff <= 15) { distEndpointDiff = 0; }
 
 
             Image<Rgb, byte> contourOverlay = new Image<Rgb, byte>(500, 500);
@@ -251,7 +251,7 @@ namespace JigsawPuzzleSolver
             CvInvoke.DrawContours(contourOverlay, new VectorOfVectorOfPoint(contour2), -1, new MCvScalar(0, 0, 255), 2);
 
             ProcessedImagesStorage.AddImage("Compare " + PieceID + "_Edge" + EdgeNumber + " <-->" + edge2.PieceID + "_Edge" + edge2.EdgeNumber + " ==> distEndpoint = " + distEndpointDiff.ToString() + ", MatchResult = " + matchResult, contourOverlay.Bitmap);
-
+            
 
             return distEndpointDiff + matchResult;
         }

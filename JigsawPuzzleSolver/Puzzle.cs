@@ -244,8 +244,8 @@ namespace JigsawPuzzleSolver
                     matches.Add(matchScore);
                 }
             }
-
-            matches = matches.Where(m => m.score < 100000000).ToList();     // Get only the matches that make sense (all scores above or equal 100000000 mean that the edges won't match)
+            
+            matches = matches.Where(m => m.score < 1.5).ToList();           // Get only the best matches (all scores above or equal 100000000 mean that the edges won't match)
             matches.Sort(new MatchScoreComparer(ScoreOrders.LOWEST_FIRST)); // Sort the matches to get the best scores first. The puzzle is solved by the order of the MatchScores
 
             foreach(MatchScore matchScore in matches)
@@ -256,7 +256,7 @@ namespace JigsawPuzzleSolver
 
         //##############################################################################################################################################################################################
 
-        public void solve()
+        public void Solve()
         {
             fill_costs();
 
@@ -274,45 +274,25 @@ namespace JigsawPuzzleSolver
                 p.JoinSets(p1, p2, e1, e2);
             }
             
-            if (p.InOneSet())
+            System.Windows.MessageBox.Show("Possible solution found " + (p.InOneSet() ? "(one set)." : "(multiple sets)."));
+            solved = true;
+            int setNo = 0;
+            foreach (Forest jointSet in p.GetJointSets())
             {
-                System.Windows.MessageBox.Show("Possible solution found (all in one set).");
-                solved = true;
-                solution = p.Get(p.Find(1)).locations;
-                solution_rotations = p.Get(p.Find(1)).rotations;
+                solution = jointSet.locations;
+                solution_rotations = jointSet.rotations;
 
                 for (int i = 0; i < solution.Size.Width; i++)
                 {
                     for (int j = 0; j < solution.Size.Height; j++)
                     {
                         int piece_number = solution[j, i];
-                        if(piece_number < 0 || piece_number >= pieces.Count) { continue; }
+                        if (piece_number == -1) { continue; }
                         pieces[piece_number].Rotate(4 - solution_rotations[j, i]);
                     }
                 }
-                GenerateSolutionImage(solution, 1);
-            }
-            else
-            {
-                System.Windows.MessageBox.Show("Possible solution found (multiple sets).");
-                solved = true;
-                int setNo = 0;
-                foreach (Forest jointSet in p.GetJointSets())
-                {
-                    solution = jointSet.locations;
-                    solution_rotations = jointSet.rotations;
-
-                    for (int i = 0; i < solution.Size.Width; i++)
-                    {
-                        for (int j = 0; j < solution.Size.Height; j++)
-                        {
-                            int piece_number = solution[j, i];
-                            pieces[piece_number].Rotate(4 - solution_rotations[j, i]);
-                        }
-                    }
-                    GenerateSolutionImage(solution, setNo);
-                    setNo++;
-                }
+                GenerateSolutionImage2(solution, setNo);
+                setNo++;
             }
         }
 
@@ -322,7 +302,7 @@ namespace JigsawPuzzleSolver
 
         private void GenerateSolutionImage(Matrix<int> solutionLocations, int solutionID)
         {
-            if (!solved) { solve(); }
+            if (!solved) { Solve(); }
 
             int border = 10;
             float out_image_width = 0, out_image_height = 0;
@@ -422,7 +402,7 @@ namespace JigsawPuzzleSolver
 
         private void GenerateSolutionImage2(Matrix<int> solutionLocations, int solutionID)
         {
-            if (!solved) { solve(); }
+            if (!solved) { Solve(); }
             
             int out_image_width = 0, out_image_height = 0;
             int max_piece_width = 0, max_piece_height = 0;

@@ -32,10 +32,10 @@ namespace JigsawPuzzleSolver
         //**********************************************************************************************************************************************************************************************
 
         /// <summary>
-        /// Euclidian distance between the point and the origin.
+        /// Euclidian distance between the point and the origin (0, 0).
         /// </summary>
         /// <param name="p1">Point 1</param>
-        /// <returns>Distance between Point 1 and origin</returns>
+        /// <returns>Distance between Point 1 and origin (0, 0)</returns>
         public static double DistanceToOrigin(PointF p1)
         {
             return CvInvoke.Norm(new VectorOfPointF(new PointF[1] { p1 }));
@@ -105,6 +105,62 @@ namespace JigsawPuzzleSolver
                 if (Math.Abs(divisor) > 10e-8)
                 {
                     curvature2D = Math.Abs(f2ndDerivative.Y * f1stDerivative.X - f2ndDerivative.X * f1stDerivative.Y) / Math.Pow(divisor, 3.0 / 2.0);
+                }
+                else
+                {
+                    curvature2D = double.PositiveInfinity;
+                }
+
+                listCurvature.Add(curvature2D);
+            }
+            return listCurvature;
+        }
+
+        //**********************************************************************************************************************************************************************************************
+
+        //see: https://math.stackexchange.com/questions/2507540/numerical-way-to-solve-for-the-curvature-of-a-curve
+        //see: https://answers.yahoo.com/question/index?qid=20081222054148AAP4kWt&guccounter=1
+        public static List<double> CalculateCurvature2(List<Point> contourPoints, int step)
+        {
+            List<double> listCurvature = new List<double>(contourPoints.Count);
+            if (contourPoints.Count < step) { return listCurvature; }
+
+            Point frontToBack = Point.Subtract(contourPoints.First(), new Size(contourPoints.Last()));
+            bool isClosed = ((int)Math.Max(Math.Abs(frontToBack.X), Math.Abs(frontToBack.Y))) <= 1;
+
+            Point pplus, pminus;
+            for (int i = 0; i < contourPoints.Count; i++)
+            {
+                Point pos = contourPoints[i];
+
+                int maxStep = step;
+                if (!isClosed)
+                {
+                    maxStep = Math.Min(Math.Min(step, i), (int)contourPoints.Count - 1 - i);
+                    if (maxStep == 0)
+                    {
+                        listCurvature.Add(double.PositiveInfinity);
+                        continue;
+                    }
+                }
+
+                int iminus = i - maxStep;
+                int iplus = i + maxStep;
+                pminus = contourPoints[iminus < 0 ? iminus + contourPoints.Count : iminus];
+                pplus = contourPoints[iplus >= contourPoints.Count ? iplus - contourPoints.Count : iplus];
+
+                Point M = new Point((pminus.X + pplus.X) / 2, (pminus.Y + pplus.Y) / 2);
+                double x = Distance(pminus, M);
+                double s = Distance(M, pos);
+                double localRadius;
+                double curvature2D;
+
+                if (s == 0) { localRadius = double.PositiveInfinity; }
+                else { localRadius = (Math.Pow(s, 2) + Math.Pow(x, 2)) / (2 * s); }
+                
+                if (Math.Abs(localRadius) > 10e-8)
+                {
+                    curvature2D = 1 / localRadius;
                 }
                 else
                 {

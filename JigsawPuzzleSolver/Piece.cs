@@ -108,17 +108,20 @@ namespace JigsawPuzzleSolver
         /// </summary>
         private void process()
         {
-            //find_corners_Curvature();
-            find_corners_GFTT();
+            //find_corners_GFTT();
+
+            find_corners_MaximumRectangle();
             
             extract_edges();
             classify();
         }
 
         //**********************************************************************************************************************************************************************************************
+        //**********************************************************************************************************************************************************************************************
+        //**********************************************************************************************************************************************************************************************
 
         #region find_corners functions
-            
+
         /// <summary>
         /// Find the 4 strongest corners.
         /// </summary>
@@ -192,6 +195,7 @@ namespace JigsawPuzzleSolver
         }
 
         //**********************************************************************************************************************************************************************************************
+        //**********************************************************************************************************************************************************************************************
 
         private void find_corners_ArcLen()
         {
@@ -208,7 +212,7 @@ namespace JigsawPuzzleSolver
 
             Image<Rgb, byte> color_clone = Full_color.Clone();
             Features2DToolbox.DrawKeypoints(color_clone, new VectorOfKeyPoint(keyPoints), color_clone, new Bgr(0, 0, 255));
-            ProcessedImagesStorage.AddImage(PieceID + " Fast detector", color_clone.Bitmap);
+            ProcessedImagesStorage.AddImage(PieceID + " GFTT detector", color_clone.Bitmap);
 
             List<Point> possibleCorners = keyPoints.Select(k => Point.Round(k.Point)).ToList();
             List<Point> possibleCornersSorted = new List<Point>(possibleCorners);
@@ -307,6 +311,115 @@ namespace JigsawPuzzleSolver
         }
 
         //**********************************************************************************************************************************************************************************************
+        //**********************************************************************************************************************************************************************************************
+
+        /// <summary>
+        /// Get the piece corners by finding the biggest rectangle of the contour points
+        /// </summary>
+        private void find_corners_MaximumRectangle()
+        {
+            corners.Clear();
+
+            double maxAngleDiff = 5;
+            double maxCornerDistRatio = 1.5;
+
+            // Find all dominant corner points using the GFTTDetector (this uses the Harris corner detector)
+            GFTTDetector detector = new GFTTDetector(1000, 0.01, 5, 6, true, 0.04);
+            MKeyPoint[] keyPoints = detector.Detect(Bw.Clone());
+            List<Point> possibleCorners = keyPoints.Select(k => Point.Round(k.Point)).ToList();
+
+            // Draw the dominant key points
+            Image<Rgb, byte> imgCorners = Full_color.Clone();
+            Features2DToolbox.DrawKeypoints(imgCorners, new VectorOfKeyPoint(keyPoints), imgCorners, new Bgr(0, 0, 255));
+            ProcessedImagesStorage.AddImage(PieceID + " Dominant Corners", imgCorners.Bitmap);
+
+            // Sort the dominant corners by the distance to upper left corner of the bounding rectangle (0, 0) and keep only the corners that are near enough to this point
+            List<Point> possibleCornersSortedUpperLeft = new List<Point>(possibleCorners);
+            possibleCornersSortedUpperLeft.Sort(new DistanceToPointComparer(new Point(0, 0), DistanceOrders.NEAREST_FIRST));
+            double minCornerDistUpperLeft = Utils.Distance(possibleCornersSortedUpperLeft[0], new PointF(0, 0));
+            possibleCornersSortedUpperLeft = possibleCornersSortedUpperLeft.Where(c => Utils.Distance(c, new PointF(0, 0)) < minCornerDistUpperLeft * maxCornerDistRatio).ToList();
+
+            // Sort the dominant corners by the distance to upper right corner of the bounding rectangle (ImageWidth, 0) and keep only the corners that are near enough to this point
+            List<Point> possibleCornersSortedUpperRight = new List<Point>(possibleCorners);
+            possibleCornersSortedUpperRight.Sort(new DistanceToPointComparer(new Point(Bw.Width, 0), DistanceOrders.NEAREST_FIRST));
+            double minCornerDistUpperRight = Utils.Distance(possibleCornersSortedUpperRight[0], new PointF(Bw.Width, 0));
+            possibleCornersSortedUpperRight = possibleCornersSortedUpperRight.Where(c => Utils.Distance(c, new PointF(Bw.Width, 0)) < minCornerDistUpperRight * maxCornerDistRatio).ToList();
+
+            // Sort the dominant corners by the distance to lower right corner of the bounding rectangle (ImageWidth, ImageHeight) and keep only the corners that are near enough to this point
+            List<Point> possibleCornersSortedLowerRight = new List<Point>(possibleCorners);
+            possibleCornersSortedLowerRight.Sort(new DistanceToPointComparer(new Point(Bw.Width, Bw.Height), DistanceOrders.NEAREST_FIRST));
+            double minCornerDistLowerRight = Utils.Distance(possibleCornersSortedLowerRight[0], new PointF(Bw.Width, Bw.Height));
+            possibleCornersSortedLowerRight = possibleCornersSortedLowerRight.Where(c => Utils.Distance(c, new PointF(Bw.Width, Bw.Height)) < minCornerDistLowerRight * maxCornerDistRatio).ToList();
+
+            // Sort the dominant corners by the distance to lower left corner of the bounding rectangle (0, ImageHeight) and keep only the corners that are near enough to this point
+            List<Point> possibleCornersSortedLowerLeft = new List<Point>(possibleCorners);
+            possibleCornersSortedLowerLeft.Sort(new DistanceToPointComparer(new Point(0, Bw.Height), DistanceOrders.NEAREST_FIRST));
+            double minCornerDistLowerLeft = Utils.Distance(possibleCornersSortedLowerLeft[0], new PointF(0, Bw.Height));
+            possibleCornersSortedLowerLeft = possibleCornersSortedLowerLeft.Where(c => Utils.Distance(c, new PointF(0, Bw.Height)) < minCornerDistLowerLeft * maxCornerDistRatio).ToList();
+
+            // Combine all possibleCorners from the four lists and discard all combination with too bad angle differences
+            List<FindCornerRectangleScore> scores = new List<FindCornerRectangleScore>();
+            for(int indexUpperLeft = 0; indexUpperLeft < possibleCornersSortedUpperLeft.Count; indexUpperLeft++)
+            {
+                for (int indexUpperRight = 0; indexUpperRight < possibleCornersSortedUpperRight.Count; indexUpperRight++)
+                {
+                    for (int indexLowerRight = 0; indexLowerRight < possibleCornersSortedLowerRight.Count; indexLowerRight++)
+                    {
+                        for (int indexLowerLeft = 0; indexLowerLeft < possibleCornersSortedLowerLeft.Count; indexLowerLeft++)
+                        {
+                            // Possible corner combination
+                            Point[] tmpCorners = new Point[]
+                            {
+                                possibleCornersSortedUpperLeft[indexUpperLeft],
+                                possibleCornersSortedUpperRight[indexUpperRight],
+                                possibleCornersSortedLowerRight[indexLowerRight],
+                                possibleCornersSortedLowerLeft[indexLowerLeft]
+                            };
+                            double angleDiff = RectangleDifferenceAngle(tmpCorners);
+                            if(angleDiff > maxAngleDiff) { continue; }
+                            
+                            double area = CvInvoke.ContourArea(new VectorOfPoint(tmpCorners));
+                            FindCornerRectangleScore score = new FindCornerRectangleScore() { AngleDiff = angleDiff, RectangleArea = area, PossibleCorners = tmpCorners };
+                            scores.Add(score);
+                        }
+                    }
+                }
+            }
+
+            // Order the scores by rectangle area (biggest first) and take the PossibleCorners of the biggest rectangle as corners
+            scores = scores.OrderByDescending(s => s.RectangleArea).ToList();
+            if (scores.Count > 0) { corners.Push(scores[0].PossibleCorners); }
+
+            if (corners.Size != 4)
+            {
+                System.Windows.MessageBox.Show("Failed to find correct number of corners: " + corners.Size + " found.");
+                return;
+            }
+
+            for (int i = 0; i < 4; i++) { CvInvoke.Circle(imgCorners, Point.Round(corners[i]), 4, new MCvScalar(0, 255, 0), 3); }
+            ProcessedImagesStorage.AddImage(PieceID + " Corners", imgCorners.Bitmap);
+        }
+
+        //**********************************************************************************************************************************************************************************************
+
+        /// <summary>
+        /// Get the sum of the differences of all 4 corner angles from 90 degree.
+        /// </summary>
+        /// <param name="points">List of 4 points that form rectangle (approximately)</param>
+        /// <returns>Sum of the differences of all 4 corner angles from 90 degree</returns>
+        private double RectangleDifferenceAngle(Point[] points)
+        {
+            double angle1 = System.Windows.Vector.AngleBetween(new System.Windows.Vector(points[1].X - points[0].X, points[1].Y - points[0].Y), new System.Windows.Vector(points[3].X - points[0].X, points[3].Y - points[0].Y));
+            double angle2 = System.Windows.Vector.AngleBetween(new System.Windows.Vector(points[2].X - points[1].X, points[2].Y - points[1].Y), new System.Windows.Vector(points[0].X - points[1].X, points[0].Y - points[1].Y));
+            double angle3 = System.Windows.Vector.AngleBetween(new System.Windows.Vector(points[3].X - points[2].X, points[3].Y - points[2].Y), new System.Windows.Vector(points[1].X - points[2].X, points[1].Y - points[2].Y));
+            double angle4 = System.Windows.Vector.AngleBetween(new System.Windows.Vector(points[0].X - points[3].X, points[0].Y - points[3].Y), new System.Windows.Vector(points[2].X - points[3].X, points[2].Y - points[3].Y));
+            double sum90DegreeDiff = Math.Abs(90 - angle1) + Math.Abs(90 - angle2) + Math.Abs(90 - angle3) + Math.Abs(90 - angle4);
+
+            return sum90DegreeDiff;
+        }
+
+        //**********************************************************************************************************************************************************************************************
+        //**********************************************************************************************************************************************************************************************
 
         private void find_corners_Curvature()
         {
@@ -314,22 +427,36 @@ namespace JigsawPuzzleSolver
             Image<Rgb, byte> color_clone = Full_color.Clone();
 
             VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint();
-            CvInvoke.FindContours(Bw.Clone(), contours, null, RetrType.List, ChainApproxMethod.ChainApproxNone); //ChainApproxMethod.ChainApproxSimple);
+            CvInvoke.FindContours(Bw.Clone(), contours, null, RetrType.List, ChainApproxMethod.ChainApproxSimple); //ChainApproxMethod.ChainApproxNone);
             VectorOfPoint contour = contours[0];
             List<Point> contourList = contour.ToArray().ToList();
 
-            CvInvoke.DrawContours(color_clone, contours, 0, new MCvScalar(0, 0, 255), 1);
+            //CvInvoke.DrawContours(color_clone, contours, 0, new MCvScalar(0, 0, 255), 1);
+            for(int i = 0; i < contour.Size; i++) { CvInvoke.Circle(color_clone, contour[i], 2, new MCvScalar(0, 0, 255), 1); }
             ProcessedImagesStorage.AddImage(PieceID + " Contour", color_clone.Bitmap);
 
             List<double> curvature = Utils.CalculateCurvature(contourList, 2);
 
+            List<double> curvatureDraw = new List<double>(curvature);
+            curvatureDraw = curvatureDraw.Select(c => (double.IsInfinity(c) ? 25 : c)).ToList();
+            Image<Rgb, byte> curvatureImg = new Image<Rgb, byte>(curvatureDraw.Count, 512);
+            VectorOfPoint curvatureContour = new VectorOfPoint();
+            double scale = 255 / Math.Max(Math.Abs(curvatureDraw.Max()), Math.Abs(curvatureDraw.Min()));
+            for (int i = 0; i < curvatureDraw.Count; i++)
+            {
+                curvatureContour.Push(new Point(i, (int)(scale * curvatureDraw[i] + 255)));
+            }
+            CvInvoke.DrawContours(curvatureImg, new VectorOfVectorOfPoint(curvatureContour), -1, new MCvScalar(0, 255, 0));
+            ProcessedImagesStorage.AddImage(PieceID + " Curvature Img", curvatureImg.Bitmap);
+
+
             Image<Rgb, byte> color_clone2 = Full_color.Clone();
             for (int i = 0; i < curvature.Count; i++)
             {
-                if (curvature[i] > 0.1) { CvInvoke.Circle(color_clone2, Point.Round(contour[i]), 4, new MCvScalar(0, 255, 0), 1); }
+                if (curvature[i] > 0.1) { CvInvoke.Circle(color_clone2, Point.Round(contour[i]), 4, new MCvScalar(0, 0, 255), 1); }
             }
 
-            List<double> curvatureSorted = new List<double>(curvature);
+            /*List<double> curvatureSorted = new List<double>(curvature);
             curvatureSorted.Sort();
             curvatureSorted.Reverse();
             int cntHighestCurvatures = 0;
@@ -339,8 +466,9 @@ namespace JigsawPuzzleSolver
                 else { CvInvoke.Circle(color_clone2, Point.Round(contour[curvature.IndexOf(curvatureSorted[i])]), 4, new MCvScalar(0, 0, 255), 1); cntHighestCurvatures++; }
 
                 if(cntHighestCurvatures == 4) { break; }
-            }
-            ProcessedImagesStorage.AddImage(PieceID + " Curvature", color_clone2.Bitmap);
+            }*/
+
+            ProcessedImagesStorage.AddImage(PieceID + " Curvature Points", color_clone2.Bitmap);
             
 
             if (corners.Size != 4)
@@ -355,6 +483,8 @@ namespace JigsawPuzzleSolver
 
         #endregion
 
+        //**********************************************************************************************************************************************************************************************
+        //**********************************************************************************************************************************************************************************************
         //**********************************************************************************************************************************************************************************************
 
         /// <summary>
