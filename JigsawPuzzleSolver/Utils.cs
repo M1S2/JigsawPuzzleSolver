@@ -577,15 +577,15 @@ namespace JigsawPuzzleSolver
         /// <param name="color_images">List of color images</param>
         /// <param name="threshold">Binarization threshold</param>
         /// <returns>List of bw images</returns>
-        public static List<Mat> ColorToBw(List<Mat> color_images, int threshold)
+        public static List<Image<Gray, byte>> ColorToBw(List<Image<Rgb, byte>> color_images, int threshold)
         {
-            List<Mat> black_and_white = new List<Mat>();
+            List<Image<Gray, byte>> black_and_white = new List<Image<Gray, byte>>();
             for (int i = 0; i < color_images.Count; i++)
             {
                 Mat bw = new Mat();
                 CvInvoke.CvtColor(color_images[i], bw, ColorConversion.Bgr2Gray);
                 CvInvoke.Threshold(bw, bw, threshold, 255, ThresholdType.Binary);
-                black_and_white.Add(bw);
+                black_and_white.Add(bw.ToImage<Gray, byte>());
 
                 ProcessedImagesStorage.AddImage("Image BlackWhite " + i.ToString(), bw.Clone().Bitmap);
             }

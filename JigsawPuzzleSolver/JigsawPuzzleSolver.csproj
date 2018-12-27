@@ -75,6 +75,7 @@
     <Compile Include="Edge.cs" />
     <Compile Include="Enumerations\EdgeTypes.cs" />
     <Compile Include="Enumerations\PieceTypes.cs" />
+    <Compile Include="PuzzleSolverParameters.cs" />
     <Compile Include="Structures\FindCornerRectangleScore.cs" />
     <Compile Include="MatchScoreComparer.cs" />
     <Compile Include="old files\Piece_old.cs" />
@@ -137,7 +138,6 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\EMGU.CV.3.4.3.3016\build\EMGU.CV.targets" Condition="Exists('..\packages\EMGU.CV.3.4.3.3016\build\EMGU.CV.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

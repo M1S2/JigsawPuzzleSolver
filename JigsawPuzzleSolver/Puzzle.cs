@@ -18,9 +18,11 @@ namespace JigsawPuzzleSolver
     /// see: https://github.com/jzeimen/PuzzleSolver/blob/master/PuzzleSolver/puzzle.cpp
     public class Puzzle
     {
-        private int threshold;
-        private bool solved;
-        private int piece_size;
+        public PuzzleSolverParameters SolverParameters { get; private set; }
+        
+        public bool Solved { get; private set; }
+
+        private string puzzlePiecesFolderPath;
 
         private List<MatchScore> matches = new List<MatchScore>();
         private List<Piece> pieces = new List<Piece>();
@@ -30,22 +32,22 @@ namespace JigsawPuzzleSolver
 
         //##############################################################################################################################################################################################
 
-        public Puzzle(string path, int estimated_piece_size, int thresh, bool filter = true)
+        public Puzzle(string piecesFolderPath, PuzzleSolverParameters solverParameters)
         {
-            threshold = thresh;
-            piece_size = estimated_piece_size;
-            extract_pieces2(path, filter);
-            solved = false;
-            print_edges();
+            puzzlePiecesFolderPath = piecesFolderPath;
+            SolverParameters = solverParameters;
+
+            extract_pieces2();
+            Solved = false;
+            //print_edges();
         }
 
         public Puzzle()
         { }
 
         //##############################################################################################################################################################################################
-
-#warning OBSOLETE
-        private void extract_pieces(string path, bool needs_filter)
+        /*
+        private void extract_pieces(string path, int piece_size, bool needs_filter, int threshold)
         {
             List<Image<Rgb, byte>> color_images_tmp = Utils.GetImagesFromDirectory(path);
             List<Mat> color_images = new List<Mat>();
@@ -55,11 +57,11 @@ namespace JigsawPuzzleSolver
             if (needs_filter)
             {
                 List<Mat> blured_images = Utils.MedianBlur(color_images.Select(x => x.ToImage<Rgb, byte>()).ToList(), 5).Select(x => x.Mat).ToList();
-                bw_images = Utils.ColorToBw(blured_images, threshold);
+                bw_images = Utils.ColorToBw(blured_images.Select(x => x.ToImage<Rgb, byte>()).ToList(), threshold).Select(x => x.Mat).ToList();
             }
             else
             {
-                bw_images = Utils.ColorToBw(color_images, threshold);
+                bw_images = Utils.ColorToBw(color_images.Select(x => x.ToImage<Rgb, byte>()).ToList(), threshold).Select(x => x.Mat).ToList();
                 Utils.Filter(bw_images, 2);
             }
 
@@ -97,53 +99,55 @@ namespace JigsawPuzzleSolver
                     mini_color = mini_color.Clone();        //Create a copy so it can't conflict.
                     mini_bw = mini_bw.Clone();
                     
-                    Piece p = new Piece(mini_color.ToImage<Rgb, byte>(), mini_bw.ToImage<Gray, byte>(), piece_size);
+                    Piece p = new Piece(mini_color.ToImage<Rgb, byte>(), mini_bw.ToImage<Gray, byte>(), SolverParameters);
                     pieces.Add(p);
                 }
             }
         }
-
+        */
         //**********************************************************************************************************************************************************************************************
 
         /// <summary>
         /// Extract all pieces from the source image. 
         /// </summary>
-        /// <param name="path">Path to the image in which to search for the pieces</param>
         /// see: https://docs.opencv.org/trunk/d8/d83/tutorial_py_grabcut.html
         /// see: http://www.emgu.com/forum/viewtopic.php?t=1923
-        private void extract_pieces2(string path, bool needs_filter)
+        private void extract_pieces2()
         {
-            List<Image<Rgb, byte>> color_images = Utils.GetImagesFromDirectory(path);
-
-            if (needs_filter)
+            List<Image<Rgb, byte>> color_images = Utils.GetImagesFromDirectory(puzzlePiecesFolderPath);
+            
+            if (SolverParameters.PuzzleApplyMedianBlurFilter)
             {
                 color_images = Utils.MedianBlur(color_images, 5);
             }
+#warning Segment using HSV color model, CvInvoke.InRange, CvInvoke.CvtColor
+            List<Image<Gray, byte>> bw_images = Utils.ColorToBw(color_images, 50);
 
             //For each input image
-            for (int i = 0; i < color_images.Count; i++)
+            for (int i = 0; i < bw_images.Count; i++) //color_images.Count; i++)
             {
                 Image<Rgb, byte> sourceImg = new Image<Rgb, byte>(color_images[i].Bitmap);
+                Image<Gray, byte> mask = new Image<Gray, byte>(bw_images[i].Bitmap);
 
-                int maxWidth = 1000, maxHeight = 1000;
+                /*int maxWidth = 1000, maxHeight = 1000;
                 if (sourceImg.Width > maxWidth || sourceImg.Height > maxHeight)
                 {
                     sourceImg = sourceImg.Copy(new Rectangle(new Point(20, 20), Size.Subtract(sourceImg.Size, new Size(20, 20))));      // Used to remove a black line at the top of a scanned image
                     sourceImg = sourceImg.Resize(maxWidth, maxHeight, Inter.Cubic, true);
-                }
+                }*/
 
                 ProcessedImagesStorage.AddImage("Source Img " + i.ToString() , sourceImg.ToBitmap());
-                
-                Image<Gray, byte> mask = sourceImg.GrabCut(new Rectangle(1, 1, sourceImg.Width - 1, sourceImg.Height - 1), 20); //10);
-                mask = mask.ThresholdBinary(new Gray(2), new Gray(255));            // Change the mask. All values bigger than 2 get mapped to 255. All values equal or smaller than 2 get mapped to 0.
 
+                //Image<Gray, byte> mask = sourceImg.GrabCut(new Rectangle(1, 1, sourceImg.Width - 1, sourceImg.Height - 1), 20); //10);
+                //mask = mask.ThresholdBinary(new Gray(2), new Gray(255));            // Change the mask. All values bigger than 2 get mapped to 255. All values equal or smaller than 2 get mapped to 0.
+                
                 CvBlobDetector blobDetector = new CvBlobDetector();                 // Find all blobs in the mask image, extract them and add them to the list of pieces
                 CvBlobs blobs = new CvBlobs();
                 blobDetector.Detect(mask, blobs);
 
                 Image<Rgb, byte> sourceImgPiecesMarked = sourceImg.Copy();
 
-                foreach (CvBlob blob in blobs.Values.Where(b => b.Area > 10))
+                foreach (CvBlob blob in blobs.Values.Where(b => b.BoundingBox.Width >= SolverParameters.PuzzleMinPieceSize && b.BoundingBox.Height >= SolverParameters.PuzzleMinPieceSize))
                 {
                     Rectangle roi = blob.BoundingBox;
                     sourceImgPiecesMarked.Draw(roi, new Rgb(255, 0, 0), 2);
@@ -178,7 +182,7 @@ namespace JigsawPuzzleSolver
                     Image<Rgb, byte> pieceSourceImgMasked = new Image<Rgb, byte>(pieceSourceImg.Size);
                     CvInvoke.BitwiseOr(pieceSourceImageForeground, pieceSourceImageBackground, pieceSourceImgMasked);
 
-                    Piece p = new Piece(pieceSourceImgMasked, pieceMask, piece_size);
+                    Piece p = new Piece(pieceSourceImgMasked, pieceMask, SolverParameters);
                     pieces.Add(p);
 
                     pieceSourceImg.Dispose();
@@ -195,7 +199,7 @@ namespace JigsawPuzzleSolver
         }
 
         //**********************************************************************************************************************************************************************************************
-
+        /*
         /// <summary>
         /// Create an image for all pieces with all edges drawn 
         /// </summary>
@@ -219,7 +223,7 @@ namespace JigsawPuzzleSolver
                 }
             }
         }
-
+        */
         //**********************************************************************************************************************************************************************************************
 
         /// <summary>
@@ -241,16 +245,20 @@ namespace JigsawPuzzleSolver
                     matchScore.EdgeIndex2 = j % 4;
                     matchScore.score = pieces[matchScore.PieceIndex1].Edges[matchScore.EdgeIndex1].Compare2(pieces[matchScore.PieceIndex2].Edges[matchScore.EdgeIndex2]);
 
-                    matches.Add(matchScore);
+                    if (matchScore.score <= SolverParameters.PuzzleSolverKeepMatchesThreshold) { matches.Add(matchScore); }
                 }
             }
-            
-            matches = matches.Where(m => m.score < 1.5).ToList();           // Get only the best matches (all scores above or equal 100000000 mean that the edges won't match)
+
+            //double bestMatchScore = matches.Select(m => m.score).Min();
+            //matches = matches.Where(m => m.score < SolverParameters.PuzzleSolverKeepBestMatchesFactor * bestMatchScore).ToList();           // Get only the best matches (all scores above or equal 100000000 mean that the edges won't match)
             matches.Sort(new MatchScoreComparer(ScoreOrders.LOWEST_FIRST)); // Sort the matches to get the best scores first. The puzzle is solved by the order of the MatchScores
 
-            foreach(MatchScore matchScore in matches)
+            if (SolverParameters.SolverShowDebugResults)
             {
-                ProcessedImagesStorage.AddImage("MatchScore " + pieces[matchScore.PieceIndex1].PieceID + "_Edge" + (matchScore.EdgeIndex1).ToString() + " <-->" + pieces[matchScore.PieceIndex2].PieceID + "_Edge" + (matchScore.EdgeIndex2).ToString() + " = " + matchScore.score.ToString(), Utils.Combine2ImagesHorizontal(pieces[matchScore.PieceIndex1].Edges[matchScore.EdgeIndex1].ContourImg, pieces[matchScore.PieceIndex2].Edges[matchScore.EdgeIndex2].ContourImg, 20).ToBitmap());
+                foreach (MatchScore matchScore in matches)
+                {
+                    ProcessedImagesStorage.AddImage("MatchScore " + pieces[matchScore.PieceIndex1].PieceID + "_Edge" + (matchScore.EdgeIndex1).ToString() + " <-->" + pieces[matchScore.PieceIndex2].PieceID + "_Edge" + (matchScore.EdgeIndex2).ToString() + " = " + matchScore.score.ToString(), Utils.Combine2ImagesHorizontal(pieces[matchScore.PieceIndex1].Edges[matchScore.EdgeIndex1].ContourImg, pieces[matchScore.PieceIndex2].Edges[matchScore.EdgeIndex2].ContourImg, 20).ToBitmap());
+                }
             }
         }
 
@@ -275,7 +283,7 @@ namespace JigsawPuzzleSolver
             }
             
             System.Windows.MessageBox.Show("Possible solution found " + (p.InOneSet() ? "(one set)." : "(multiple sets)."));
-            solved = true;
+            Solved = true;
             int setNo = 0;
             foreach (Forest jointSet in p.GetJointSets())
             {
@@ -302,7 +310,7 @@ namespace JigsawPuzzleSolver
 
         private void GenerateSolutionImage(Matrix<int> solutionLocations, int solutionID)
         {
-            if (!solved) { Solve(); }
+            if (!Solved) { Solve(); }
 
             int border = 10;
             float out_image_width = 0, out_image_height = 0;
@@ -402,7 +410,7 @@ namespace JigsawPuzzleSolver
 
         private void GenerateSolutionImage2(Matrix<int> solutionLocations, int solutionID)
         {
-            if (!solved) { Solve(); }
+            if (!Solved) { Solve(); }
             
             int out_image_width = 0, out_image_height = 0;
             int max_piece_width = 0, max_piece_height = 0;

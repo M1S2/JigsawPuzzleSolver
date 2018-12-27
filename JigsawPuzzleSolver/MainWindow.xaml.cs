@@ -54,10 +54,9 @@ namespace JigsawPuzzleSolver
         {
             ProcessedImagesStorage.ClearAllImages();
 
-            //puzzle = new Puzzle(@"..\..\..\Test_Pictures\ScannedImages", 20, 50, false);
-
-            puzzle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", 20, 50, true);
-            //puzzle = new Puzzle(@"..\..\..\Scans\ToyStoryBack", 20, 50, true);
+            PuzzleSolverParameters solverParameters = new PuzzleSolverParameters() { SolverShowDebugResults = false };
+            //puzzle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", solverParameters);
+            puzzle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", solverParameters);
         }
 
         private void btn_solve_puzzle_Click(object sender, RoutedEventArgs e)

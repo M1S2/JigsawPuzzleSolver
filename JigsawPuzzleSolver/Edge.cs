@@ -27,6 +27,8 @@ namespace JigsawPuzzleSolver
         /// </summary>
         public EdgeTypes EdgeType { get; private set; }
 
+        public PuzzleSolverParameters SolverParameters { get; private set; }
+
         public string PieceID { get; private set; }
         public int EdgeNumber { get; private set; }
 
@@ -35,8 +37,9 @@ namespace JigsawPuzzleSolver
 
         //##############################################################################################################################################################################################
 
-        public Edge(string pieceID, int edgeNumber, Image<Rgb, byte> full_color, VectorOfPoint edgeContour)
+        public Edge(string pieceID, int edgeNumber, Image<Rgb, byte> full_color, VectorOfPoint edgeContour, PuzzleSolverParameters solverParameters)
         {
+            SolverParameters = solverParameters;
             PieceID = pieceID;
             EdgeNumber = edgeNumber;
             contour = edgeContour;
@@ -223,8 +226,7 @@ namespace JigsawPuzzleSolver
             double cost = 0;
             double total_length = CvInvoke.ArcLength(normalized_contour, false) + CvInvoke.ArcLength(edge2.reverse_normalized_contour, false);
 
-            double windowSizePercent = 0.15;     // Not all points are taken into account to speed up the calculation. Therefore a window is defined by the percentage of total points in the longer contour
-            int windowSizePoints = (int)(Math.Max(normalized_contour.Size, edge2.reverse_normalized_contour.Size) * windowSizePercent); 
+            int windowSizePoints = (int)(Math.Max(normalized_contour.Size, edge2.reverse_normalized_contour.Size) * SolverParameters.EdgeCompareWindowSizePercent); 
 
             for(int i = 0; i < normalized_contour.Size; i++)
             {
@@ -241,17 +243,18 @@ namespace JigsawPuzzleSolver
             double distEndpoints1 = Utils.Distance(normalized_contour[0], normalized_contour[normalized_contour.Size - 1]);
             double distEndpoints2 = Utils.Distance(edge2.reverse_normalized_contour[0], edge2.reverse_normalized_contour[edge2.reverse_normalized_contour.Size - 1]);
             double distEndpointDiff = Math.Abs(distEndpoints1 - distEndpoints2);
-            if(distEndpointDiff <= 15) { distEndpointDiff = 0; }
+            if(distEndpointDiff <= SolverParameters.EdgeCompareEndpointDiffIgnoreThreshold) { distEndpointDiff = 0; }
 
+            if (SolverParameters.SolverShowDebugResults)
+            {
+                Image<Rgb, byte> contourOverlay = new Image<Rgb, byte>(500, 500);
+                VectorOfPoint contour1 = GetTranslatedContour(100, 0);
+                VectorOfPoint contour2 = edge2.GetTranslatedContourReverse(100, 0);
+                CvInvoke.DrawContours(contourOverlay, new VectorOfVectorOfPoint(contour1), -1, new MCvScalar(0, 255, 0), 2);
+                CvInvoke.DrawContours(contourOverlay, new VectorOfVectorOfPoint(contour2), -1, new MCvScalar(0, 0, 255), 2);
 
-            Image<Rgb, byte> contourOverlay = new Image<Rgb, byte>(500, 500);
-            VectorOfPoint contour1 = GetTranslatedContour(100, 0);
-            VectorOfPoint contour2 = edge2.GetTranslatedContourReverse(100, 0);
-            CvInvoke.DrawContours(contourOverlay, new VectorOfVectorOfPoint(contour1), -1, new MCvScalar(0, 255, 0), 2);
-            CvInvoke.DrawContours(contourOverlay, new VectorOfVectorOfPoint(contour2), -1, new MCvScalar(0, 0, 255), 2);
-
-            ProcessedImagesStorage.AddImage("Compare " + PieceID + "_Edge" + EdgeNumber + " <-->" + edge2.PieceID + "_Edge" + edge2.EdgeNumber + " ==> distEndpoint = " + distEndpointDiff.ToString() + ", MatchResult = " + matchResult, contourOverlay.Bitmap);
-            
+                ProcessedImagesStorage.AddImage("Compare " + PieceID + "_Edge" + EdgeNumber + " <-->" + edge2.PieceID + "_Edge" + edge2.EdgeNumber + " ==> distEndpoint = " + distEndpointDiff.ToString() + ", MatchResult = " + matchResult, contourOverlay.Bitmap);
+            }
 
             return distEndpointDiff + matchResult;
         }
