@@ -215,45 +215,6 @@ namespace JigsawPuzzleSolver
         }
 
         //**********************************************************************************************************************************************************************************************
-
-        /// <summary>
-        /// Remove duplicate points
-        /// </summary>
-        /// <param name="vectorOfPoints">vector of points</param>
-        /// <returns>vector of points with removed duplicates</returns>
-        public static VectorOfPointF RemoveDuplicates(VectorOfPointF vectorOfPoints)
-        {
-#warning Test!!!
-            List<PointF> listOfPoints = vectorOfPoints.ToArray().ToList();
-
-            bool dupes_found = true;
-            while (dupes_found)
-            {
-                dupes_found = false;
-                int dup_at = -1;
-                for (int i = 0; i < vectorOfPoints.Size; i++)
-                {
-                    for (int j = 0; j < vectorOfPoints.Size; j++)
-                    {
-                        if (j == i) continue;
-                        if (vectorOfPoints[i] == vectorOfPoints[j])
-                        {
-                            dup_at = j;
-                            dupes_found = true;
-                            listOfPoints.RemoveAt(j);
-                            break;
-                        }
-                    }
-                    if (dupes_found)
-                    {
-                        break;
-                    }
-                }
-            }
-            return vectorOfPoints;
-        }
-
-        //**********************************************************************************************************************************************************************************************
         
         /// <summary>
         /// Get a subset of the given vector.

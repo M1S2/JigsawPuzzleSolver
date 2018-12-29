@@ -84,17 +84,17 @@ namespace JigsawPuzzleSolver
         /// </summary>
         /// <param name="vec1">Vector that is searched for the occurences of the elements of vector 2</param>
         /// <param name="vec2">Vector with element to be searched</param>
-        /// <returns>Indices of all elements in vector 1 that exist in vector 2 too</returns>
+        /// <returns>Indices of all elements in vector 1 that exist in vector 2 too (ordered by occurence in vec2)</returns>
         private List<int> find_all_in(VectorOfPoint vec1, VectorOfPoint vec2)
         {
             List<int> places = new List<int>();
-            for(int i = 0; i < vec1.Size; i++)
+            for (int i2 = 0; i2 < vec2.Size; i2++)
             {
-                for (int j = 0; j < vec2.Size; j++)
+                for (int i1 = 0; i1 < vec1.Size; i1++)
                 {
-                    if(vec1[i].X == vec2[j].X && vec1[i].Y == vec2[j].Y)
+                    if (vec1[i1].X == vec2[i2].X && vec1[i1].Y == vec2[i2].Y)
                     {
-                        places.Add(i);
+                        places.Add(i1);
                     }
                 }
             }
@@ -323,7 +323,7 @@ namespace JigsawPuzzleSolver
             Image<Rgb, byte> imgCorners = Full_color.Clone();
 
             // Find all dominant corner points using the GFTTDetector (this uses the Harris corner detector)
-            GFTTDetector detector = new GFTTDetector(1000, SolverParameters.PieceFindCornersGFTTQualityLevel, SolverParameters.PieceFindCornersGFTTMinDist, SolverParameters.PieceFindCornersGFTTBlockSize, true, 0.04);
+            GFTTDetector detector = new GFTTDetector(SolverParameters.PieceFindCornersGFTTMaxCorners, SolverParameters.PieceFindCornersGFTTQualityLevel, SolverParameters.PieceFindCornersGFTTMinDist, SolverParameters.PieceFindCornersGFTTBlockSize, true, 0.04);
             MKeyPoint[] keyPoints = detector.Detect(Bw.Clone());
             List<Point> possibleCorners = keyPoints.Select(k => Point.Round(k.Point)).ToList();
 
@@ -373,10 +373,10 @@ namespace JigsawPuzzleSolver
                                 // Possible corner combination
                                 Point[] tmpCorners = new Point[]
                                 {
-                                possibleCornersSortedUpperLeft[indexUpperLeft],
-                                possibleCornersSortedUpperRight[indexUpperRight],
-                                possibleCornersSortedLowerRight[indexLowerRight],
-                                possibleCornersSortedLowerLeft[indexLowerLeft]
+                                    possibleCornersSortedUpperLeft[indexUpperLeft],         // the corners are ordered beginning in the upper left corner and going counter clock wise
+                                    possibleCornersSortedLowerLeft[indexLowerLeft],
+                                    possibleCornersSortedLowerRight[indexLowerRight],
+                                    possibleCornersSortedUpperRight[indexUpperRight]
                                 };
                                 double angleDiff = RectangleDifferenceAngle(tmpCorners);
                                 if (angleDiff > SolverParameters.PieceFindCornersMaxAngleDiff) { continue; }
@@ -400,7 +400,11 @@ namespace JigsawPuzzleSolver
                 return;
             }
 
-            for (int i = 0; i < 4; i++) { CvInvoke.Circle(imgCorners, Point.Round(corners[i]), 4, new MCvScalar(0, 255, 0), 3); }
+            //for (int i = 0; i < 4; i++) { CvInvoke.Circle(imgCorners, Point.Round(corners[i]), 4, new MCvScalar(0, 255, 0), 3); }
+            CvInvoke.Circle(imgCorners, Point.Round(corners[0]), 4, new MCvScalar(0, 255, 0), 3);
+            CvInvoke.Circle(imgCorners, Point.Round(corners[1]), 4, new MCvScalar(0, 200, 0), 3);
+            CvInvoke.Circle(imgCorners, Point.Round(corners[2]), 4, new MCvScalar(0, 150, 0), 3);
+            CvInvoke.Circle(imgCorners, Point.Round(corners[3]), 4, new MCvScalar(0, 100, 0), 3);
             ProcessedImagesStorage.AddImage(PieceID + " Corners", imgCorners.Bitmap);
         }
 
@@ -413,10 +417,10 @@ namespace JigsawPuzzleSolver
         /// <returns>Sum of the differences of all 4 corner angles from 90 degree</returns>
         private double RectangleDifferenceAngle(Point[] points)
         {
-            double angle1 = System.Windows.Vector.AngleBetween(new System.Windows.Vector(points[1].X - points[0].X, points[1].Y - points[0].Y), new System.Windows.Vector(points[3].X - points[0].X, points[3].Y - points[0].Y));
-            double angle2 = System.Windows.Vector.AngleBetween(new System.Windows.Vector(points[2].X - points[1].X, points[2].Y - points[1].Y), new System.Windows.Vector(points[0].X - points[1].X, points[0].Y - points[1].Y));
-            double angle3 = System.Windows.Vector.AngleBetween(new System.Windows.Vector(points[3].X - points[2].X, points[3].Y - points[2].Y), new System.Windows.Vector(points[1].X - points[2].X, points[1].Y - points[2].Y));
-            double angle4 = System.Windows.Vector.AngleBetween(new System.Windows.Vector(points[0].X - points[3].X, points[0].Y - points[3].Y), new System.Windows.Vector(points[2].X - points[3].X, points[2].Y - points[3].Y));
+            double angle1 = Math.Abs(System.Windows.Vector.AngleBetween(new System.Windows.Vector(points[1].X - points[0].X, points[1].Y - points[0].Y), new System.Windows.Vector(points[3].X - points[0].X, points[3].Y - points[0].Y)));
+            double angle2 = Math.Abs(System.Windows.Vector.AngleBetween(new System.Windows.Vector(points[2].X - points[1].X, points[2].Y - points[1].Y), new System.Windows.Vector(points[0].X - points[1].X, points[0].Y - points[1].Y)));
+            double angle3 = Math.Abs(System.Windows.Vector.AngleBetween(new System.Windows.Vector(points[3].X - points[2].X, points[3].Y - points[2].Y), new System.Windows.Vector(points[1].X - points[2].X, points[1].Y - points[2].Y)));
+            double angle4 = Math.Abs(System.Windows.Vector.AngleBetween(new System.Windows.Vector(points[0].X - points[3].X, points[0].Y - points[3].Y), new System.Windows.Vector(points[2].X - points[3].X, points[2].Y - points[3].Y)));
             double sum90DegreeDiff = Math.Abs(90 - angle1) + Math.Abs(90 - angle2) + Math.Abs(90 - angle3) + Math.Abs(90 - angle4);
 
             return sum90DegreeDiff;
@@ -516,7 +520,6 @@ namespace JigsawPuzzleSolver
             }
 
             VectorOfPoint contour = contours[indexLargestContour];
-            //contour = Utils.RemoveDuplicates(contour);
 
             Image<Rgb, byte> edge_img = Full_color.Clone();
 
@@ -545,8 +548,9 @@ namespace JigsawPuzzleSolver
             }
 
             ////We need the beginning of the vector to correspond to the begining of an edge.
+            //int indexOfFirstCornerInContour = contour.ToArray().ToList().IndexOf(corners[0]);
             //Point[] contourArray = contour.ToArray();
-            //contourArray.Rotate(find_first_in(contour, corners));
+            //contourArray.Rotate(indexOfFirstCornerInContour); //find_first_in(contour, corners));
             //contour = new VectorOfPoint(contourArray);
 
             List<int> sections = find_all_in(contour, corners);
@@ -608,9 +612,8 @@ namespace JigsawPuzzleSolver
 
         //**********************************************************************************************************************************************************************************************
         
-        
         /// <summary>
-        /// This method "rotates the corners and edges so they are in a correct order.
+        /// This method rotates the corners and edges so they are in a correct order.
         /// </summary>
         /// <param name="times">Number of times to rotate</param>
         public void Rotate(int times)

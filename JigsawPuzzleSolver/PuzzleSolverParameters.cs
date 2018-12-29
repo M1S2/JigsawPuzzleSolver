@@ -14,6 +14,7 @@ namespace JigsawPuzzleSolver
         public bool PuzzleApplyMedianBlurFilter { get; set; }
         public float PuzzleSolverKeepMatchesThreshold { get; set; }
 
+        public int PieceFindCornersGFTTMaxCorners { get; set; }
         public double PieceFindCornersGFTTQualityLevel { get; set; }
         public double PieceFindCornersGFTTMinDist { get; set; }
         public int PieceFindCornersGFTTBlockSize { get; set; }
@@ -28,9 +29,10 @@ namespace JigsawPuzzleSolver
             SolverShowDebugResults = false;
             PuzzleMinPieceSize = 50;
             PuzzleApplyMedianBlurFilter = true;
-            PuzzleSolverKeepMatchesThreshold = 2.5f;
+            PuzzleSolverKeepMatchesThreshold = 4; //2.5f;
+            PieceFindCornersGFTTMaxCorners = 500;
             PieceFindCornersGFTTQualityLevel = 0.01;
-            PieceFindCornersGFTTMinDist = 10;
+            PieceFindCornersGFTTMinDist = 5; //10;
             PieceFindCornersGFTTBlockSize = 2; //6;
             PieceFindCornersMaxAngleDiff = 5;
             PieceFindCornersMaxCornerDistRatio = 1.5;

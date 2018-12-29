@@ -226,9 +226,14 @@ namespace JigsawPuzzleSolver
             double cost = 0;
             double total_length = CvInvoke.ArcLength(normalized_contour, false) + CvInvoke.ArcLength(edge2.reverse_normalized_contour, false);
 
-            int windowSizePoints = (int)(Math.Max(normalized_contour.Size, edge2.reverse_normalized_contour.Size) * SolverParameters.EdgeCompareWindowSizePercent); 
+            int windowSizePoints = (int)(Math.Max(normalized_contour.Size, edge2.reverse_normalized_contour.Size) * SolverParameters.EdgeCompareWindowSizePercent);
 
-            for(int i = 0; i < normalized_contour.Size; i++)
+            double distEndpointsContour1 = Utils.Distance(normalized_contour[0], normalized_contour[normalized_contour.Size - 1]);
+            double distEndpointsContour2 = Utils.Distance(edge2.reverse_normalized_contour[0], edge2.reverse_normalized_contour[edge2.reverse_normalized_contour.Size - 1]);
+            double distEndpointContoursDiff = Math.Abs(distEndpointsContour1 - distEndpointsContour2);
+            if(distEndpointContoursDiff <= SolverParameters.EdgeCompareEndpointDiffIgnoreThreshold) { distEndpointContoursDiff = 0; }
+
+            for (int i = 0; i < Math.Min(normalized_contour.Size, edge2.reverse_normalized_contour.Size); i++)
             {
                 double min = 10000000;
                 for(int j = Math.Max(0, i - windowSizePoints); j < Math.Min(edge2.reverse_normalized_contour.Size, i + windowSizePoints); j++)
@@ -239,11 +244,6 @@ namespace JigsawPuzzleSolver
                 cost += min;
             }
             double matchResult = cost / total_length;
-            
-            double distEndpoints1 = Utils.Distance(normalized_contour[0], normalized_contour[normalized_contour.Size - 1]);
-            double distEndpoints2 = Utils.Distance(edge2.reverse_normalized_contour[0], edge2.reverse_normalized_contour[edge2.reverse_normalized_contour.Size - 1]);
-            double distEndpointDiff = Math.Abs(distEndpoints1 - distEndpoints2);
-            if(distEndpointDiff <= SolverParameters.EdgeCompareEndpointDiffIgnoreThreshold) { distEndpointDiff = 0; }
 
             if (SolverParameters.SolverShowDebugResults)
             {
@@ -253,10 +253,10 @@ namespace JigsawPuzzleSolver
                 CvInvoke.DrawContours(contourOverlay, new VectorOfVectorOfPoint(contour1), -1, new MCvScalar(0, 255, 0), 2);
                 CvInvoke.DrawContours(contourOverlay, new VectorOfVectorOfPoint(contour2), -1, new MCvScalar(0, 0, 255), 2);
 
-                ProcessedImagesStorage.AddImage("Compare " + PieceID + "_Edge" + EdgeNumber + " <-->" + edge2.PieceID + "_Edge" + edge2.EdgeNumber + " ==> distEndpoint = " + distEndpointDiff.ToString() + ", MatchResult = " + matchResult, contourOverlay.Bitmap);
+                ProcessedImagesStorage.AddImage("Compare " + PieceID + "_Edge" + EdgeNumber + " <-->" + edge2.PieceID + "_Edge" + edge2.EdgeNumber + " ==> distEndpoint = " + distEndpointContoursDiff.ToString() + ", MatchResult = " + matchResult, contourOverlay.Bitmap);
             }
 
-            return distEndpointDiff + matchResult;
+            return distEndpointContoursDiff + matchResult;
         }
 
     }

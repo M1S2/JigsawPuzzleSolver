@@ -54,7 +54,7 @@ namespace JigsawPuzzleSolver
         {
             ProcessedImagesStorage.ClearAllImages();
 
-            PuzzleSolverParameters solverParameters = new PuzzleSolverParameters() { SolverShowDebugResults = false };
+            PuzzleSolverParameters solverParameters = new PuzzleSolverParameters() { SolverShowDebugResults = true };
             //puzzle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", solverParameters);
             puzzle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", solverParameters);
         }
