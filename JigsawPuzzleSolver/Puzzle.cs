@@ -36,16 +36,13 @@ namespace JigsawPuzzleSolver
         {
             puzzlePiecesFolderPath = piecesFolderPath;
             SolverParameters = solverParameters;
-
-            extract_pieces2();
-            Solved = false;
-            //print_edges();
         }
 
         public Puzzle()
         { }
 
         //##############################################################################################################################################################################################
+            
         /*
         private void extract_pieces(string path, int piece_size, bool needs_filter, int threshold)
         {
@@ -264,44 +261,58 @@ namespace JigsawPuzzleSolver
 
         //##############################################################################################################################################################################################
 
-        public void Solve()
+        public async Task Init()
         {
-            fill_costs();
-
-            PuzzleDisjointSet p = new PuzzleDisjointSet(pieces.Count);
-            
-            for(int i = 0; i < matches.Count; i++)
+            await Task.Run(() =>
             {
-                if(p.InOneSet()) { break; }
+                extract_pieces2();
+                Solved = false;
+            });
+        }
 
-                int p1 = matches[i].PieceIndex1;
-                int e1 = matches[i].EdgeIndex1;
-                int p2 = matches[i].PieceIndex2;
-                int e2 = matches[i].EdgeIndex2;
+        //**********************************************************************************************************************************************************************************************
 
-                p.JoinSets(p1, p2, e1, e2);
-            }
-            
-            System.Windows.MessageBox.Show("Possible solution found " + (p.InOneSet() ? "(one set)." : "(multiple sets)."));
-            Solved = true;
-            int setNo = 0;
-            foreach (Forest jointSet in p.GetJointSets())
+        public async Task Solve()
+        {
+            await Task.Run(() =>
             {
-                solution = jointSet.locations;
-                solution_rotations = jointSet.rotations;
+                fill_costs();
 
-                for (int i = 0; i < solution.Size.Width; i++)
+                PuzzleDisjointSet p = new PuzzleDisjointSet(pieces.Count);
+
+                for (int i = 0; i < matches.Count; i++)
                 {
-                    for (int j = 0; j < solution.Size.Height; j++)
-                    {
-                        int piece_number = solution[j, i];
-                        if (piece_number == -1) { continue; }
-                        pieces[piece_number].Rotate(4 - solution_rotations[j, i]);
-                    }
+                    if (p.InOneSet()) { break; }
+
+                    int p1 = matches[i].PieceIndex1;
+                    int e1 = matches[i].EdgeIndex1;
+                    int p2 = matches[i].PieceIndex2;
+                    int e2 = matches[i].EdgeIndex2;
+
+                    p.JoinSets(p1, p2, e1, e2);
                 }
-                GenerateSolutionImage2(solution, setNo);
-                setNo++;
-            }
+
+                System.Windows.MessageBox.Show("Possible solution found " + (p.InOneSet() ? "(one set)." : "(multiple sets)."));
+                Solved = true;
+                int setNo = 0;
+                foreach (Forest jointSet in p.GetJointSets())
+                {
+                    solution = jointSet.locations;
+                    solution_rotations = jointSet.rotations;
+
+                    for (int i = 0; i < solution.Size.Width; i++)
+                    {
+                        for (int j = 0; j < solution.Size.Height; j++)
+                        {
+                            int piece_number = solution[j, i];
+                            if (piece_number == -1) { continue; }
+                            pieces[piece_number].Rotate(4 - solution_rotations[j, i]);
+                        }
+                    }
+                    GenerateSolutionImage2(solution, setNo);
+                    setNo++;
+                }
+            });
         }
 
         //**********************************************************************************************************************************************************************************************

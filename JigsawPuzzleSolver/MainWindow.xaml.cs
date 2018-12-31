@@ -50,20 +50,34 @@ namespace JigsawPuzzleSolver
 
         Puzzle puzzle;
         
-        private void btn_init_puzzle_Click(object sender, RoutedEventArgs e)
+        private async void btn_init_puzzle_Click(object sender, RoutedEventArgs e)
         {
+            logBox1.LogInfo("ABC");
+            logBox1.LogWarning("xyz");
+            logBox1.LogError("HIJ");
+            logBox1.LogImage("IMG", (Bitmap)Bitmap.FromFile(@"D:\Benutzer\V17\Dokumente\Visual Studio 2017\Projects\JigsawPuzzleSolver\Test_Pictures\Pieces7.jpg"));
+            return;
+
+            btn_init_puzzle.IsEnabled = false;
+            btn_solve_puzzle.IsEnabled = false;
             ProcessedImagesStorage.ClearAllImages();
 
             PuzzleSolverParameters solverParameters = new PuzzleSolverParameters() { SolverShowDebugResults = true };
             //puzzle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", solverParameters);
             puzzle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", solverParameters);
+
+            await puzzle.Init();
+            btn_init_puzzle.IsEnabled = true;
+            btn_solve_puzzle.IsEnabled = true;
         }
 
-        private void btn_solve_puzzle_Click(object sender, RoutedEventArgs e)
+        private async void btn_solve_puzzle_Click(object sender, RoutedEventArgs e)
         {
-            //CalculateCurvatureTests();
-
-            puzzle.Solve();
+            btn_init_puzzle.IsEnabled = false;
+            btn_solve_puzzle.IsEnabled = false;
+            await puzzle.Solve();
+            btn_init_puzzle.IsEnabled = true;
+            btn_solve_puzzle.IsEnabled = true;
         }
 
         private void list_imageDescriptions_SelectionChanged(object sender, SelectionChangedEventArgs e)

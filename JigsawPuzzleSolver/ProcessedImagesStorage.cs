@@ -29,9 +29,12 @@ namespace JigsawPuzzleSolver
         /// <param name="image">Image to store</param>
         public static void AddImage(string description, Bitmap image)
         {
-            if(ImageList.ContainsKey(description)) { return; }
-            ImageList.Add(description, (Bitmap)image.Clone());
-            ImageDescriptions.Add(description);
+            App.Current.Dispatcher.Invoke(new Action(() =>
+            {
+                if (ImageList.ContainsKey(description)) { return; }
+                ImageList.Add(description, (Bitmap)image.Clone());
+                ImageDescriptions.Add(description);
+            }));
         }
 
         /// <summary>

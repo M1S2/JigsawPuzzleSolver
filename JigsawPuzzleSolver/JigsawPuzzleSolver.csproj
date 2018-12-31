@@ -75,6 +75,22 @@
     <Compile Include="Edge.cs" />
     <Compile Include="Enumerations\EdgeTypes.cs" />
     <Compile Include="Enumerations\PieceTypes.cs" />
+    <Compile Include="LogBox\LogBox.xaml.cs">
+      <DependentUpon>LogBox.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="LogBox\LogEvent.cs" />
+    <Compile Include="LogBox\LogEventInfo.cs" />
+    <Compile Include="LogBox\LogEventImage.cs" />
+    <Compile Include="LogBox\LogEventWarning.cs" />
+    <Compile Include="LogBox\LogEventError.cs" />
+    <Compile Include="LogBox\LogTypes.cs" />
+    <Compile Include="LogBox\BitmapToImageSourceConverter.cs" />
+    <Compile Include="LogBox\LogTypesToIconFilenameConverter.cs" />
+    <Compile Include="LogBox\SubtractConverter.cs" />
+    <Compile Include="LogBox\PercentageConverter.cs" />
+    <Compile Include="LogBox\ToggleSwitch.xaml.cs">
+      <DependentUpon>ToggleSwitch.xaml</DependentUpon>
+    </Compile>
     <Compile Include="PuzzleSolverParameters.cs" />
     <Compile Include="Structures\FindCornerRectangleScore.cs" />
     <Compile Include="MatchScoreComparer.cs" />
@@ -93,6 +109,14 @@
     <Compile Include="GUI Elements\ZoomBorder.xaml.cs">
       <DependentUpon>ZoomBorder.xaml</DependentUpon>
     </Compile>
+    <Page Include="LogBox\LogBox.xaml">
+      <SubType>Designer</SubType>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
+    <Page Include="LogBox\ToggleSwitch.xaml">
+      <SubType>Designer</SubType>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -137,6 +161,31 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Clear.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Error.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Info.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Warning.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Image.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\EMGU.CV.3.4.3.3016\build\EMGU.CV.targets" Condition="Exists('..\packages\EMGU.CV.3.4.3.3016\build\EMGU.CV.targets')" />

@@ -1,0 +1,3 @@
+Error, Warning, Info:	https://www.google.de/search?q=windows+10+warning+error+info+icons&source=lnms&tbm=isch&sa=X&ved=0ahUKEwjS5LC305HdAhWL2qQKHcsCBKUQ_AUICigB&biw=1291&bih=468#imgrc=as54swvbO_ojXM:&spf=1535524764313
+Clear: 		https://www.google.de/search?q=icon+clear+log&rlz=1C1CHZL_deDE729DE729&source=lnms&tbm=isch&sa=X&ved=0ahUKEwj93IWQwdPaAhVDiSwKHew7DQUQ_AUICygC&biw=1920&bih=949#imgrc=qBBNHbKYf8UpUM:
+Image:		https://github.com/FortAwesome/Font-Awesome/issues/855

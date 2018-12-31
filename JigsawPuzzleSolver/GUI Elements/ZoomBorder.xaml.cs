@@ -117,7 +117,7 @@ namespace GUIElements
                 var tt = GetTranslateTransform(child);
                 start = e.GetPosition(this);
                 origin = new Point(tt.X, tt.Y);
-                this.Cursor = Cursors.Hand;
+                this.Cursor = Cursors.SizeAll;
                 child.CaptureMouse();
             }
         }
