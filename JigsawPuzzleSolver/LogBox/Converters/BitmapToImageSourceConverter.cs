@@ -20,6 +20,7 @@ namespace LogBox
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             Bitmap bitmap = (Bitmap)value;
+            if(bitmap == null) { return null; }
             using (MemoryStream memory = new MemoryStream())
             {
                 bitmap.Save(memory, System.Drawing.Imaging.ImageFormat.Bmp);

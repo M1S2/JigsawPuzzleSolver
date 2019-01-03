@@ -42,18 +42,21 @@ namespace JigsawPuzzleSolver
         public Image<Gray, byte> Bw;
         public Edge[] Edges = new Edge[4];
 
+        private IProgress<LogBox.LogEvent> _logHandle;
+
         //##############################################################################################################################################################################################
 
-        public Piece(Image<Rgb, byte> color, Image<Gray, byte> bw, PuzzleSolverParameters solverParameters)
+        public Piece(Image<Rgb, byte> color, Image<Gray, byte> bw, PuzzleSolverParameters solverParameters, IProgress<LogBox.LogEvent> logHandle)
         {
+            _logHandle = logHandle;
             SolverParameters = solverParameters;
             PieceID = "Piece#" + NextPieceID.ToString();
             NextPieceID++;
             Full_color = color.Clone();
             Bw = bw.Clone();
-
-            ProcessedImagesStorage.AddImage(PieceID + " Color", color.Clone().Bitmap);
-            ProcessedImagesStorage.AddImage(PieceID + " Bw", bw.Clone().Bitmap);
+            
+            _logHandle.Report(new LogBox.LogEventImage(PieceID + " Color", color.Clone().Bitmap));
+            _logHandle.Report(new LogBox.LogEventImage(PieceID + " Bw", bw.Clone().Bitmap));
 
             //Edges[0] = new Edge(PieceID, 0, Full_color, new VectorOfPoint(), SolverParameters);
             //Edges[1] = new Edge(PieceID, 1, Full_color, new VectorOfPoint(), SolverParameters);
@@ -129,6 +132,8 @@ namespace JigsawPuzzleSolver
         /// see: http://docs.opencv.org/doc/tutorials/features2d/trackingmotion/corner_subpixeles/corner_subpixeles.html
         private void find_corners_GFTT()
         {
+            _logHandle.Report(new LogBox.LogEventInfo(PieceID + " Finding corners with GFTT algorithm"));
+
             string id = PieceID;
 
             double minDistance = SolverParameters.PuzzleMinPieceSize;    //How close can 2 corners be?
@@ -187,11 +192,11 @@ namespace JigsawPuzzleSolver
             {
                 CvInvoke.Circle(Full_color, Point.Round(corners[i]), 4, new MCvScalar(255, 0, 0));
             }
-            ProcessedImagesStorage.AddImage(PieceID + " Corners", Full_color.Clone().Bitmap);
+            _logHandle.Report(new LogBox.LogEventImage(PieceID + " Corners", Full_color.Clone().Bitmap));
 
             if (!found_all_corners)
             {
-                System.Windows.MessageBox.Show("Failed to find correct number of corners " + corners.Size);
+                _logHandle.Report(new LogBox.LogEventError(PieceID + " Failed to find correct number of corners. " + corners.Size + " found."));
             }
         }
 
@@ -200,6 +205,8 @@ namespace JigsawPuzzleSolver
 
         private void find_corners_ArcLen()
         {
+            _logHandle.Report(new LogBox.LogEventInfo(PieceID + " Finding corners by arc length comparison"));
+
             corners.Clear();
 
             GFTTDetector detector = new GFTTDetector(1000, 0.01, 5, 6, true, 0.04); //new GFTTDetector(1000, 0.0001, 0, 5, true, 0.0004);
@@ -213,7 +220,7 @@ namespace JigsawPuzzleSolver
 
             Image<Rgb, byte> color_clone = Full_color.Clone();
             Features2DToolbox.DrawKeypoints(color_clone, new VectorOfKeyPoint(keyPoints), color_clone, new Bgr(0, 0, 255));
-            ProcessedImagesStorage.AddImage(PieceID + " GFTT detector", color_clone.Bitmap);
+            _logHandle.Report(new LogBox.LogEventImage(PieceID + " GFTT detector", color_clone.Bitmap));
 
             List<Point> possibleCorners = keyPoints.Select(k => Point.Round(k.Point)).ToList();
             List<Point> possibleCornersSorted = new List<Point>(possibleCorners);
@@ -244,12 +251,12 @@ namespace JigsawPuzzleSolver
 
             if(corners.Size != 4)
             {
-                System.Windows.MessageBox.Show("Failed to find correct number of corners: " + corners.Size + " found.");
+                _logHandle.Report(new LogBox.LogEventError(PieceID + " Failed to find correct number of corners. " + corners.Size + " found."));
                 return;
             }
 
             for (int i = 0; i < 4; i++) { CvInvoke.Circle(color_clone, Point.Round(corners[i]), 4, new MCvScalar(0, 255, 0), 3); }
-            ProcessedImagesStorage.AddImage(PieceID + " Corners", color_clone.Bitmap);
+            _logHandle.Report(new LogBox.LogEventImage(PieceID + " Corners", color_clone.Bitmap));
         }
 
         //**********************************************************************************************************************************************************************************************
@@ -305,8 +312,8 @@ namespace JigsawPuzzleSolver
             CvInvoke.Circle(color_clone, possibleCornerOnContour, 4, new MCvScalar(255, 0, 0), 2);
             for (int i = 0; i < cornerNextPoints.Size; i++) { CvInvoke.Circle(color_clone, Point.Round(cornerNextPoints[i]), 2, new MCvScalar(0, 255, 0), 1); }
             for (int i = 0; i < cornerPreviousPoints.Size; i++) { CvInvoke.Circle(color_clone, Point.Round(cornerPreviousPoints[i]), 2, new MCvScalar(0, 0, 255), 1); }
-            //ProcessedImagesStorage.AddImage(PieceID + " Check Corner " + possibleCorner.ToString() + "  " + standardDeviationNext.ToString() + "  |  " + standardDeviationPrevious.ToString() + "   Valid: " + isCornerValid.ToString(), color_clone.Bitmap);
-            ProcessedImagesStorage.AddImage(PieceID + " Check Corner " + possibleCorner.ToString() + "  " + nextLenRatio.ToString() + "  |  " + previousLenRatio.ToString() + "  |  " + cornerAngle.ToString() + "°   Valid: " + isCornerValid.ToString(), color_clone.Bitmap);
+            //_logHandle.Report(new LogBox.LogEventImage(PieceID + " Check Corner " + possibleCorner.ToString() + "  " + standardDeviationNext.ToString() + "  |  " + standardDeviationPrevious.ToString() + "   Valid: " + isCornerValid.ToString(), color_clone.Bitmap);
+            _logHandle.Report(new LogBox.LogEventImage(PieceID + " Check Corner " + possibleCorner.ToString() + "  " + nextLenRatio.ToString() + "  |  " + previousLenRatio.ToString() + "  |  " + cornerAngle.ToString() + "°   Valid: " + isCornerValid.ToString(), color_clone.Bitmap));
 
             return isCornerValid;
         }
@@ -319,6 +326,8 @@ namespace JigsawPuzzleSolver
         /// </summary>
         private void find_corners_MaximumRectangle()
         {
+            _logHandle.Report(new LogBox.LogEventInfo(PieceID + " Finding corners by finding the maximum rectangle within candidate points"));
+
             corners.Clear();
             Image<Rgb, byte> imgCorners = Full_color.Clone();
 
@@ -329,13 +338,6 @@ namespace JigsawPuzzleSolver
 
             if (possibleCorners.Count > 0)
             {
-                if (SolverParameters.SolverShowDebugResults)
-                {
-                    // Draw the dominant key points
-                    Features2DToolbox.DrawKeypoints(imgCorners, new VectorOfKeyPoint(keyPoints), imgCorners, new Bgr(0, 0, 255));
-                    ProcessedImagesStorage.AddImage(PieceID + " Dominant Corners", imgCorners.Bitmap);
-                }
-
                 // Sort the dominant corners by the distance to upper left corner of the bounding rectangle (0, 0) and keep only the corners that are near enough to this point
                 List<Point> possibleCornersSortedUpperLeft = new List<Point>(possibleCorners);
                 possibleCornersSortedUpperLeft.Sort(new DistanceToPointComparer(new Point(0, 0), DistanceOrders.NEAREST_FIRST));
@@ -396,16 +398,17 @@ namespace JigsawPuzzleSolver
 
             if (corners.Size != 4)
             {
-                System.Windows.MessageBox.Show("Failed to find correct number of corners: " + corners.Size + " found.");
+                _logHandle.Report(new LogBox.LogEventError(PieceID + " Failed to find correct number of corners. " + corners.Size + " found."));
                 return;
             }
 
+            Features2DToolbox.DrawKeypoints(imgCorners, new VectorOfKeyPoint(keyPoints), imgCorners, new Bgr(0, 0, 255));       // Draw the dominant key points
             //for (int i = 0; i < 4; i++) { CvInvoke.Circle(imgCorners, Point.Round(corners[i]), 4, new MCvScalar(0, 255, 0), 3); }
             CvInvoke.Circle(imgCorners, Point.Round(corners[0]), 4, new MCvScalar(0, 255, 0), 3);
             CvInvoke.Circle(imgCorners, Point.Round(corners[1]), 4, new MCvScalar(0, 200, 0), 3);
             CvInvoke.Circle(imgCorners, Point.Round(corners[2]), 4, new MCvScalar(0, 150, 0), 3);
             CvInvoke.Circle(imgCorners, Point.Round(corners[3]), 4, new MCvScalar(0, 100, 0), 3);
-            ProcessedImagesStorage.AddImage(PieceID + " Corners", imgCorners.Bitmap);
+            _logHandle.Report(new LogBox.LogEventImage(PieceID + " Corners", imgCorners.Bitmap));
         }
 
         //**********************************************************************************************************************************************************************************************
@@ -431,6 +434,8 @@ namespace JigsawPuzzleSolver
 
         private void find_corners_Curvature()
         {
+            _logHandle.Report(new LogBox.LogEventInfo(PieceID + " Finding corners by curvature algorithm"));
+
             corners.Clear();
             Image<Rgb, byte> color_clone = Full_color.Clone();
 
@@ -441,7 +446,7 @@ namespace JigsawPuzzleSolver
 
             //CvInvoke.DrawContours(color_clone, contours, 0, new MCvScalar(0, 0, 255), 1);
             for(int i = 0; i < contour.Size; i++) { CvInvoke.Circle(color_clone, contour[i], 2, new MCvScalar(0, 0, 255), 1); }
-            ProcessedImagesStorage.AddImage(PieceID + " Contour", color_clone.Bitmap);
+            _logHandle.Report(new LogBox.LogEventImage(PieceID + " Contour", color_clone.Bitmap));
 
             List<double> curvature = Utils.CalculateCurvature(contourList, 2);
 
@@ -455,7 +460,7 @@ namespace JigsawPuzzleSolver
                 curvatureContour.Push(new Point(i, (int)(scale * curvatureDraw[i] + 255)));
             }
             CvInvoke.DrawContours(curvatureImg, new VectorOfVectorOfPoint(curvatureContour), -1, new MCvScalar(0, 255, 0));
-            ProcessedImagesStorage.AddImage(PieceID + " Curvature Img", curvatureImg.Bitmap);
+            _logHandle.Report(new LogBox.LogEventImage(PieceID + " Curvature Img", curvatureImg.Bitmap));
 
 
             Image<Rgb, byte> color_clone2 = Full_color.Clone();
@@ -476,17 +481,17 @@ namespace JigsawPuzzleSolver
                 if(cntHighestCurvatures == 4) { break; }
             }*/
 
-            ProcessedImagesStorage.AddImage(PieceID + " Curvature Points", color_clone2.Bitmap);
+            _logHandle.Report(new LogBox.LogEventImage(PieceID + " Curvature Points", color_clone2.Bitmap));
             
 
             if (corners.Size != 4)
             {
-                //System.Windows.MessageBox.Show("Failed to find correct number of corners: " + corners.Size + " found.");
+                _logHandle.Report(new LogBox.LogEventError(PieceID + " Failed to find correct number of corners. " + corners.Size + " found."));
                 return;
             }
 
             for (int i = 0; i < 4; i++) { CvInvoke.Circle(color_clone, Point.Round(corners[i]), 4, new MCvScalar(0, 255, 0), 3); }
-            ProcessedImagesStorage.AddImage(PieceID + " Corners", color_clone.Bitmap);
+            _logHandle.Report(new LogBox.LogEventImage(PieceID + " Corners", color_clone.Bitmap));
         }
 
         #endregion
@@ -501,13 +506,15 @@ namespace JigsawPuzzleSolver
         /// </summary>
         private void extract_edges()
         {
-            if(corners.Size != 4) { return; }
+            _logHandle.Report(new LogBox.LogEventInfo(PieceID + " Extracting edges"));
+
+            if (corners.Size != 4) { return; }
 
             VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint();
             CvInvoke.FindContours(Bw.Clone(), contours, null, RetrType.List, ChainApproxMethod.ChainApproxNone);
             if (contours.Size == 0)
             {
-                System.Windows.MessageBox.Show("Found no contours!");
+                _logHandle.Report(new LogBox.LogEventError(PieceID + " No contours found."));
                 return;
             }
 
@@ -544,7 +551,7 @@ namespace JigsawPuzzleSolver
             if (SolverParameters.SolverShowDebugResults)
             {
                 for (int i = 0; i < corners.Size; i++) { CvInvoke.Circle(edge_img, Point.Round(corners[i]), 2, new MCvScalar(255, 0, 0), 1); }
-                ProcessedImagesStorage.AddImage(PieceID + " New corners", edge_img.Bitmap);
+                _logHandle.Report(new LogBox.LogEventImage(PieceID + " New corners", edge_img.Bitmap));
             }
 
             ////We need the beginning of the vector to correspond to the begining of an edge.
@@ -563,10 +570,10 @@ namespace JigsawPuzzleSolver
             }
             corners = new_corners2;
             
-            Edges[0] = new Edge(PieceID, 0, Full_color, contour.GetSubsetOfVector(sections[0], sections[1]), SolverParameters);
-            Edges[1] = new Edge(PieceID, 1, Full_color, contour.GetSubsetOfVector(sections[1], sections[2]), SolverParameters);
-            Edges[2] = new Edge(PieceID, 2, Full_color, contour.GetSubsetOfVector(sections[2], sections[3]), SolverParameters);
-            Edges[3] = new Edge(PieceID, 3, Full_color, contour.GetSubsetOfVector(sections[3], sections[0]), SolverParameters);
+            Edges[0] = new Edge(PieceID, 0, Full_color, contour.GetSubsetOfVector(sections[0], sections[1]), SolverParameters, _logHandle);
+            Edges[1] = new Edge(PieceID, 1, Full_color, contour.GetSubsetOfVector(sections[1], sections[2]), SolverParameters, _logHandle);
+            Edges[2] = new Edge(PieceID, 2, Full_color, contour.GetSubsetOfVector(sections[2], sections[3]), SolverParameters, _logHandle);
+            Edges[3] = new Edge(PieceID, 3, Full_color, contour.GetSubsetOfVector(sections[3], sections[0]), SolverParameters, _logHandle);
         }
 
         //**********************************************************************************************************************************************************************************************
@@ -596,10 +603,10 @@ namespace JigsawPuzzleSolver
             }
             else
             {
-                System.Windows.MessageBox.Show("Problem, found too many outer edges for this piece.");
+                _logHandle.Report(new LogBox.LogEventError(PieceID + " Found too many edges for this piece. " + count.ToString() + " found."));
             }
 
-            if (SolverParameters.SolverShowDebugResults) { ProcessedImagesStorage.AddImage(PieceID + " Type " + PieceType.ToString(), Full_color.Clone().Bitmap); }
+            if (SolverParameters.SolverShowDebugResults) { _logHandle.Report(new LogBox.LogEventImage(PieceID + " Type " + PieceType.ToString(), Full_color.Clone().Bitmap)); }
         }
 
         //##############################################################################################################################################################################################

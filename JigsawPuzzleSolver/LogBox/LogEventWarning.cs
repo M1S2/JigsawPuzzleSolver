@@ -14,9 +14,8 @@ namespace LogBox
         /// <summary>
         /// Constructor of LogEventWarning
         /// </summary>
-        /// <param name="logTime">Time of log entry</param>
         /// <param name="logMessage">Message of log entry</param>
-        public LogEventWarning(DateTime logTime, string logMessage) : base(LogTypes.WARNING, logTime, logMessage)
+        public LogEventWarning(string logMessage) : base(LogTypes.WARNING, logMessage)
         {
         }
     }

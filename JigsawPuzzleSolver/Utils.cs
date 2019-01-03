@@ -400,8 +400,6 @@ namespace JigsawPuzzleSolver
             for (int i = 0; i < imageFiles.Count; i++)
             {
                 imageList.Add(CvInvoke.Imread(imageFiles[i].FullName).ToImage<Rgb, byte>());
-
-                ProcessedImagesStorage.AddImage("Image Loaded " + i.ToString(), imageList.Last().Bitmap);
             }
 
             return imageList;
@@ -478,7 +476,6 @@ namespace JigsawPuzzleSolver
         public static Mat RotateMat(Mat src, int angle)
         {
             if (angle % 90 != 0) { return src; }
-            ProcessedImagesStorage.AddImage("src", src.Bitmap);
 
             System.Drawing.Size rotatedSize;
             if (Math.Abs(angle) == 90 || angle == 270) { rotatedSize = new System.Drawing.Size(src.Cols, src.Rows); }
@@ -494,8 +491,7 @@ namespace JigsawPuzzleSolver
                 case 270:
                 case -90: CvInvoke.Rotate(src, rotated, RotateFlags.Rotate90Clockwise); break;
             }
-
-            ProcessedImagesStorage.AddImage("rotated " + angle.ToString(), rotated.Bitmap);
+            
             return rotated;
         }
 
@@ -547,8 +543,6 @@ namespace JigsawPuzzleSolver
                 CvInvoke.CvtColor(color_images[i], bw, ColorConversion.Bgr2Gray);
                 CvInvoke.Threshold(bw, bw, threshold, 255, ThresholdType.Binary);
                 black_and_white.Add(bw.ToImage<Gray, byte>());
-
-                ProcessedImagesStorage.AddImage("Image BlackWhite " + i.ToString(), bw.Clone().Bitmap);
             }
             return black_and_white;
         }
@@ -569,8 +563,6 @@ namespace JigsawPuzzleSolver
                 Mat m = new Mat();
                 CvInvoke.MedianBlur(images[i], m, k);
                 filtered_images.Add(m.ToImage<Rgb, byte>());
-
-                //ProcessedImagesStorage.AddImage("Image MedianBlur " + i.ToString(), m.Clone().Bitmap);
             }
             return filtered_images;
         }
@@ -591,8 +583,6 @@ namespace JigsawPuzzleSolver
                 //Opening and closing removes anything smaller than size
                 CvInvoke.MorphologyEx(images[i], bw, MorphOp.Open, k, new Point(-1, -1), 1, BorderType.Default, new MCvScalar(0));
                 CvInvoke.MorphologyEx(bw, images[i], MorphOp.Close, k, new Point(-1, -1), 1, BorderType.Default, new MCvScalar(0));
-
-                ProcessedImagesStorage.AddImage("Image Filter " + i.ToString(), bw.Clone().Bitmap);
             }
         }
 

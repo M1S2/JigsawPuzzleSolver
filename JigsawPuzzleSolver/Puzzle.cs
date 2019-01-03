@@ -19,10 +19,11 @@ namespace JigsawPuzzleSolver
     public class Puzzle
     {
         public PuzzleSolverParameters SolverParameters { get; private set; }
-        
+
         public bool Solved { get; private set; }
 
         private string puzzlePiecesFolderPath;
+        private IProgress<LogBox.LogEvent> _logHandle;
 
         private List<MatchScore> matches = new List<MatchScore>();
         private List<Piece> pieces = new List<Piece>();
@@ -32,17 +33,18 @@ namespace JigsawPuzzleSolver
 
         //##############################################################################################################################################################################################
 
-        public Puzzle(string piecesFolderPath, PuzzleSolverParameters solverParameters)
+        public Puzzle(string piecesFolderPath, PuzzleSolverParameters solverParameters, IProgress<LogBox.LogEvent> logHandle)
         {
             puzzlePiecesFolderPath = piecesFolderPath;
             SolverParameters = solverParameters;
+            _logHandle = logHandle;
         }
 
         public Puzzle()
         { }
 
         //##############################################################################################################################################################################################
-            
+
         /*
         private void extract_pieces(string path, int piece_size, bool needs_filter, int threshold)
         {
@@ -83,7 +85,7 @@ namespace JigsawPuzzleSolver
                     contours_to_draw.Push(Utils.TranslateContour(contours[j], bordersize - rect.X, bordersize - rect.Y));
                     CvInvoke.DrawContours(new_bw, contours_to_draw, -1, new MCvScalar(255), 2);
 
-                    ProcessedImagesStorage.AddImage("Image #" + i.ToString() + " Contour #" + j.ToString(), new_bw.Bitmap);
+                    _logHandle.Report(new LogBox.LogEventImage("Image #" + i.ToString() + " Contour #" + j.ToString(), new_bw.Bitmap));
 
                     rect.Width += bordersize * 2;
                     rect.Height += bordersize * 2;
@@ -111,6 +113,8 @@ namespace JigsawPuzzleSolver
         /// see: http://www.emgu.com/forum/viewtopic.php?t=1923
         private void extract_pieces2()
         {
+            _logHandle.Report(new LogBox.LogEventInfo("Extracting Pieces"));
+
             List<Image<Rgb, byte>> color_images = Utils.GetImagesFromDirectory(puzzlePiecesFolderPath);
             
             if (SolverParameters.PuzzleApplyMedianBlurFilter)
@@ -133,7 +137,7 @@ namespace JigsawPuzzleSolver
                     sourceImg = sourceImg.Resize(maxWidth, maxHeight, Inter.Cubic, true);
                 }*/
 
-                ProcessedImagesStorage.AddImage("Source Img " + i.ToString() , sourceImg.ToBitmap());
+                _logHandle.Report(new LogBox.LogEventImage("Extracting Pieces from source image " + i.ToString() , sourceImg.ToBitmap()));
 
                 //Image<Gray, byte> mask = sourceImg.GrabCut(new Rectangle(1, 1, sourceImg.Width - 1, sourceImg.Height - 1), 20); //10);
                 //mask = mask.ThresholdBinary(new Gray(2), new Gray(255));            // Change the mask. All values bigger than 2 get mapped to 255. All values equal or smaller than 2 get mapped to 0.
@@ -179,7 +183,7 @@ namespace JigsawPuzzleSolver
                     Image<Rgb, byte> pieceSourceImgMasked = new Image<Rgb, byte>(pieceSourceImg.Size);
                     CvInvoke.BitwiseOr(pieceSourceImageForeground, pieceSourceImageBackground, pieceSourceImgMasked);
 
-                    Piece p = new Piece(pieceSourceImgMasked, pieceMask, SolverParameters);
+                    Piece p = new Piece(pieceSourceImgMasked, pieceMask, SolverParameters, _logHandle);
                     pieces.Add(p);
 
                     pieceSourceImg.Dispose();
@@ -191,7 +195,7 @@ namespace JigsawPuzzleSolver
                     pieceSourceImageBackground.Dispose();
                 }
 
-                ProcessedImagesStorage.AddImage("Source Img " + i.ToString() + " Pieces", sourceImgPiecesMarked.ToBitmap());
+                _logHandle.Report(new LogBox.LogEventImage("Source Img " + i.ToString() + " Pieces", sourceImgPiecesMarked.ToBitmap()));
             }
         }
 
@@ -216,7 +220,7 @@ namespace JigsawPuzzleSolver
                     CvInvoke.DrawContours(m, contours, -1, new MCvScalar(255), 2);
                     CvInvoke.PutText(m, pieces[i].Edges[j].EdgeType.ToString(), new Point(300, 300), FontFace.HersheyComplexSmall, 2, new MCvScalar(255), 1, LineType.AntiAlias);
 
-                    ProcessedImagesStorage.AddImage("Contour " + pieces[i].PieceID + " Edge " + j.ToString(), m.Bitmap);
+                    _logHandle.Report(new LogBox.LogEventImage("Contour " + pieces[i].PieceID + " Edge " + j.ToString(), m.Bitmap));
                 }
             }
         }
@@ -226,8 +230,10 @@ namespace JigsawPuzzleSolver
         /// <summary>
         /// Fill the list with all match scores for all piece edge combinations
         /// </summary>
-        private void fill_costs()
+        private void compareAllEdges()
         {
+            _logHandle.Report(new LogBox.LogEventInfo("Comparing all edges"));
+
             matches.Clear();
             int no_edges = (int)pieces.Count * 4;
 
@@ -254,7 +260,7 @@ namespace JigsawPuzzleSolver
             {
                 foreach (MatchScore matchScore in matches)
                 {
-                    ProcessedImagesStorage.AddImage("MatchScore " + pieces[matchScore.PieceIndex1].PieceID + "_Edge" + (matchScore.EdgeIndex1).ToString() + " <-->" + pieces[matchScore.PieceIndex2].PieceID + "_Edge" + (matchScore.EdgeIndex2).ToString() + " = " + matchScore.score.ToString(), Utils.Combine2ImagesHorizontal(pieces[matchScore.PieceIndex1].Edges[matchScore.EdgeIndex1].ContourImg, pieces[matchScore.PieceIndex2].Edges[matchScore.EdgeIndex2].ContourImg, 20).ToBitmap());
+                    _logHandle.Report(new LogBox.LogEventImage("MatchScore " + pieces[matchScore.PieceIndex1].PieceID + "_Edge" + (matchScore.EdgeIndex1).ToString() + " <-->" + pieces[matchScore.PieceIndex2].PieceID + "_Edge" + (matchScore.EdgeIndex2).ToString() + " = " + matchScore.score.ToString(), Utils.Combine2ImagesHorizontal(pieces[matchScore.PieceIndex1].Edges[matchScore.EdgeIndex1].ContourImg, pieces[matchScore.PieceIndex2].Edges[matchScore.EdgeIndex2].ContourImg, 20).ToBitmap()));
                 }
             }
         }
@@ -276,9 +282,11 @@ namespace JigsawPuzzleSolver
         {
             await Task.Run(() =>
             {
-                fill_costs();
+                compareAllEdges();
 
                 PuzzleDisjointSet p = new PuzzleDisjointSet(pieces.Count);
+
+                _logHandle.Report(new LogBox.LogEventInfo("Join Pieces"));
 
                 for (int i = 0; i < matches.Count; i++)
                 {
@@ -292,7 +300,7 @@ namespace JigsawPuzzleSolver
                     p.JoinSets(p1, p2, e1, e2);
                 }
 
-                System.Windows.MessageBox.Show("Possible solution found " + (p.InOneSet() ? "(one set)." : "(multiple sets)."));
+                _logHandle.Report(new LogBox.LogEventInfo("Possible solution found " + (p.InOneSet() ? "(one set)." : "(" + p.SetCount.ToString() + " sets)")));
                 Solved = true;
                 int setNo = 0;
                 foreach (Forest jointSet in p.GetJointSets())
@@ -320,7 +328,7 @@ namespace JigsawPuzzleSolver
         #region Generate Solution Image
 
         private void GenerateSolutionImage(Matrix<int> solutionLocations, int solutionID)
-        {
+        { 
             if (!Solved) { Solve(); }
 
             int border = 10;
@@ -409,12 +417,12 @@ namespace JigsawPuzzleSolver
 
                 if (failed)
                 {
-                    System.Windows.MessageBox.Show("Failed, only partial image generated.");
+                    _logHandle.Report(new LogBox.LogEventError("Failed to generate solution " + solutionID + " image. Only partial image generated."));
                     break;
                 }
             }
 
-            ProcessedImagesStorage.AddImage("Solution #" + solutionID.ToString(), final_out_image.Clone().Bitmap);
+            _logHandle.Report(new LogBox.LogEventImage("Solution #" + solutionID.ToString(), final_out_image.Clone().Bitmap));
         }
 
         //**********************************************************************************************************************************************************************************************
@@ -454,7 +462,7 @@ namespace JigsawPuzzleSolver
                 }
             }
 
-            ProcessedImagesStorage.AddImage("Solution #" + solutionID.ToString(), outImg);
+            _logHandle.Report(new LogBox.LogEventImage("Solution #" + solutionID.ToString(), outImg));
         }
 
         #endregion

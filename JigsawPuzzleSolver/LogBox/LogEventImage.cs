@@ -20,10 +20,9 @@ namespace LogBox
         /// <summary>
         /// Constructor of LogEventImage
         /// </summary>
-        /// <param name="logTime">Time of log entry</param>
         /// <param name="logMessage">Message of log entry</param>
         /// <param name="logImage">Image of log entry</param>
-        public LogEventImage(DateTime logTime, string logMessage, Bitmap logImage) : base(LogTypes.IMAGE, logTime, logMessage)
+        public LogEventImage(string logMessage, Bitmap logImage) : base(LogTypes.IMAGE, logMessage)
         {
             LogImage = logImage;
         }

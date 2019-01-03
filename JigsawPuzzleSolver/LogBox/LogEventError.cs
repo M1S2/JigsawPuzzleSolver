@@ -14,9 +14,8 @@ namespace LogBox
         /// <summary>
         /// Constructor of LogEventError
         /// </summary>
-        /// <param name="logTime">Time of log entry</param>
         /// <param name="logMessage">Message of log entry</param>
-        public LogEventError(DateTime logTime, string logMessage) : base(LogTypes.ERROR, logTime, logMessage)
+        public LogEventError(string logMessage) : base(LogTypes.ERROR, logMessage)
         {
         }
     }

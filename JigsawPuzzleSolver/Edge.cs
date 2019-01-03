@@ -35,10 +35,13 @@ namespace JigsawPuzzleSolver
         public Image<Rgb, byte> Full_color;
         public Image<Rgb, byte> ContourImg;
 
+        private IProgress<LogBox.LogEvent> _logHandle;
+
         //##############################################################################################################################################################################################
 
-        public Edge(string pieceID, int edgeNumber, Image<Rgb, byte> full_color, VectorOfPoint edgeContour, PuzzleSolverParameters solverParameters)
+        public Edge(string pieceID, int edgeNumber, Image<Rgb, byte> full_color, VectorOfPoint edgeContour, PuzzleSolverParameters solverParameters, IProgress<LogBox.LogEvent> logHandle)
         {
+            _logHandle = logHandle;
             SolverParameters = solverParameters;
             PieceID = pieceID;
             EdgeNumber = edgeNumber;
@@ -74,7 +77,7 @@ namespace JigsawPuzzleSolver
                 EdgeType = EdgeTypes.LINE;
 
                 for (int i = 0; i < contour.Size; i++) { CvInvoke.Circle(ContourImg, Point.Round(contour[i]), 2, new MCvScalar(255, 0, 0), 1); }
-                ProcessedImagesStorage.AddImage(PieceID + " Edge " + EdgeNumber.ToString() + " " + EdgeType.ToString(), ContourImg.Bitmap);
+                _logHandle.Report(new LogBox.LogEventImage(PieceID + " Edge " + EdgeNumber.ToString() + " " + EdgeType.ToString(), ContourImg.Bitmap));
                 return;
             }
 
@@ -97,7 +100,7 @@ namespace JigsawPuzzleSolver
             }
             
             for (int i = 0; i < contour.Size; i++) { CvInvoke.Circle(ContourImg, Point.Round(contour[i]), 2, new MCvScalar(255, 0, 0), 1); }
-            ProcessedImagesStorage.AddImage(PieceID + " Edge " + EdgeNumber.ToString() + " " + EdgeType.ToString(), ContourImg.Bitmap);
+            _logHandle.Report(new LogBox.LogEventImage(PieceID + " Edge " + EdgeNumber.ToString() + " " + EdgeType.ToString(), ContourImg.Bitmap));
         }
 
         //**********************************************************************************************************************************************************************************************
@@ -197,7 +200,7 @@ namespace JigsawPuzzleSolver
             CvInvoke.DrawContours(contourOverlay, new VectorOfVectorOfPoint(contour1), -1, new MCvScalar(0, 255, 0), 2);
             CvInvoke.DrawContours(contourOverlay, new VectorOfVectorOfPoint(contour2), -1, new MCvScalar(0, 0, 255), 2);
 
-            ProcessedImagesStorage.AddImage("Compare " + PieceID + "_Edge" + EdgeNumber + " <-->" + edge2.PieceID + "_Edge" + edge2.EdgeNumber + " ==> distEndpoint = " + distEndpointDiff.ToString() + ", I1 = " + matchShapesResultI1 + ", I2 = " + matchShapesResultI2 + ", I3 = " + matchShapesResultI3 + ", Mean = " + meanMatchResult, contourOverlay.Bitmap); //Utils.Combine2ImagesHorizontal(ContourImg, edge2.ContourImg, 20).ToBitmap());
+            _logHandle.Report(new LogBox.LogEventImage("Compare " + PieceID + "_Edge" + EdgeNumber + " <-->" + edge2.PieceID + "_Edge" + edge2.EdgeNumber + " ==> distEndpoint = " + distEndpointDiff.ToString() + ", I1 = " + matchShapesResultI1 + ", I2 = " + matchShapesResultI2 + ", I3 = " + matchShapesResultI3 + ", Mean = " + meanMatchResult, contourOverlay.Bitmap); //Utils.Combine2ImagesHorizontal(ContourImg, edge2.ContourImg, 20).ToBitmap());
 
             return distEndpointDiff + meanMatchResult; //3 * matchShapesResultI2;
         }
@@ -253,7 +256,7 @@ namespace JigsawPuzzleSolver
                 CvInvoke.DrawContours(contourOverlay, new VectorOfVectorOfPoint(contour1), -1, new MCvScalar(0, 255, 0), 2);
                 CvInvoke.DrawContours(contourOverlay, new VectorOfVectorOfPoint(contour2), -1, new MCvScalar(0, 0, 255), 2);
 
-                ProcessedImagesStorage.AddImage("Compare " + PieceID + "_Edge" + EdgeNumber + " <-->" + edge2.PieceID + "_Edge" + edge2.EdgeNumber + " ==> distEndpoint = " + distEndpointContoursDiff.ToString() + ", MatchResult = " + matchResult, contourOverlay.Bitmap);
+                _logHandle.Report(new LogBox.LogEventImage("Compare " + PieceID + "_Edge" + EdgeNumber + " <-->" + edge2.PieceID + "_Edge" + edge2.EdgeNumber + " ==> distEndpoint = " + distEndpointContoursDiff.ToString() + ", MatchResult = " + matchResult, contourOverlay.Bitmap));
             }
 
             return distEndpointContoursDiff + matchResult;

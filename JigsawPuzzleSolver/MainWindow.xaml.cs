@@ -42,31 +42,30 @@ namespace JigsawPuzzleSolver
         public MainWindow()
         {
             InitializeComponent();
-            list_imageDescriptions.ItemsSource = ProcessedImagesStorage.ImageDescriptions;
             this.DataContext = this;
+
+            logHandle = new Progress<LogBox.LogEvent>(progressValue =>
+            {
+                logBox1.LogEvent(progressValue);
+            });
         }
 
         //##############################################################################################################################################################################################
 
         Puzzle puzzle;
-        
+        IProgress<LogBox.LogEvent> logHandle;
+
         private async void btn_init_puzzle_Click(object sender, RoutedEventArgs e)
         {
-            logBox1.LogInfo("ABC");
-            logBox1.LogWarning("xyz");
-            logBox1.LogError("HIJ");
-            logBox1.LogImage("IMG", (Bitmap)Bitmap.FromFile(@"D:\Benutzer\V17\Dokumente\Visual Studio 2017\Projects\JigsawPuzzleSolver\Test_Pictures\Pieces7.jpg"));
-            return;
-
             btn_init_puzzle.IsEnabled = false;
             btn_solve_puzzle.IsEnabled = false;
-            ProcessedImagesStorage.ClearAllImages();
 
             PuzzleSolverParameters solverParameters = new PuzzleSolverParameters() { SolverShowDebugResults = true };
-            //puzzle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", solverParameters);
-            puzzle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", solverParameters);
-
+            puzzle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", solverParameters, logHandle);
+            //puzzle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", solverParameters, logHandle);
+            
             await puzzle.Init();
+            logBox1.ScrollToSpecificLogEvent(logBox1.LogEvents.Last());
             btn_init_puzzle.IsEnabled = true;
             btn_solve_puzzle.IsEnabled = true;
         }
@@ -76,14 +75,9 @@ namespace JigsawPuzzleSolver
             btn_init_puzzle.IsEnabled = false;
             btn_solve_puzzle.IsEnabled = false;
             await puzzle.Solve();
+            logBox1.ScrollToSpecificLogEvent(logBox1.LogEvents.Last());
             btn_init_puzzle.IsEnabled = true;
             btn_solve_puzzle.IsEnabled = true;
-        }
-
-        private void list_imageDescriptions_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if(list_imageDescriptions.SelectedItem == null) { return; }
-            ProcessedImgSource = Utils.BitmapToImageSource(ProcessedImagesStorage.GetImage(list_imageDescriptions.SelectedItem.ToString()));
         }
 
         //##############################################################################################################################################################################################
@@ -105,7 +99,7 @@ namespace JigsawPuzzleSolver
 
             Image<Rgb, byte> contourImg = new Image<Rgb, byte>(100, 100);
             for (int i = 0; i < contour.Size; i++) { CvInvoke.Circle(contourImg, contour[i], 1, new MCvScalar(0, 0, 255), 1); }
-            ProcessedImagesStorage.AddImage("Contour", contourImg.Bitmap);
+            logHandle.Report(new LogBox.LogEventImage("Contour", contourImg.Bitmap));
 
             List<double> curvature = Utils.CalculateCurvature(contour.ToArray().ToList(), 3);
 
@@ -119,7 +113,7 @@ namespace JigsawPuzzleSolver
                 curvatureContour.Push(new System.Drawing.Point(i, (int)(scale * curvatureDraw[i] + 255)));
             }
             CvInvoke.DrawContours(curvatureImg, new VectorOfVectorOfPoint(curvatureContour), -1, new MCvScalar(0, 255, 0));
-            ProcessedImagesStorage.AddImage("Curvature Img", curvatureImg.Bitmap);
+            logHandle.Report(new LogBox.LogEventImage("Curvature Img", curvatureImg.Bitmap));
         }
     }
 }

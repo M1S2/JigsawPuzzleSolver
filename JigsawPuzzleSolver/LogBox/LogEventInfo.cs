@@ -14,9 +14,8 @@ namespace LogBox
         /// <summary>
         /// Constructor of LogEventInfo
         /// </summary>
-        /// <param name="logTime">Time of log entry</param>
         /// <param name="logMessage">Message of log entry</param>
-        public LogEventInfo(DateTime logTime, string logMessage) : base(LogTypes.INFO, logTime, logMessage)
+        public LogEventInfo(string logMessage) : base(LogTypes.INFO, logMessage)
         {
         }
     }

@@ -8,30 +8,19 @@
         xmlns:LogBox="clr-namespace:LogBox"
         x:Class="JigsawPuzzleSolver.MainWindow"
         mc:Ignorable="d"
-        Title="Puzzle Solver" Height="700" Width="800">
+        Title="Puzzle Solver" Height="900" Width="1200">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="40"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="300"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
+        <GridSplitter ResizeDirection="Rows" Grid.Row="2" Height="5" ShowsPreview="False" HorizontalAlignment="Stretch" VerticalAlignment="Top" Background="#FFB2B2B2" />
+
         <Button x:Name="btn_init_puzzle" Grid.Row="0" Content="Init Puzzle" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="10,10,0,0" Click="btn_init_puzzle_Click"/>
         <Button x:Name="btn_solve_puzzle" Grid.Row="0" Content="Solve Puzzle" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="90,10,0,0" Click="btn_solve_puzzle_Click"/>
-        <!-- <Image x:Name="img_Processed" Grid.Row="2" Margin="5"/> -->
-
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-
-            <ListBox x:Name="list_imageDescriptions" Grid.Column="0" Margin="5" SelectionChanged="list_imageDescriptions_SelectionChanged"/>
-            <gui:ZoomBorder Grid.Column="1" BorderBrush="Black" BorderThickness="1" ClipToBounds="True" Margin="5" >
-                <Image Source="{Binding ProcessedImgSource}"/>
-            </gui:ZoomBorder>
-        </Grid>
-
+        
         <LogBox:LogBoxControl x:Name="logBox1" Margin="5" Grid.Row="2"/>
 
     </Grid>

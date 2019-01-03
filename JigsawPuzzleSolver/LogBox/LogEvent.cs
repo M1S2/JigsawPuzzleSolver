@@ -27,12 +27,11 @@ namespace LogBox
         /// Constructor of LogEvent
         /// </summary>
         /// <param name="logType">Type of log entry</param>
-        /// <param name="logTime">Time of log entry</param>
         /// <param name="logMessage">Message of log entry</param>
-        public LogEvent(LogTypes logType, DateTime logTime, string logMessage)
+        public LogEvent(LogTypes logType, string logMessage)
         {
             LogType = logType;
-            LogTime = logTime;
+            LogTime = DateTime.Now;
             LogMessage = logMessage;
         }
     }

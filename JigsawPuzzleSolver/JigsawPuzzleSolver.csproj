@@ -84,23 +84,17 @@
     <Compile Include="LogBox\LogEventWarning.cs" />
     <Compile Include="LogBox\LogEventError.cs" />
     <Compile Include="LogBox\LogTypes.cs" />
-    <Compile Include="LogBox\BitmapToImageSourceConverter.cs" />
-    <Compile Include="LogBox\LogTypesToIconFilenameConverter.cs" />
-    <Compile Include="LogBox\SubtractConverter.cs" />
-    <Compile Include="LogBox\PercentageConverter.cs" />
+    <Compile Include="LogBox\Converters\BitmapToImageSourceConverter.cs" />
+    <Compile Include="LogBox\Converters\LogTypesToIconFilenameConverter.cs" />
+    <Compile Include="LogBox\Converters\SubtractConverter.cs" />
+    <Compile Include="LogBox\Converters\PercentageConverter.cs" />
     <Compile Include="LogBox\ToggleSwitch.xaml.cs">
       <DependentUpon>ToggleSwitch.xaml</DependentUpon>
     </Compile>
     <Compile Include="PuzzleSolverParameters.cs" />
     <Compile Include="Structures\FindCornerRectangleScore.cs" />
     <Compile Include="MatchScoreComparer.cs" />
-    <Compile Include="old files\Piece_old.cs" />
-    <Compile Include="old files\PieceCollection_old.cs" />
-    <Compile Include="old files\PieceEdge_old.cs" />
-    <Compile Include="old files\PieceExtractor_old.cs" />
-    <Compile Include="old files\PieceRotator_old.cs" />
     <Compile Include="Piece.cs" />
-    <Compile Include="ProcessedImagesStorage.cs" />
     <Compile Include="Puzzle.cs" />
     <Compile Include="PuzzleDisjointSet.cs" />
     <Compile Include="Forest.cs" />

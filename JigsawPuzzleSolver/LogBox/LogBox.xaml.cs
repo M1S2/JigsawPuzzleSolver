@@ -14,23 +14,73 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Collections.ObjectModel;
 using System.Drawing;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace LogBox
 {
     /// <summary>
     /// Interaktionslogik für LogBox.xaml
     /// </summary>
-    public partial class LogBoxControl : UserControl
+    public partial class LogBoxControl : UserControl, INotifyPropertyChanged
     {
+#warning Width of Message column isn't adapted correctly
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        /// <summary>
+        /// This method is called by the Set accessor of each property. The CallerMemberName attribute that is applied to the optional propertyName parameter causes the property name of the caller to be substituted as an argument.
+        /// </summary>
+        /// <param name="propertyName">Name of the property that is changed</param>
+        /// see: https://docs.microsoft.com/de-de/dotnet/framework/winforms/how-to-implement-the-inotifypropertychanged-interface
+        private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        //***********************************************************************************************************************************************************************************************************
+
         /// <summary>
         /// List with all log events
         /// </summary>
         public ObservableCollection<LogEvent> LogEvents { get; private set; }
 
+        private LogEvent _selectedLogEvent;
         /// <summary>
-        /// List with all log events that are shown (not filtered)
+        /// LogEvent that is selected in the listView
         /// </summary>
-        public ObservableCollection<LogEvent> ShownLogEvents { get; private set; }
+        public LogEvent SelectedLogEvent
+        {
+            get { return _selectedLogEvent; }
+            set
+            {
+                _selectedLogEvent = value;
+                IsSelectedLogEventTypeImage = (SelectedLogEvent == null ? false : SelectedLogEvent.LogType == LogTypes.IMAGE);
+                LogImageProperty = (IsSelectedLogEventTypeImage == false ? null : ((LogEventImage)SelectedLogEvent).LogImage);
+            }
+        }
+
+        private bool _isSelectedLogEventTypeImage;
+        /// <summary>
+        /// True if the SelectedLogEvent is an image log event; otherwise False
+        /// </summary>
+        public bool IsSelectedLogEventTypeImage
+        {
+            get { return _isSelectedLogEventTypeImage; }
+            set { _isSelectedLogEventTypeImage = value; NotifyPropertyChanged(); }
+        }
+
+        private Bitmap _logImageProperty;
+        /// <summary>
+        /// The image of the selected log event if it's an image log event; otherwise null
+        /// </summary>
+        public Bitmap LogImageProperty
+        {
+            get { return _logImageProperty; }
+            set { _logImageProperty = value; NotifyPropertyChanged(); }
+        }
+
+        //***********************************************************************************************************************************************************************************************************
 
         private bool _showInfos;
         /// <summary>
@@ -42,7 +92,8 @@ namespace LogBox
             set
             {
                 _showInfos = value;
-                RefreshShownLogEvents();
+                NotifyPropertyChanged();
+                CollectionViewSource.GetDefaultView(listView_Log.ItemsSource).Refresh();
             }
         }
 
@@ -56,7 +107,8 @@ namespace LogBox
             set
             {
                 _showWarnings = value;
-                RefreshShownLogEvents();
+                NotifyPropertyChanged();
+                CollectionViewSource.GetDefaultView(listView_Log.ItemsSource).Refresh();
             }
         }
 
@@ -70,7 +122,8 @@ namespace LogBox
             set
             {
                 _showErrors = value;
-                RefreshShownLogEvents();
+                NotifyPropertyChanged();
+                CollectionViewSource.GetDefaultView(listView_Log.ItemsSource).Refresh();
             }
         }
 
@@ -84,7 +137,8 @@ namespace LogBox
             set
             {
                 _showImageLogs = value;
-                RefreshShownLogEvents();
+                NotifyPropertyChanged();
+                CollectionViewSource.GetDefaultView(listView_Log.ItemsSource).Refresh();
             }
         }
 
@@ -95,8 +149,11 @@ namespace LogBox
             InitializeComponent();
             DataContext = this;
             LogEvents = new ObservableCollection<LogEvent>();
-            ShownLogEvents = new ObservableCollection<LogEvent>();
-            listView_Log.ItemsSource = ShownLogEvents;
+
+            listView_Log.ItemsSource = LogEvents;
+            CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(listView_Log.ItemsSource);
+            view.Filter = filterListViewItems;
+
             ShowInfos = true;
             ShowWarnings = true;
             ShowErrors = true;
@@ -118,7 +175,7 @@ namespace LogBox
         /// <param name="errorMessage">error message</param>
         public void LogError(string errorMessage)
         {
-            LogEventError logEvent = new LogEventError(DateTime.Now, errorMessage);
+            LogEventError logEvent = new LogEventError(errorMessage);
             LogEvent(logEvent);
         }
 
@@ -128,7 +185,7 @@ namespace LogBox
         /// <param name="warningMessage">warning message</param>
         public void LogWarning(string warningMessage)
         {
-            LogEventWarning logEvent = new LogEventWarning(DateTime.Now, warningMessage);
+            LogEventWarning logEvent = new LogEventWarning(warningMessage);
             LogEvent(logEvent);
         }
 
@@ -138,7 +195,7 @@ namespace LogBox
         /// <param name="infoMessage">info message</param>
         public void LogInfo(string infoMessage)
         {
-            LogEventInfo logEvent = new LogEventInfo(DateTime.Now, infoMessage);
+            LogEventInfo logEvent = new LogEventInfo(infoMessage);
             LogEvent(logEvent);
         }
 
@@ -149,21 +206,17 @@ namespace LogBox
         /// <param name="image">image of log entry</param>
         public void LogImage(string imageMessage, Bitmap image)
         {
-            LogEventImage logEvent = new LogEventImage(DateTime.Now, imageMessage, image);
+            LogEventImage logEvent = new LogEventImage(imageMessage, image);
             LogEvent(logEvent);
         }
-
-        //***********************************************************************************************************************************************************************************************************
 
         /// <summary>
         /// Create a new log entry with type, time and message
         /// </summary>
         /// <param name="logEvent">log event</param>
-        private void LogEvent(LogEvent logEvent)
+        public void LogEvent(LogEvent logEvent)
         {
             LogEvents.Add(logEvent);
-            RefreshShownLogEvents();
-            listView_Log.ScrollIntoView(logEvent);
         }
 
         /// <summary>
@@ -172,19 +225,28 @@ namespace LogBox
         public void ClearLog()
         {
             LogEvents.Clear();
-            ShownLogEvents.Clear();
+        }
+
+        /// <summary>
+        /// Scroll to the given log event
+        /// </summary>
+        /// <param name="logEvent">LogEvent to scroll to</param>
+        public void ScrollToSpecificLogEvent(LogEvent logEvent)
+        {
+            listView_Log.ScrollIntoView(logEvent);
         }
 
         //***********************************************************************************************************************************************************************************************************
 
         /// <summary>
-        /// Refresh the list of shown log entries
+        /// Method that is used to filter the listView items
         /// </summary>
-        private void RefreshShownLogEvents()
+        /// <param name="item">ListViewItem</param>
+        /// <returns>Should the item be shown or not</returns>
+        private bool filterListViewItems(object item)
         {
-            ShownLogEvents = new ObservableCollection<LogEvent>(LogEvents.Where(log => (ShowInfos == true && log.LogType == LogTypes.INFO) || (ShowWarnings == true && log.LogType == LogTypes.WARNING) || (ShowErrors == true && log.LogType == LogTypes.ERROR) || (ShowImageLogs == true && log.LogType == LogTypes.IMAGE)));
-            listView_Log.ItemsSource = ShownLogEvents;
-            resizeListViewColumns(listView_Log);
+            LogEvent log = (LogEvent)item;
+            return (ShowInfos == true && log.LogType == LogTypes.INFO) || (ShowWarnings == true && log.LogType == LogTypes.WARNING) || (ShowErrors == true && log.LogType == LogTypes.ERROR) || (ShowImageLogs == true && log.LogType == LogTypes.IMAGE);
         }
 
         //***********************************************************************************************************************************************************************************************************
@@ -205,6 +267,5 @@ namespace LogBox
                 column.Width = double.NaN;
             }
         }
-
     }
 }
