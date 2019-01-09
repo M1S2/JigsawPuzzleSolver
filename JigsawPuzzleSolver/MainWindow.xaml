@@ -4,7 +4,6 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:JigsawPuzzleSolver"
-        xmlns:gui="clr-namespace:GUIElements"
         xmlns:LogBox="clr-namespace:LogBox"
         x:Class="JigsawPuzzleSolver.MainWindow"
         mc:Ignorable="d"
@@ -14,14 +13,71 @@
             <RowDefinition Height="40"/>
             <RowDefinition Height="300"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="40"/>
         </Grid.RowDefinitions>
 
         <GridSplitter ResizeDirection="Rows" Grid.Row="2" Height="5" ShowsPreview="False" HorizontalAlignment="Stretch" VerticalAlignment="Top" Background="#FFB2B2B2" />
 
-        <Button x:Name="btn_init_puzzle" Grid.Row="0" Content="Init Puzzle" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="10,10,0,0" Click="btn_init_puzzle_Click"/>
-        <Button x:Name="btn_solve_puzzle" Grid.Row="0" Content="Solve Puzzle" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="90,10,0,0" Click="btn_solve_puzzle_Click"/>
+        <TabControl Grid.Row="1">
+            <TabItem Header="Solver Progress">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Orientation="Vertical">
+                        <Button Content="Start Solving" HorizontalAlignment="Left" VerticalAlignment="Top" Height="35" Width="120" Margin="10,10,0,0" Click="btn_start_solving_Click"/>
+
+                        <Grid Margin="10">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="30"/>
+                                <RowDefinition Height="30"/>
+                                <RowDefinition Height="30"/>
+                                <RowDefinition Height="30"/>
+                                <RowDefinition Height="30"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="150"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Overall progress: " VerticalAlignment="Center"/>
+                            <ProgressBar Grid.Row="0" Grid.Column="1" Margin="2" Value="{Binding Path=PercentageOfFinishedSolverSteps, Mode=OneWay}"/>
+                            <TextBlock Grid.Row="0" Grid.Column="2" VerticalAlignment="Center">
+                                <TextBlock.Text>
+                                    <MultiBinding StringFormat="{}{0} / {1} steps finished">
+                                        <Binding Path="NumberOfFinishedSolverSteps" Mode="OneWay" />
+                                        <Binding Path="NumberOfSolverSteps" Mode="OneWay" />
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Current step: " VerticalAlignment="Center"/>
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Path=CurrentSolverStep, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Current progress: " VerticalAlignment="Center"/>
+                            <ProgressBar Grid.Row="2" Grid.Column="1" Margin="2" Value="{Binding Path=CurrentSolverStepPercentageFinished}"/>
+                            <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding Path=CurrentSolverStepPercentageFinished, StringFormat='{}{0} %'}" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Elapsed time: " VerticalAlignment="Center"/>
+                            <TextBlock Grid.Row="3" Grid.Column="1" Text="hh:mm:ss" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Number pieces found: " VerticalAlignment="Center"/>
+                            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding Path=NumberPuzzlePieces}" VerticalAlignment="Center"/>
+
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            
+            <TabItem Header="Solver Result">
+            </TabItem>
+        </TabControl>
         
         <LogBox:LogBoxControl x:Name="logBox1" Margin="5" Grid.Row="2"/>
 
+        <Grid Grid.Row="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="150"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Text="{Binding Path=PuzzlePiecesFolderPath}" VerticalAlignment="Center" Margin="10"/>
+            <TextBlock Grid.Column="1" Text="{Binding Path=CurrentSolverStep}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="10"/>
+        </Grid>
     </Grid>
 </Window>

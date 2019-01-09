@@ -26,7 +26,7 @@ namespace JigsawPuzzleSolver
     /// </summary>
     public partial class MainWindow : Window
     {
-        public static readonly DependencyProperty ProcessedImgSourceProperty = DependencyProperty.Register("ProcessedImgSource", typeof(ImageSource), typeof(MainWindow), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+        /*public static readonly DependencyProperty ProcessedImgSourceProperty = DependencyProperty.Register("ProcessedImgSource", typeof(ImageSource), typeof(MainWindow), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
 
         /// <summary>
         /// Processed Image source property
@@ -35,7 +35,10 @@ namespace JigsawPuzzleSolver
         {
             get { return (ImageSource)GetValue(ProcessedImgSourceProperty); }
             set { SetValue(ProcessedImgSourceProperty, value); }
-        }
+        }*/
+        
+        public Puzzle puzzle { get; set; }
+        IProgress<LogBox.LogEvent> logHandle;
 
         //##############################################################################################################################################################################################
 
@@ -52,32 +55,17 @@ namespace JigsawPuzzleSolver
 
         //##############################################################################################################################################################################################
 
-        Puzzle puzzle;
-        IProgress<LogBox.LogEvent> logHandle;
-
-        private async void btn_init_puzzle_Click(object sender, RoutedEventArgs e)
+        private async void btn_start_solving_Click(object sender, RoutedEventArgs e)
         {
-            btn_init_puzzle.IsEnabled = false;
-            btn_solve_puzzle.IsEnabled = false;
+            PuzzleSolverParameters solverParameters = new PuzzleSolverParameters() { SolverShowDebugResults = false };
+            //puzzle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", solverParameters, logHandle);
+            puzzle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", solverParameters, logHandle);
 
-            PuzzleSolverParameters solverParameters = new PuzzleSolverParameters() { SolverShowDebugResults = true };
-            puzzle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", solverParameters, logHandle);
-            //puzzle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", solverParameters, logHandle);
-            
+            this.DataContext = puzzle;
+
             await puzzle.Init();
-            logBox1.ScrollToSpecificLogEvent(logBox1.LogEvents.Last());
-            btn_init_puzzle.IsEnabled = true;
-            btn_solve_puzzle.IsEnabled = true;
-        }
-
-        private async void btn_solve_puzzle_Click(object sender, RoutedEventArgs e)
-        {
-            btn_init_puzzle.IsEnabled = false;
-            btn_solve_puzzle.IsEnabled = false;
             await puzzle.Solve();
             logBox1.ScrollToSpecificLogEvent(logBox1.LogEvents.Last());
-            btn_init_puzzle.IsEnabled = true;
-            btn_solve_puzzle.IsEnabled = true;
         }
 
         //##############################################################################################################################################################################################
@@ -115,5 +103,6 @@ namespace JigsawPuzzleSolver
             CvInvoke.DrawContours(curvatureImg, new VectorOfVectorOfPoint(curvatureContour), -1, new MCvScalar(0, 255, 0));
             logHandle.Report(new LogBox.LogEventImage("Curvature Img", curvatureImg.Bitmap));
         }
+
     }
 }

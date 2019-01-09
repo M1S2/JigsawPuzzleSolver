@@ -75,6 +75,7 @@
     <Compile Include="Edge.cs" />
     <Compile Include="Enumerations\EdgeTypes.cs" />
     <Compile Include="Enumerations\PieceTypes.cs" />
+    <Compile Include="Enumerations\PuzzleSolverSteps.cs" />
     <Compile Include="LogBox\LogBox.xaml.cs">
       <DependentUpon>LogBox.xaml</DependentUpon>
     </Compile>
@@ -91,6 +92,7 @@
     <Compile Include="LogBox\ToggleSwitch.xaml.cs">
       <DependentUpon>ToggleSwitch.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ObservableObject.cs" />
     <Compile Include="PuzzleSolverParameters.cs" />
     <Compile Include="Structures\FindCornerRectangleScore.cs" />
     <Compile Include="MatchScoreComparer.cs" />

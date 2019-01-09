@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using Emgu.CV.CvEnum;
@@ -16,13 +18,62 @@ namespace JigsawPuzzleSolver
     /// Class that is used to extract all pieces from a set of images, store the pieces and solve the puzzle.
     /// </summary>
     /// see: https://github.com/jzeimen/PuzzleSolver/blob/master/PuzzleSolver/puzzle.cpp
-    public class Puzzle
-    {
+    public class Puzzle : ObservableObject
+    {       
         public PuzzleSolverParameters SolverParameters { get; private set; }
 
-        public bool Solved { get; private set; }
+        public bool Solved { get { return CurrentSolverStep == PuzzleSolverSteps.SOLVED; } }
 
-        private string puzzlePiecesFolderPath;
+        private PuzzleSolverSteps _currentSolverStep;
+        public PuzzleSolverSteps CurrentSolverStep
+        {
+            get { return _currentSolverStep; }
+            private set
+            {
+                _currentSolverStep = value;
+                OnPropertyChanged();
+                OnPropertyChanged("PercentageOfFinishedSolverSteps");
+                OnPropertyChanged("NumberOfFinishedSolverSteps");
+            }
+        }
+        
+        public int PercentageOfFinishedSolverSteps
+        {
+            get { return (int)((NumberOfFinishedSolverSteps / (double)NumberOfSolverSteps) * 100); }
+        }
+
+        public int NumberOfFinishedSolverSteps
+        {
+            get { return (int)CurrentSolverStep; }
+        }
+
+        public int NumberOfSolverSteps
+        {
+            get { return Enum.GetNames(typeof(PuzzleSolverSteps)).Count() - 1; }        // -1 because "SOLVED" isn't a real solver step
+        }
+
+        private int _currentSolverStepPercentageFinished;
+        public int CurrentSolverStepPercentageFinished
+        {
+            get { return _currentSolverStepPercentageFinished; }
+            private set { _currentSolverStepPercentageFinished = value; OnPropertyChanged(); }
+        }
+
+        private int _numberPuzzlePieces;
+        public int NumberPuzzlePieces
+        {
+            get { return _numberPuzzlePieces; }
+            private set { _numberPuzzlePieces = value; OnPropertyChanged(); }
+        }
+
+        private string _puzzlePiecesFolderPath;
+        public string PuzzlePiecesFolderPath
+        {
+            get { return _puzzlePiecesFolderPath; }
+            private set { _puzzlePiecesFolderPath = value; OnPropertyChanged(); }
+        }
+        //##############################################################################################################################################################################################
+
         private IProgress<LogBox.LogEvent> _logHandle;
 
         private List<MatchScore> matches = new List<MatchScore>();
@@ -35,9 +86,10 @@ namespace JigsawPuzzleSolver
 
         public Puzzle(string piecesFolderPath, PuzzleSolverParameters solverParameters, IProgress<LogBox.LogEvent> logHandle)
         {
-            puzzlePiecesFolderPath = piecesFolderPath;
+            PuzzlePiecesFolderPath = piecesFolderPath;
             SolverParameters = solverParameters;
             _logHandle = logHandle;
+            NumberPuzzlePieces = 0;
         }
 
         public Puzzle()
@@ -113,9 +165,12 @@ namespace JigsawPuzzleSolver
         /// see: http://www.emgu.com/forum/viewtopic.php?t=1923
         private void extract_pieces2()
         {
+            CurrentSolverStep = PuzzleSolverSteps.INIT_PIECES;
+            CurrentSolverStepPercentageFinished = 0;
             _logHandle.Report(new LogBox.LogEventInfo("Extracting Pieces"));
+            NumberPuzzlePieces = 0;
 
-            List<Image<Rgb, byte>> color_images = Utils.GetImagesFromDirectory(puzzlePiecesFolderPath);
+            List<Image<Rgb, byte>> color_images = Utils.GetImagesFromDirectory(PuzzlePiecesFolderPath);
             
             if (SolverParameters.PuzzleApplyMedianBlurFilter)
             {
@@ -185,6 +240,7 @@ namespace JigsawPuzzleSolver
 
                     Piece p = new Piece(pieceSourceImgMasked, pieceMask, SolverParameters, _logHandle);
                     pieces.Add(p);
+                    NumberPuzzlePieces++;
 
                     pieceSourceImg.Dispose();
                     pieceSourceImgMasked.Dispose();
@@ -193,6 +249,8 @@ namespace JigsawPuzzleSolver
                     pieceMaskInverted.Dispose();
                     background.Dispose();
                     pieceSourceImageBackground.Dispose();
+
+                    CurrentSolverStepPercentageFinished = (int)(((i + 1) / (double)bw_images.Count) * 100);
                 }
 
                 _logHandle.Report(new LogBox.LogEventImage("Source Img " + i.ToString() + " Pieces", sourceImgPiecesMarked.ToBitmap()));
@@ -232,15 +290,23 @@ namespace JigsawPuzzleSolver
         /// </summary>
         private void compareAllEdges()
         {
+            CurrentSolverStep = PuzzleSolverSteps.COMPARE_EDGES;
+            CurrentSolverStepPercentageFinished = 0;
             _logHandle.Report(new LogBox.LogEventInfo("Comparing all edges"));
 
             matches.Clear();
             int no_edges = (int)pieces.Count * 4;
+            int no_compares = (no_edges * (no_edges + 1)) / 2;      // Number of loop runs of the following nested loops 
+            int loop_count = 0;
 
             for (int i = 0; i < no_edges; i++)
             {
                 for (int j = i; j < no_edges; j++)
                 {
+                    loop_count++;
+                    if(loop_count > no_compares) { loop_count = no_compares; }
+                    CurrentSolverStepPercentageFinished = (int)((loop_count / (double)no_compares) * 100);
+
                     MatchScore matchScore = new MatchScore();
                     matchScore.PieceIndex1 = i / 4;
                     matchScore.PieceIndex2 = j / 4;
@@ -272,7 +338,6 @@ namespace JigsawPuzzleSolver
             await Task.Run(() =>
             {
                 extract_pieces2();
-                Solved = false;
             });
         }
 
@@ -284,12 +349,15 @@ namespace JigsawPuzzleSolver
             {
                 compareAllEdges();
 
+                CurrentSolverStep = PuzzleSolverSteps.SOLVE_PUZZLE;
+                CurrentSolverStepPercentageFinished = 0;
                 PuzzleDisjointSet p = new PuzzleDisjointSet(pieces.Count);
 
                 _logHandle.Report(new LogBox.LogEventInfo("Join Pieces"));
 
                 for (int i = 0; i < matches.Count; i++)
                 {
+                    CurrentSolverStepPercentageFinished = (int)((i / (double)matches.Count) * 100);
                     if (p.InOneSet()) { break; }
 
                     int p1 = matches[i].PieceIndex1;
@@ -301,7 +369,8 @@ namespace JigsawPuzzleSolver
                 }
 
                 _logHandle.Report(new LogBox.LogEventInfo("Possible solution found " + (p.InOneSet() ? "(one set)." : "(" + p.SetCount.ToString() + " sets)")));
-                Solved = true;
+                CurrentSolverStepPercentageFinished = 100;
+                CurrentSolverStep = PuzzleSolverSteps.SOLVED;
                 int setNo = 0;
                 foreach (Forest jointSet in p.GetJointSets())
                 {
