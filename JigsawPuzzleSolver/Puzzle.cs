@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Drawing;
 using System.ComponentModel;
@@ -75,6 +76,7 @@ namespace JigsawPuzzleSolver
         //##############################################################################################################################################################################################
 
         private IProgress<LogBox.LogEvent> _logHandle;
+        private CancellationToken _cancelToken;
 
         private List<MatchScore> matches = new List<MatchScore>();
         private List<Piece> pieces = new List<Piece>();
@@ -84,11 +86,12 @@ namespace JigsawPuzzleSolver
 
         //##############################################################################################################################################################################################
 
-        public Puzzle(string piecesFolderPath, PuzzleSolverParameters solverParameters, IProgress<LogBox.LogEvent> logHandle)
+        public Puzzle(string piecesFolderPath, PuzzleSolverParameters solverParameters, IProgress<LogBox.LogEvent> logHandle, CancellationToken cancelToken)
         {
             PuzzlePiecesFolderPath = piecesFolderPath;
             SolverParameters = solverParameters;
             _logHandle = logHandle;
+            _cancelToken = cancelToken;
             NumberPuzzlePieces = 0;
         }
 
@@ -165,95 +168,108 @@ namespace JigsawPuzzleSolver
         /// see: http://www.emgu.com/forum/viewtopic.php?t=1923
         private void extract_pieces2()
         {
-            CurrentSolverStep = PuzzleSolverSteps.INIT_PIECES;
-            CurrentSolverStepPercentageFinished = 0;
-            _logHandle.Report(new LogBox.LogEventInfo("Extracting Pieces"));
-            NumberPuzzlePieces = 0;
-
-            List<Image<Rgb, byte>> color_images = Utils.GetImagesFromDirectory(PuzzlePiecesFolderPath);
-            
-            if (SolverParameters.PuzzleApplyMedianBlurFilter)
+            try
             {
-                color_images = Utils.MedianBlur(color_images, 5);
-            }
-#warning Segment using HSV color model, CvInvoke.InRange, CvInvoke.CvtColor
-            List<Image<Gray, byte>> bw_images = Utils.ColorToBw(color_images, 50);
+                CurrentSolverStep = PuzzleSolverSteps.INIT_PIECES;
+                CurrentSolverStepPercentageFinished = 0;
+                _logHandle.Report(new LogBox.LogEventInfo("Extracting Pieces"));
+                NumberPuzzlePieces = 0;
 
-            //For each input image
-            for (int i = 0; i < bw_images.Count; i++) //color_images.Count; i++)
-            {
-                Image<Rgb, byte> sourceImg = new Image<Rgb, byte>(color_images[i].Bitmap);
-                Image<Gray, byte> mask = new Image<Gray, byte>(bw_images[i].Bitmap);
+                List<Image<Rgb, byte>> color_images = Utils.GetImagesFromDirectory(PuzzlePiecesFolderPath);
 
-                /*int maxWidth = 1000, maxHeight = 1000;
-                if (sourceImg.Width > maxWidth || sourceImg.Height > maxHeight)
+                if (SolverParameters.PuzzleApplyMedianBlurFilter)
                 {
-                    sourceImg = sourceImg.Copy(new Rectangle(new Point(20, 20), Size.Subtract(sourceImg.Size, new Size(20, 20))));      // Used to remove a black line at the top of a scanned image
-                    sourceImg = sourceImg.Resize(maxWidth, maxHeight, Inter.Cubic, true);
-                }*/
-
-                _logHandle.Report(new LogBox.LogEventImage("Extracting Pieces from source image " + i.ToString() , sourceImg.ToBitmap()));
-
-                //Image<Gray, byte> mask = sourceImg.GrabCut(new Rectangle(1, 1, sourceImg.Width - 1, sourceImg.Height - 1), 20); //10);
-                //mask = mask.ThresholdBinary(new Gray(2), new Gray(255));            // Change the mask. All values bigger than 2 get mapped to 255. All values equal or smaller than 2 get mapped to 0.
-                
-                CvBlobDetector blobDetector = new CvBlobDetector();                 // Find all blobs in the mask image, extract them and add them to the list of pieces
-                CvBlobs blobs = new CvBlobs();
-                blobDetector.Detect(mask, blobs);
-
-                Image<Rgb, byte> sourceImgPiecesMarked = sourceImg.Copy();
-
-                foreach (CvBlob blob in blobs.Values.Where(b => b.BoundingBox.Width >= SolverParameters.PuzzleMinPieceSize && b.BoundingBox.Height >= SolverParameters.PuzzleMinPieceSize))
-                {
-                    Rectangle roi = blob.BoundingBox;
-                    sourceImgPiecesMarked.Draw(roi, new Rgb(255, 0, 0), 2);
-                    
-                    Image<Rgb, byte> pieceSourceImg = new Image<Rgb, byte>(sourceImg.Size);
-                    Image<Gray, byte> pieceMask = new Image<Gray, byte>(mask.Size);
-
-                    try
-                    {
-                        if (sourceImg.Height > roi.Height + 2 && sourceImg.Width > roi.Width + 2) { roi.Inflate(1, 1); }
-                        pieceSourceImg = sourceImg.Copy(roi);
-                        pieceMask = mask.Copy(roi);
-                    }
-                    catch(Exception)
-                    {
-                        roi = blob.BoundingBox;
-                        pieceSourceImg = sourceImg.Copy(roi);
-                        pieceMask = mask.Copy(roi);
-                    }
-
-                    // Mask out background of piece
-                    Image<Rgb, byte> pieceSourceImageForeground = new Image<Rgb, byte>(pieceSourceImg.Size);
-                    CvInvoke.BitwiseOr(pieceSourceImg, pieceSourceImg, pieceSourceImageForeground, pieceMask);
-
-                    Image<Gray, byte> pieceMaskInverted = pieceMask.Copy(pieceMask);
-                    pieceMaskInverted._Not();
-                    Image<Rgb, byte> background = new Image<Rgb, byte>(pieceSourceImg.Size);
-                    background.SetValue(new Rgb(255, 255, 255));
-                    Image<Rgb, byte> pieceSourceImageBackground = new Image<Rgb, byte>(pieceSourceImg.Size);
-                    CvInvoke.BitwiseOr(background, background, pieceSourceImageBackground, pieceMaskInverted);
-
-                    Image<Rgb, byte> pieceSourceImgMasked = new Image<Rgb, byte>(pieceSourceImg.Size);
-                    CvInvoke.BitwiseOr(pieceSourceImageForeground, pieceSourceImageBackground, pieceSourceImgMasked);
-
-                    Piece p = new Piece(pieceSourceImgMasked, pieceMask, SolverParameters, _logHandle);
-                    pieces.Add(p);
-                    NumberPuzzlePieces++;
-
-                    pieceSourceImg.Dispose();
-                    pieceSourceImgMasked.Dispose();
-                    pieceMask.Dispose();
-                    pieceSourceImageForeground.Dispose();
-                    pieceMaskInverted.Dispose();
-                    background.Dispose();
-                    pieceSourceImageBackground.Dispose();
-
-                    CurrentSolverStepPercentageFinished = (int)(((i + 1) / (double)bw_images.Count) * 100);
+                    color_images = Utils.MedianBlur(color_images, 5);
                 }
+#warning Segment using HSV color model, CvInvoke.InRange, CvInvoke.CvtColor
+                List<Image<Gray, byte>> bw_images = Utils.ColorToBw(color_images, 50);
 
-                _logHandle.Report(new LogBox.LogEventImage("Source Img " + i.ToString() + " Pieces", sourceImgPiecesMarked.ToBitmap()));
+                //For each input image
+                for (int i = 0; i < bw_images.Count; i++) //color_images.Count; i++)
+                {
+                    Image<Rgb, byte> sourceImg = new Image<Rgb, byte>(color_images[i].Bitmap);
+                    Image<Gray, byte> mask = new Image<Gray, byte>(bw_images[i].Bitmap);
+
+                    /*int maxWidth = 1000, maxHeight = 1000;
+                    if (sourceImg.Width > maxWidth || sourceImg.Height > maxHeight)
+                    {
+                        sourceImg = sourceImg.Copy(new Rectangle(new Point(20, 20), Size.Subtract(sourceImg.Size, new Size(20, 20))));      // Used to remove a black line at the top of a scanned image
+                        sourceImg = sourceImg.Resize(maxWidth, maxHeight, Inter.Cubic, true);
+                    }*/
+
+                    _logHandle.Report(new LogBox.LogEventImage("Extracting Pieces from source image " + i.ToString(), sourceImg.ToBitmap()));
+
+                    //Image<Gray, byte> mask = sourceImg.GrabCut(new Rectangle(1, 1, sourceImg.Width - 1, sourceImg.Height - 1), 20); //10);
+                    //mask = mask.ThresholdBinary(new Gray(2), new Gray(255));            // Change the mask. All values bigger than 2 get mapped to 255. All values equal or smaller than 2 get mapped to 0.
+
+                    CvBlobDetector blobDetector = new CvBlobDetector();                 // Find all blobs in the mask image, extract them and add them to the list of pieces
+                    CvBlobs blobs = new CvBlobs();
+                    blobDetector.Detect(mask, blobs);
+
+                    Image<Rgb, byte> sourceImgPiecesMarked = sourceImg.Copy();
+
+                    foreach (CvBlob blob in blobs.Values.Where(b => b.BoundingBox.Width >= SolverParameters.PuzzleMinPieceSize && b.BoundingBox.Height >= SolverParameters.PuzzleMinPieceSize))
+                    {
+                        if (_cancelToken.IsCancellationRequested) { _cancelToken.ThrowIfCancellationRequested(); }
+
+                        Rectangle roi = blob.BoundingBox;
+                        sourceImgPiecesMarked.Draw(roi, new Rgb(255, 0, 0), 2);
+
+                        Image<Rgb, byte> pieceSourceImg = new Image<Rgb, byte>(sourceImg.Size);
+                        Image<Gray, byte> pieceMask = new Image<Gray, byte>(mask.Size);
+
+                        try
+                        {
+                            if (sourceImg.Height > roi.Height + 2 && sourceImg.Width > roi.Width + 2) { roi.Inflate(1, 1); }
+                            pieceSourceImg = sourceImg.Copy(roi);
+                            pieceMask = mask.Copy(roi);
+                        }
+                        catch (Exception)
+                        {
+                            roi = blob.BoundingBox;
+                            pieceSourceImg = sourceImg.Copy(roi);
+                            pieceMask = mask.Copy(roi);
+                        }
+
+                        // Mask out background of piece
+                        Image<Rgb, byte> pieceSourceImageForeground = new Image<Rgb, byte>(pieceSourceImg.Size);
+                        CvInvoke.BitwiseOr(pieceSourceImg, pieceSourceImg, pieceSourceImageForeground, pieceMask);
+
+                        Image<Gray, byte> pieceMaskInverted = pieceMask.Copy(pieceMask);
+                        pieceMaskInverted._Not();
+                        Image<Rgb, byte> background = new Image<Rgb, byte>(pieceSourceImg.Size);
+                        background.SetValue(new Rgb(255, 255, 255));
+                        Image<Rgb, byte> pieceSourceImageBackground = new Image<Rgb, byte>(pieceSourceImg.Size);
+                        CvInvoke.BitwiseOr(background, background, pieceSourceImageBackground, pieceMaskInverted);
+
+                        Image<Rgb, byte> pieceSourceImgMasked = new Image<Rgb, byte>(pieceSourceImg.Size);
+                        CvInvoke.BitwiseOr(pieceSourceImageForeground, pieceSourceImageBackground, pieceSourceImgMasked);
+
+                        Piece p = new Piece(pieceSourceImgMasked, pieceMask, SolverParameters, _logHandle, _cancelToken);
+                        pieces.Add(p);
+                        NumberPuzzlePieces++;
+
+                        pieceSourceImg.Dispose();
+                        pieceSourceImgMasked.Dispose();
+                        pieceMask.Dispose();
+                        pieceSourceImageForeground.Dispose();
+                        pieceMaskInverted.Dispose();
+                        background.Dispose();
+                        pieceSourceImageBackground.Dispose();
+
+                        CurrentSolverStepPercentageFinished = (int)(((i + 1) / (double)bw_images.Count) * 100);
+                    }
+
+                    _logHandle.Report(new LogBox.LogEventImage("Source Img " + i.ToString() + " Pieces", sourceImgPiecesMarked.ToBitmap()));
+                }
+            }
+            catch(OperationCanceledException)
+            {
+                _logHandle.Report(new LogBox.LogEventWarning("The operation was canceled. Step: " + CurrentSolverStep.ToString()));
+            }
+            catch(Exception ex)
+            {
+                _logHandle.Report(new LogBox.LogEventError("The following error occured in step " + CurrentSolverStep.ToString() + ":\n" + ex.Message));
             }
         }
 
@@ -303,6 +319,8 @@ namespace JigsawPuzzleSolver
             {
                 for (int j = i; j < no_edges; j++)
                 {
+                    if (_cancelToken.IsCancellationRequested) { _cancelToken.ThrowIfCancellationRequested(); }
+
                     loop_count++;
                     if(loop_count > no_compares) { loop_count = no_compares; }
                     CurrentSolverStepPercentageFinished = (int)((loop_count / (double)no_compares) * 100);
@@ -312,7 +330,7 @@ namespace JigsawPuzzleSolver
                     matchScore.PieceIndex2 = j / 4;
                     matchScore.EdgeIndex1 = i % 4;
                     matchScore.EdgeIndex2 = j % 4;
-                    matchScore.score = pieces[matchScore.PieceIndex1].Edges[matchScore.EdgeIndex1].Compare2(pieces[matchScore.PieceIndex2].Edges[matchScore.EdgeIndex2]);
+                    matchScore.score = pieces[matchScore.PieceIndex1].Edges[matchScore.EdgeIndex1].Compare(pieces[matchScore.PieceIndex2].Edges[matchScore.EdgeIndex2]);
 
                     if (matchScore.score <= SolverParameters.PuzzleSolverKeepMatchesThreshold) { matches.Add(matchScore); }
                 }
@@ -338,7 +356,7 @@ namespace JigsawPuzzleSolver
             await Task.Run(() =>
             {
                 extract_pieces2();
-            });
+            }, _cancelToken);
         }
 
         //**********************************************************************************************************************************************************************************************
@@ -347,49 +365,62 @@ namespace JigsawPuzzleSolver
         {
             await Task.Run(() =>
             {
-                compareAllEdges();
-
-                CurrentSolverStep = PuzzleSolverSteps.SOLVE_PUZZLE;
-                CurrentSolverStepPercentageFinished = 0;
-                PuzzleDisjointSet p = new PuzzleDisjointSet(pieces.Count);
-
-                _logHandle.Report(new LogBox.LogEventInfo("Join Pieces"));
-
-                for (int i = 0; i < matches.Count; i++)
+                try
                 {
-                    CurrentSolverStepPercentageFinished = (int)((i / (double)matches.Count) * 100);
-                    if (p.InOneSet()) { break; }
+                    compareAllEdges();
 
-                    int p1 = matches[i].PieceIndex1;
-                    int e1 = matches[i].EdgeIndex1;
-                    int p2 = matches[i].PieceIndex2;
-                    int e2 = matches[i].EdgeIndex2;
+                    CurrentSolverStep = PuzzleSolverSteps.SOLVE_PUZZLE;
+                    CurrentSolverStepPercentageFinished = 0;
+                    PuzzleDisjointSet p = new PuzzleDisjointSet(pieces.Count);
 
-                    p.JoinSets(p1, p2, e1, e2);
-                }
+                    _logHandle.Report(new LogBox.LogEventInfo("Join Pieces"));
 
-                _logHandle.Report(new LogBox.LogEventInfo("Possible solution found " + (p.InOneSet() ? "(one set)." : "(" + p.SetCount.ToString() + " sets)")));
-                CurrentSolverStepPercentageFinished = 100;
-                CurrentSolverStep = PuzzleSolverSteps.SOLVED;
-                int setNo = 0;
-                foreach (Forest jointSet in p.GetJointSets())
-                {
-                    solution = jointSet.locations;
-                    solution_rotations = jointSet.rotations;
-
-                    for (int i = 0; i < solution.Size.Width; i++)
+                    for (int i = 0; i < matches.Count; i++)
                     {
-                        for (int j = 0; j < solution.Size.Height; j++)
-                        {
-                            int piece_number = solution[j, i];
-                            if (piece_number == -1) { continue; }
-                            pieces[piece_number].Rotate(4 - solution_rotations[j, i]);
-                        }
+                        if (_cancelToken.IsCancellationRequested) { _cancelToken.ThrowIfCancellationRequested(); }
+
+                        CurrentSolverStepPercentageFinished = (int)((i / (double)matches.Count) * 100);
+                        if (p.InOneSet()) { break; }
+
+                        int p1 = matches[i].PieceIndex1;
+                        int e1 = matches[i].EdgeIndex1;
+                        int p2 = matches[i].PieceIndex2;
+                        int e2 = matches[i].EdgeIndex2;
+
+                        p.JoinSets(p1, p2, e1, e2);
                     }
-                    GenerateSolutionImage2(solution, setNo);
-                    setNo++;
+
+                    _logHandle.Report(new LogBox.LogEventInfo("Possible solution found " + (p.InOneSet() ? "(one set)." : "(" + p.SetCount.ToString() + " sets)")));
+                    CurrentSolverStepPercentageFinished = 100;
+                    CurrentSolverStep = PuzzleSolverSteps.SOLVED;
+                    int setNo = 0;
+                    foreach (Forest jointSet in p.GetJointSets())
+                    {
+                        solution = jointSet.locations;
+                        solution_rotations = jointSet.rotations;
+
+                        for (int i = 0; i < solution.Size.Width; i++)
+                        {
+                            for (int j = 0; j < solution.Size.Height; j++)
+                            {
+                                int piece_number = solution[j, i];
+                                if (piece_number == -1) { continue; }
+                                pieces[piece_number].Rotate(4 - solution_rotations[j, i]);
+                            }
+                        }
+                        GenerateSolutionImage2(solution, setNo);
+                        setNo++;
+                    }
                 }
-            });
+                catch (OperationCanceledException)
+                {
+                    _logHandle.Report(new LogBox.LogEventWarning("The operation was canceled. Step: " + CurrentSolverStep.ToString()));
+                }
+                catch (Exception ex)
+                {
+                    _logHandle.Report(new LogBox.LogEventError("The following error occured in step " + CurrentSolverStep.ToString() + ":\n" + ex.Message));
+                }
+            }, _cancelToken);
         }
 
         //**********************************************************************************************************************************************************************************************

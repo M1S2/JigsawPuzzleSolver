@@ -12,8 +12,13 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 using System.Drawing;
 using System.IO;
+using System.Diagnostics;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using Emgu.CV.CvEnum;
@@ -24,8 +29,24 @@ namespace JigsawPuzzleSolver
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, INotifyPropertyChanged
     {
+        /// <summary>
+        /// Raised when a property on this object has a new value.
+        /// </summary>
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        /// <summary>
+        /// This method is called by the Set accessor of each property. The CallerMemberName attribute that is applied to the optional propertyName parameter causes the property name of the caller to be substituted as an argument.
+        /// </summary>
+        /// <param name="propertyName">Name of the property that is changed</param>
+        /// see: https://docs.microsoft.com/de-de/dotnet/framework/winforms/how-to-implement-the-inotifypropertychanged-interface
+        public void OnPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+
         /*public static readonly DependencyProperty ProcessedImgSourceProperty = DependencyProperty.Register("ProcessedImgSource", typeof(ImageSource), typeof(MainWindow), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
 
         /// <summary>
@@ -36,16 +57,34 @@ namespace JigsawPuzzleSolver
             get { return (ImageSource)GetValue(ProcessedImgSourceProperty); }
             set { SetValue(ProcessedImgSourceProperty, value); }
         }*/
-        
-        public Puzzle puzzle { get; set; }
-        IProgress<LogBox.LogEvent> logHandle;
+
+        private Stopwatch _stopWatchSolver;
+        public Stopwatch StopWatchSolver
+        {
+            get { return _stopWatchSolver; }
+            set { _stopWatchSolver = value; OnPropertyChanged(); }
+        }
+
+        private Puzzle _puzzleHandle;
+        public Puzzle PuzzleHandle
+        {
+            get { return _puzzleHandle; }
+            set { _puzzleHandle = value; OnPropertyChanged(); }
+        }
+
+        private IProgress<LogBox.LogEvent> logHandle;
+        private DispatcherTimer stopWatchDispatcherTimer;       // This timer is used to notify the GUI that the StopWatchSolver.Elapsed property has changed
+        private CancellationTokenSource cancelTokenSource;
 
         //##############################################################################################################################################################################################
 
         public MainWindow()
         {
             InitializeComponent();
-            this.DataContext = this;
+            StopWatchSolver = new Stopwatch();
+            stopWatchDispatcherTimer = new DispatcherTimer();
+            stopWatchDispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 10);
+            stopWatchDispatcherTimer.Tick += new EventHandler((obj, e) => this.OnPropertyChanged("StopWatchSolver"));
 
             logHandle = new Progress<LogBox.LogEvent>(progressValue =>
             {
@@ -57,51 +96,28 @@ namespace JigsawPuzzleSolver
 
         private async void btn_start_solving_Click(object sender, RoutedEventArgs e)
         {
+            cancelTokenSource = new CancellationTokenSource();
+
             PuzzleSolverParameters solverParameters = new PuzzleSolverParameters() { SolverShowDebugResults = false };
-            //puzzle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", solverParameters, logHandle);
-            puzzle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", solverParameters, logHandle);
+            //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", solverParameters, logHandle, cancelTokenSource.Token);
+            PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", solverParameters, logHandle, cancelTokenSource.Token);
 
-            this.DataContext = puzzle;
-
-            await puzzle.Init();
-            await puzzle.Solve();
+            stopWatchDispatcherTimer.Start();
+            StopWatchSolver.Restart();
+            try
+            {
+                await PuzzleHandle.Init();
+                await PuzzleHandle.Solve();
+            }
+            catch (OperationCanceledException) { /* the exceptions are catches inside the methods */ }
+            StopWatchSolver.Stop();
+            stopWatchDispatcherTimer.Stop();
             logBox1.ScrollToSpecificLogEvent(logBox1.LogEvents.Last());
         }
 
-        //##############################################################################################################################################################################################
-        //##### TESTS ##################################################################################################################################################################################
-        //##############################################################################################################################################################################################
-
-        private void CalculateCurvatureTests()
+        private void btn_stop_solving_Click(object sender, RoutedEventArgs e)
         {
-            VectorOfPoint contour = new VectorOfPoint();
-            //for (double t = 0; t <= 2 * Math.PI; t += 0.01)
-            //{
-            //    contour.Push(new System.Drawing.Point((int)(50 * Math.Cos(t)) + 50, (int)(25 * Math.Sin(t)) + 50));
-            //}
-
-            for (int x = 10; x < 90; x++) { contour.Push(new System.Drawing.Point(x, 20)); }
-            for (int y = 20; y < 80; y++) { contour.Push(new System.Drawing.Point(90, y)); }
-            for (int x = 90; x > 10; x--) { contour.Push(new System.Drawing.Point(x, 80)); }
-            for (int y = 80; y > 20; y--) { contour.Push(new System.Drawing.Point(10, y)); }
-
-            Image<Rgb, byte> contourImg = new Image<Rgb, byte>(100, 100);
-            for (int i = 0; i < contour.Size; i++) { CvInvoke.Circle(contourImg, contour[i], 1, new MCvScalar(0, 0, 255), 1); }
-            logHandle.Report(new LogBox.LogEventImage("Contour", contourImg.Bitmap));
-
-            List<double> curvature = Utils.CalculateCurvature(contour.ToArray().ToList(), 3);
-
-            List<double> curvatureDraw = new List<double>(curvature);
-            curvatureDraw = curvatureDraw.Select(c => (double.IsInfinity(c) ? 25 : c)).ToList();
-            Image<Rgb, byte> curvatureImg = new Image<Rgb, byte>(curvatureDraw.Count, 512);
-            VectorOfPoint curvatureContour = new VectorOfPoint();
-            double scale = 255 / Math.Max(Math.Abs(curvatureDraw.Max()), Math.Abs(curvatureDraw.Min()));
-            for (int i = 0; i < curvatureDraw.Count; i++)
-            {
-                curvatureContour.Push(new System.Drawing.Point(i, (int)(scale * curvatureDraw[i] + 255)));
-            }
-            CvInvoke.DrawContours(curvatureImg, new VectorOfVectorOfPoint(curvatureContour), -1, new MCvScalar(0, 255, 0));
-            logHandle.Report(new LogBox.LogEventImage("Curvature Img", curvatureImg.Bitmap));
+            cancelTokenSource.Cancel();
         }
 
     }

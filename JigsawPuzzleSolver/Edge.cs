@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Drawing;
 using Emgu.CV;
@@ -36,12 +37,14 @@ namespace JigsawPuzzleSolver
         public Image<Rgb, byte> ContourImg;
 
         private IProgress<LogBox.LogEvent> _logHandle;
+        private CancellationToken _cancelToken;
 
         //##############################################################################################################################################################################################
 
-        public Edge(string pieceID, int edgeNumber, Image<Rgb, byte> full_color, VectorOfPoint edgeContour, PuzzleSolverParameters solverParameters, IProgress<LogBox.LogEvent> logHandle)
+        public Edge(string pieceID, int edgeNumber, Image<Rgb, byte> full_color, VectorOfPoint edgeContour, PuzzleSolverParameters solverParameters, IProgress<LogBox.LogEvent> logHandle, CancellationToken cancelToken)
         {
             _logHandle = logHandle;
+            _cancelToken = cancelToken;
             SolverParameters = solverParameters;
             PieceID = pieceID;
             EdgeNumber = edgeNumber;
@@ -168,46 +171,6 @@ namespace JigsawPuzzleSolver
 
         //##############################################################################################################################################################################################
 
-        /*
-        /// <summary>
-        /// Trying OpenCV's match shapes, hasn't worked as well as Compare2 function.
-        /// </summary>
-        /// <param name="edge2">Edge to compare to this edge</param>
-        /// <returns>Similarity factor of edges</returns>
-        public double Compare(Edge edge2)
-        {
-            //Return large numbers if we know that these shapes simply wont match...
-            if (PieceID == edge2.PieceID) { return 300000000; }
-            if (EdgeType == EdgeTypes.LINE || edge2.EdgeType == EdgeTypes.LINE) { return 200000000; }
-            if (EdgeType == edge2.EdgeType) { return 150000000; }
-            if (normalized_contour.Size == 0 || edge2.reverse_normalized_contour.Size == 0) { return 100000000; }
-
-            double distEndpoints1 = Utils.Distance(normalized_contour[0], normalized_contour[normalized_contour.Size - 1]);
-            double distEndpoints2 = Utils.Distance(edge2.reverse_normalized_contour[0], edge2.reverse_normalized_contour[edge2.reverse_normalized_contour.Size - 1]);
-            //double distEndpointRatio = (distEndpoints1 > distEndpoints2) ? (distEndpoints1 / distEndpoints2) : (distEndpoints2 / distEndpoints1);
-            double distEndpointDiff = Math.Abs(distEndpoints1 - distEndpoints2);
-            if (distEndpointDiff <= 3) { distEndpointDiff = 0; }
-
-            double matchShapesResultI1 = CvInvoke.MatchShapes(normalized_contour, edge2.reverse_normalized_contour, ContoursMatchType.I1, 0);
-            double matchShapesResultI2 = CvInvoke.MatchShapes(normalized_contour, edge2.reverse_normalized_contour, ContoursMatchType.I2, 0);
-            double matchShapesResultI3 = CvInvoke.MatchShapes(normalized_contour, edge2.reverse_normalized_contour, ContoursMatchType.I3, 0);
-
-            double meanMatchResult = (matchShapesResultI1 + matchShapesResultI2 + matchShapesResultI3) / 3;
-
-            Image<Rgb, byte> contourOverlay = new Image<Rgb, byte>(500, 500);
-            VectorOfPoint contour1 = GetTranslatedContour(100, 0);
-            VectorOfPoint contour2 = edge2.GetTranslatedContourReverse(100, 0);
-            CvInvoke.DrawContours(contourOverlay, new VectorOfVectorOfPoint(contour1), -1, new MCvScalar(0, 255, 0), 2);
-            CvInvoke.DrawContours(contourOverlay, new VectorOfVectorOfPoint(contour2), -1, new MCvScalar(0, 0, 255), 2);
-
-            _logHandle.Report(new LogBox.LogEventImage("Compare " + PieceID + "_Edge" + EdgeNumber + " <-->" + edge2.PieceID + "_Edge" + edge2.EdgeNumber + " ==> distEndpoint = " + distEndpointDiff.ToString() + ", I1 = " + matchShapesResultI1 + ", I2 = " + matchShapesResultI2 + ", I3 = " + matchShapesResultI3 + ", Mean = " + meanMatchResult, contourOverlay.Bitmap); //Utils.Combine2ImagesHorizontal(ContourImg, edge2.ContourImg, 20).ToBitmap());
-
-            return distEndpointDiff + meanMatchResult; //3 * matchShapesResultI2;
-        }
-        */
-
-        //**********************************************************************************************************************************************************************************************
-
         /// <summary>
         /// This comparison iterates over every point in "this" contour, finds the closest point in "edge2" contour and sums those distances up.
         /// The end result is the sum divided by length of the 2 contours.
@@ -219,7 +182,7 @@ namespace JigsawPuzzleSolver
         /// 200000000: At least one edge is a line edge
         /// 150000000: The pieces have the same edge type
         /// 100000000: One of the contour sizes is 0</returns>
-        public double Compare2(Edge edge2)
+        public double Compare(Edge edge2)
         {
             //Return large numbers if we know that these shapes simply wont match...
             if (PieceID == edge2.PieceID) { return 300000000; }
@@ -241,6 +204,8 @@ namespace JigsawPuzzleSolver
                 double min = 10000000;
                 for(int j = Math.Max(0, i - windowSizePoints); j < Math.Min(edge2.reverse_normalized_contour.Size, i + windowSizePoints); j++)
                 {
+                    if (_cancelToken.IsCancellationRequested) { _cancelToken.ThrowIfCancellationRequested(); }
+
                     double dist = Utils.Distance(normalized_contour[i], edge2.reverse_normalized_contour[j]);
                     if (dist < min) min = dist;
                 }

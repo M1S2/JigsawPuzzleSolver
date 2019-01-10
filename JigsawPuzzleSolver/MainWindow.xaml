@@ -7,7 +7,9 @@
         xmlns:LogBox="clr-namespace:LogBox"
         x:Class="JigsawPuzzleSolver.MainWindow"
         mc:Ignorable="d"
-        Title="Puzzle Solver" Height="900" Width="1200">
+        Title="Puzzle Solver" Height="900" Width="1200"
+        DataContext="{Binding RelativeSource={RelativeSource Self}}">
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="40"/>
@@ -22,7 +24,10 @@
             <TabItem Header="Solver Progress">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Orientation="Vertical">
-                        <Button Content="Start Solving" HorizontalAlignment="Left" VerticalAlignment="Top" Height="35" Width="120" Margin="10,10,0,0" Click="btn_start_solving_Click"/>
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="Start Solving" HorizontalAlignment="Left" VerticalAlignment="Top" Height="35" Width="120" Margin="10,10,0,0" Click="btn_start_solving_Click"/>
+                            <Button Content="Stop Solving" HorizontalAlignment="Left" VerticalAlignment="Top" Height="35" Width="120" Margin="10,10,0,0" Click="btn_stop_solving_Click"/>
+                        </StackPanel>
 
                         <Grid Margin="10">
                             <Grid.RowDefinitions>
@@ -40,24 +45,24 @@
                             </Grid.ColumnDefinitions>
 
                             <TextBlock Grid.Row="0" Grid.Column="0" Text="Overall progress: " VerticalAlignment="Center"/>
-                            <ProgressBar Grid.Row="0" Grid.Column="1" Margin="2" Value="{Binding Path=PercentageOfFinishedSolverSteps, Mode=OneWay}"/>
+                            <ProgressBar Grid.Row="0" Grid.Column="1" Margin="2" Value="{Binding PuzzleHandle.PercentageOfFinishedSolverSteps, Mode=OneWay}"/>
                             <TextBlock Grid.Row="0" Grid.Column="2" VerticalAlignment="Center">
                                 <TextBlock.Text>
                                     <MultiBinding StringFormat="{}{0} / {1} steps finished">
-                                        <Binding Path="NumberOfFinishedSolverSteps" Mode="OneWay" />
-                                        <Binding Path="NumberOfSolverSteps" Mode="OneWay" />
+                                        <Binding Path="PuzzleHandle.NumberOfFinishedSolverSteps" Mode="OneWay" />
+                                        <Binding Path="PuzzleHandle.NumberOfSolverSteps" Mode="OneWay" />
                                     </MultiBinding>
                                 </TextBlock.Text>
                             </TextBlock>
                             <TextBlock Grid.Row="1" Grid.Column="0" Text="Current step: " VerticalAlignment="Center"/>
-                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Path=CurrentSolverStep, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding PuzzleHandle.CurrentSolverStep}" VerticalAlignment="Center"/>
                             <TextBlock Grid.Row="2" Grid.Column="0" Text="Current progress: " VerticalAlignment="Center"/>
-                            <ProgressBar Grid.Row="2" Grid.Column="1" Margin="2" Value="{Binding Path=CurrentSolverStepPercentageFinished}"/>
-                            <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding Path=CurrentSolverStepPercentageFinished, StringFormat='{}{0} %'}" VerticalAlignment="Center"/>
+                            <ProgressBar Grid.Row="2" Grid.Column="1" Margin="2" Value="{Binding PuzzleHandle.CurrentSolverStepPercentageFinished}"/>
+                            <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding PuzzleHandle.CurrentSolverStepPercentageFinished, StringFormat='{}{0} %'}" VerticalAlignment="Center"/>
                             <TextBlock Grid.Row="3" Grid.Column="0" Text="Elapsed time: " VerticalAlignment="Center"/>
-                            <TextBlock Grid.Row="3" Grid.Column="1" Text="hh:mm:ss" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding StopWatchSolver.Elapsed, StringFormat='hh\\:mm\\:ss\\.ff'}" VerticalAlignment="Center"/>
                             <TextBlock Grid.Row="4" Grid.Column="0" Text="Number pieces found: " VerticalAlignment="Center"/>
-                            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding Path=NumberPuzzlePieces}" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding PuzzleHandle.NumberPuzzlePieces}" VerticalAlignment="Center"/>
 
                         </Grid>
                     </StackPanel>
@@ -76,8 +81,8 @@
                 <ColumnDefinition Width="150"/>
             </Grid.ColumnDefinitions>
 
-            <TextBlock Grid.Column="0" Text="{Binding Path=PuzzlePiecesFolderPath}" VerticalAlignment="Center" Margin="10"/>
-            <TextBlock Grid.Column="1" Text="{Binding Path=CurrentSolverStep}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="10"/>
+            <TextBlock Grid.Column="0" Text="{Binding PuzzleHandle.PuzzlePiecesFolderPath}" VerticalAlignment="Center" Margin="10"/>
+            <TextBlock Grid.Column="1" Text="{Binding PuzzleHandle.CurrentSolverStep}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="10"/>
         </Grid>
     </Grid>
 </Window>
