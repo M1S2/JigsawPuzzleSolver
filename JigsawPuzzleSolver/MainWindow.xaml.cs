@@ -46,18 +46,6 @@ namespace JigsawPuzzleSolver
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-
-        /*public static readonly DependencyProperty ProcessedImgSourceProperty = DependencyProperty.Register("ProcessedImgSource", typeof(ImageSource), typeof(MainWindow), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
-
-        /// <summary>
-        /// Processed Image source property
-        /// </summary>
-        public ImageSource ProcessedImgSource
-        {
-            get { return (ImageSource)GetValue(ProcessedImgSourceProperty); }
-            set { SetValue(ProcessedImgSourceProperty, value); }
-        }*/
-
         private Stopwatch _stopWatchSolver;
         public Stopwatch StopWatchSolver
         {
@@ -71,6 +59,8 @@ namespace JigsawPuzzleSolver
             get { return _puzzleHandle; }
             set { _puzzleHandle = value; OnPropertyChanged(); }
         }
+
+        private PuzzleSolverParameters solverParameters;
 
         private IProgress<LogBox.LogEvent> logHandle;
         private DispatcherTimer stopWatchDispatcherTimer;       // This timer is used to notify the GUI that the StopWatchSolver.Elapsed property has changed
@@ -86,6 +76,8 @@ namespace JigsawPuzzleSolver
             stopWatchDispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 10);
             stopWatchDispatcherTimer.Tick += new EventHandler((obj, e) => this.OnPropertyChanged("StopWatchSolver"));
 
+            solverParameters = new PuzzleSolverParameters() { SolverShowDebugResults = false };
+            
             logHandle = new Progress<LogBox.LogEvent>(progressValue =>
             {
                 logBox1.LogEvent(progressValue);
@@ -94,14 +86,32 @@ namespace JigsawPuzzleSolver
 
         //##############################################################################################################################################################################################
 
-        private async void btn_start_solving_Click(object sender, RoutedEventArgs e)
+        private void btn_open_new_puzzle_Click(object sender, RoutedEventArgs e)
         {
             cancelTokenSource = new CancellationTokenSource();
 
-            PuzzleSolverParameters solverParameters = new PuzzleSolverParameters() { SolverShowDebugResults = false };
-            //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", solverParameters, logHandle, cancelTokenSource.Token);
-            PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", solverParameters, logHandle, cancelTokenSource.Token);
+            System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
+            folderBrowserDialog1.Description = "Select a folder containing all scanned puzzle piece images.";
+            if(PuzzleHandle != null) { folderBrowserDialog1.SelectedPath = PuzzleHandle.PuzzlePiecesFolderPath; }
+            if(folderBrowserDialog1.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                PuzzleHandle = new Puzzle(folderBrowserDialog1.SelectedPath, solverParameters, logHandle, cancelTokenSource.Token);
+            }
 
+//#warning Only for faster testing !!!
+            //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", solverParameters, logHandle, cancelTokenSource.Token);
+            //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", solverParameters, logHandle, cancelTokenSource.Token);
+        }
+
+        //**********************************************************************************************************************************************************************************************
+
+        private async void btn_start_solving_Click(object sender, RoutedEventArgs e)
+        {
+            if(PuzzleHandle == null) { return; }
+
+            cancelTokenSource = new CancellationTokenSource();
+            PuzzleHandle.ResetCancelToken(cancelTokenSource.Token);
+            
             stopWatchDispatcherTimer.Start();
             StopWatchSolver.Restart();
             try
@@ -115,9 +125,19 @@ namespace JigsawPuzzleSolver
             logBox1.ScrollToSpecificLogEvent(logBox1.LogEvents.Last());
         }
 
+        //**********************************************************************************************************************************************************************************************
+
         private void btn_stop_solving_Click(object sender, RoutedEventArgs e)
         {
-            cancelTokenSource.Cancel();
+            if (cancelTokenSource != null) { cancelTokenSource.Cancel(); }
+        }
+
+        //**********************************************************************************************************************************************************************************************
+
+        private void btn_info_Click(object sender, RoutedEventArgs e)
+        {
+            AssemblyInfoHelper_WPF.WindowAssemblyInfo windowAssemblyInfo = new AssemblyInfoHelper_WPF.WindowAssemblyInfo();
+            windowAssemblyInfo.ShowDialog();
         }
 
     }

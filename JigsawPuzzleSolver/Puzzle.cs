@@ -23,18 +23,19 @@ namespace JigsawPuzzleSolver
     {       
         public PuzzleSolverParameters SolverParameters { get; private set; }
 
-        public bool Solved { get { return CurrentSolverStep == PuzzleSolverSteps.SOLVED; } }
+        public bool Solved { get { return CurrentSolverState == PuzzleSolverState.SOLVED; } }
 
-        private PuzzleSolverSteps _currentSolverStep;
-        public PuzzleSolverSteps CurrentSolverStep
+        private PuzzleSolverState _currentSolverState;
+        public PuzzleSolverState CurrentSolverState
         {
-            get { return _currentSolverStep; }
+            get { return _currentSolverState; }
             private set
             {
-                _currentSolverStep = value;
+                _currentSolverState = value;
                 OnPropertyChanged();
                 OnPropertyChanged("PercentageOfFinishedSolverSteps");
                 OnPropertyChanged("NumberOfFinishedSolverSteps");
+                OnPropertyChanged("IsSolverRunning");
             }
         }
         
@@ -45,12 +46,17 @@ namespace JigsawPuzzleSolver
 
         public int NumberOfFinishedSolverSteps
         {
-            get { return (int)CurrentSolverStep; }
+            get { return ((int)CurrentSolverState < 0 ? 0 : (int)CurrentSolverState); }
         }
 
         public int NumberOfSolverSteps
         {
-            get { return Enum.GetNames(typeof(PuzzleSolverSteps)).Count() - 1; }        // -1 because "SOLVED" isn't a real solver step
+            get { return Enum.GetNames(typeof(PuzzleSolverState)).Count() - 2; }        // -2 because "SOLVED" and "UNSOLVED" aren't real solver steps
+        }
+        
+        public bool IsSolverRunning
+        {
+            get { return (CurrentSolverState != PuzzleSolverState.SOLVED && CurrentSolverState != PuzzleSolverState.UNSOLVED); }
         }
 
         private int _currentSolverStepPercentageFinished;
@@ -73,6 +79,30 @@ namespace JigsawPuzzleSolver
             get { return _puzzlePiecesFolderPath; }
             private set { _puzzlePiecesFolderPath = value; OnPropertyChanged(); }
         }
+
+        //**********************************************************************************************************************************************************************************************
+        
+        private ObservableDictionary<string, Bitmap> _puzzleSolutions = new ObservableDictionary<string, Bitmap>();
+        public ObservableDictionary<string, Bitmap> PuzzleSolutions
+        {
+            get { return _puzzleSolutions; }
+            set { _puzzleSolutions = value; OnPropertyChanged(); }
+        }
+
+        private string _selectedSolutionKey;
+        public string SelectedSolutionKey
+        {
+            get { return _selectedSolutionKey; }
+            set { _selectedSolutionKey = value; OnPropertyChanged(); SelectedSolutionImage = PuzzleSolutions[_selectedSolutionKey]; }
+        }
+
+        private Bitmap _selectedSolutionImage;
+        public Bitmap SelectedSolutionImage
+        {
+            get { return _selectedSolutionImage; }
+            set { _selectedSolutionImage = value; OnPropertyChanged(); }
+        }
+
         //##############################################################################################################################################################################################
 
         private IProgress<LogBox.LogEvent> _logHandle;
@@ -93,10 +123,22 @@ namespace JigsawPuzzleSolver
             _logHandle = logHandle;
             _cancelToken = cancelToken;
             NumberPuzzlePieces = 0;
+            CurrentSolverState = PuzzleSolverState.UNSOLVED;
         }
 
         public Puzzle()
         { }
+
+        //##############################################################################################################################################################################################
+
+        /// <summary>
+        /// Reset the cancel token by setting it to a new token
+        /// </summary>
+        /// <param name="newToken">New token obtained by a new CancellationTokenSource</param>
+        public void ResetCancelToken(CancellationToken newToken)
+        {
+            _cancelToken = newToken;
+        }
 
         //##############################################################################################################################################################################################
 
@@ -170,11 +212,12 @@ namespace JigsawPuzzleSolver
         {
             try
             {
-                CurrentSolverStep = PuzzleSolverSteps.INIT_PIECES;
+                CurrentSolverState = PuzzleSolverState.INIT_PIECES;
                 CurrentSolverStepPercentageFinished = 0;
                 _logHandle.Report(new LogBox.LogEventInfo("Extracting Pieces"));
                 NumberPuzzlePieces = 0;
 
+                pieces.Clear();
                 List<Image<Rgb, byte>> color_images = Utils.GetImagesFromDirectory(PuzzlePiecesFolderPath);
 
                 if (SolverParameters.PuzzleApplyMedianBlurFilter)
@@ -265,11 +308,13 @@ namespace JigsawPuzzleSolver
             }
             catch(OperationCanceledException)
             {
-                _logHandle.Report(new LogBox.LogEventWarning("The operation was canceled. Step: " + CurrentSolverStep.ToString()));
+                _logHandle.Report(new LogBox.LogEventWarning("The operation was canceled. Step: " + CurrentSolverState.ToString()));
+                CurrentSolverState = PuzzleSolverState.UNSOLVED;
             }
             catch(Exception ex)
             {
-                _logHandle.Report(new LogBox.LogEventError("The following error occured in step " + CurrentSolverStep.ToString() + ":\n" + ex.Message));
+                _logHandle.Report(new LogBox.LogEventError("The following error occured in step " + CurrentSolverState.ToString() + ":\n" + ex.Message));
+                CurrentSolverState = PuzzleSolverState.UNSOLVED;
             }
         }
 
@@ -306,7 +351,7 @@ namespace JigsawPuzzleSolver
         /// </summary>
         private void compareAllEdges()
         {
-            CurrentSolverStep = PuzzleSolverSteps.COMPARE_EDGES;
+            CurrentSolverState = PuzzleSolverState.COMPARE_EDGES;
             CurrentSolverStepPercentageFinished = 0;
             _logHandle.Report(new LogBox.LogEventInfo("Comparing all edges"));
 
@@ -369,7 +414,7 @@ namespace JigsawPuzzleSolver
                 {
                     compareAllEdges();
 
-                    CurrentSolverStep = PuzzleSolverSteps.SOLVE_PUZZLE;
+                    CurrentSolverState = PuzzleSolverState.SOLVE_PUZZLE;
                     CurrentSolverStepPercentageFinished = 0;
                     PuzzleDisjointSet p = new PuzzleDisjointSet(pieces.Count);
 
@@ -392,7 +437,7 @@ namespace JigsawPuzzleSolver
 
                     _logHandle.Report(new LogBox.LogEventInfo("Possible solution found " + (p.InOneSet() ? "(one set)." : "(" + p.SetCount.ToString() + " sets)")));
                     CurrentSolverStepPercentageFinished = 100;
-                    CurrentSolverStep = PuzzleSolverSteps.SOLVED;
+                    CurrentSolverState = PuzzleSolverState.SOLVED;
                     int setNo = 0;
                     foreach (Forest jointSet in p.GetJointSets())
                     {
@@ -408,17 +453,25 @@ namespace JigsawPuzzleSolver
                                 pieces[piece_number].Rotate(4 - solution_rotations[j, i]);
                             }
                         }
-                        GenerateSolutionImage2(solution, setNo);
+                        Bitmap solutionImg = GenerateSolutionImage2(solution, setNo);
+                        if(PuzzleSolutions == null) { PuzzleSolutions = new ObservableDictionary<string, Bitmap>(); }
+
+                        System.Windows.Application.Current.Dispatcher.Invoke(() => { PuzzleSolutions.Add("Solution #" + setNo.ToString(), solutionImg); });
+
+                        _logHandle.Report(new LogBox.LogEventImage("Solution #" + setNo.ToString(), solutionImg));
                         setNo++;
                     }
+                    SelectedSolutionKey = PuzzleSolutions.Keys.First();
                 }
                 catch (OperationCanceledException)
                 {
-                    _logHandle.Report(new LogBox.LogEventWarning("The operation was canceled. Step: " + CurrentSolverStep.ToString()));
+                    _logHandle.Report(new LogBox.LogEventWarning("The operation was canceled. Step: " + CurrentSolverState.ToString()));
+                    CurrentSolverState = PuzzleSolverState.UNSOLVED;
                 }
                 catch (Exception ex)
                 {
-                    _logHandle.Report(new LogBox.LogEventError("The following error occured in step " + CurrentSolverStep.ToString() + ":\n" + ex.Message));
+                    _logHandle.Report(new LogBox.LogEventError("The following error occured in step " + CurrentSolverState.ToString() + ":\n" + ex.Message));
+                    CurrentSolverState = PuzzleSolverState.UNSOLVED;
                 }
             }, _cancelToken);
         }
@@ -427,7 +480,7 @@ namespace JigsawPuzzleSolver
 
         #region Generate Solution Image
 
-        private void GenerateSolutionImage(Matrix<int> solutionLocations, int solutionID)
+        private Bitmap GenerateSolutionImage(Matrix<int> solutionLocations, int solutionID)
         { 
             if (!Solved) { Solve(); }
 
@@ -522,12 +575,12 @@ namespace JigsawPuzzleSolver
                 }
             }
 
-            _logHandle.Report(new LogBox.LogEventImage("Solution #" + solutionID.ToString(), final_out_image.Clone().Bitmap));
+            return final_out_image.Clone().Bitmap;
         }
 
         //**********************************************************************************************************************************************************************************************
 
-        private void GenerateSolutionImage2(Matrix<int> solutionLocations, int solutionID)
+        private Bitmap GenerateSolutionImage2(Matrix<int> solutionLocations, int solutionID)
         {
             if (!Solved) { Solve(); }
             
@@ -562,7 +615,7 @@ namespace JigsawPuzzleSolver
                 }
             }
 
-            _logHandle.Report(new LogBox.LogEventImage("Solution #" + solutionID.ToString(), outImg));
+            return outImg;
         }
 
         #endregion

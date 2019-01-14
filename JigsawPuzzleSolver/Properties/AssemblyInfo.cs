@@ -8,8 +8,8 @@ using System.Windows;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("JigsawPuzzleSolver")]
-[assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("")]
+[assembly: AssemblyDescription("Solving jigsaw puzzles by comparing the edges of the puzzle pieces against each other and joining them.")]
+[assembly: AssemblyConfiguration("Release")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("JigsawPuzzleSolver")]
 [assembly: AssemblyCopyright("Copyright ©  2018")]

@@ -7,10 +7,15 @@ using System.Threading.Tasks;
 namespace JigsawPuzzleSolver
 {
     /// <summary>
-    /// Steps during the solving process of the puzzle
+    /// States of the puzzle solver
     /// </summary>
-    public enum PuzzleSolverSteps
+    public enum PuzzleSolverState
     {
+        /// <summary>
+        /// The puzzle isn't solved yet.
+        /// </summary>
+        UNSOLVED = -1,
+
         /// <summary>
         /// Extract all pieces from the input images, find the edges and classify them.
         /// </summary>

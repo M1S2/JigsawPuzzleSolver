@@ -36,7 +36,14 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <PostBuildEvent>copy "$(SolutionDir)README.md" "$(TargetDir)README.md"
+copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
+  </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AssemblyInfoHelper_WPF">
+      <HintPath>..\AssemblyInfoProject\bin\AssemblyInfoHelper_WPF.dll</HintPath>
+    </Reference>
     <Reference Include="Emgu.CV.UI, Version=3.4.3.3016, Culture=neutral, PublicKeyToken=7281126722ab4438, processorArchitecture=MSIL">
       <HintPath>..\packages\EMGU.CV.3.4.3.3016\lib\net35\Emgu.CV.UI.dll</HintPath>
       <Private>True</Private>
@@ -75,7 +82,7 @@
     <Compile Include="Edge.cs" />
     <Compile Include="Enumerations\EdgeTypes.cs" />
     <Compile Include="Enumerations\PieceTypes.cs" />
-    <Compile Include="Enumerations\PuzzleSolverSteps.cs" />
+    <Compile Include="Enumerations\PuzzleSolverState.cs" />
     <Compile Include="LogBox\LogBox.xaml.cs">
       <DependentUpon>LogBox.xaml</DependentUpon>
     </Compile>
@@ -92,6 +99,8 @@
     <Compile Include="LogBox\ToggleSwitch.xaml.cs">
       <DependentUpon>ToggleSwitch.xaml</DependentUpon>
     </Compile>
+    <Compile Include="NegateBooleanConverter.cs" />
+    <Compile Include="ObservableDictionary.cs" />
     <Compile Include="ObservableObject.cs" />
     <Compile Include="PuzzleSolverParameters.cs" />
     <Compile Include="Structures\FindCornerRectangleScore.cs" />
@@ -180,6 +189,26 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\Image.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\OpenFolder_16x.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Run_16x.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Stop_16x.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\PuzzlePiece.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
   </ItemGroup>
