@@ -83,6 +83,7 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     <Compile Include="Enumerations\EdgeTypes.cs" />
     <Compile Include="Enumerations\PieceTypes.cs" />
     <Compile Include="Enumerations\PuzzleSolverState.cs" />
+    <Compile Include="LogBox\ColumnDefinitionExtended.cs" />
     <Compile Include="LogBox\LogBox.xaml.cs">
       <DependentUpon>LogBox.xaml</DependentUpon>
     </Compile>

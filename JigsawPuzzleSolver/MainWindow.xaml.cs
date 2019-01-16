@@ -76,7 +76,7 @@ namespace JigsawPuzzleSolver
             stopWatchDispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 10);
             stopWatchDispatcherTimer.Tick += new EventHandler((obj, e) => this.OnPropertyChanged("StopWatchSolver"));
 
-            solverParameters = new PuzzleSolverParameters() { SolverShowDebugResults = false };
+            solverParameters = new PuzzleSolverParameters() { SolverShowDebugResults = false, PuzzleIsInputBackgroundWhite = false };
             
             logHandle = new Progress<LogBox.LogEvent>(progressValue =>
             {
@@ -90,16 +90,16 @@ namespace JigsawPuzzleSolver
         {
             cancelTokenSource = new CancellationTokenSource();
 
-            System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
+            /*System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
             folderBrowserDialog1.Description = "Select a folder containing all scanned puzzle piece images.";
             if(PuzzleHandle != null) { folderBrowserDialog1.SelectedPath = PuzzleHandle.PuzzlePiecesFolderPath; }
             if(folderBrowserDialog1.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 PuzzleHandle = new Puzzle(folderBrowserDialog1.SelectedPath, solverParameters, logHandle, cancelTokenSource.Token);
-            }
+            }*/
 
-//#warning Only for faster testing !!!
-            //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", solverParameters, logHandle, cancelTokenSource.Token);
+#warning Only for faster testing !!!
+            PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", solverParameters, logHandle, cancelTokenSource.Token);
             //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", solverParameters, logHandle, cancelTokenSource.Token);
         }
 

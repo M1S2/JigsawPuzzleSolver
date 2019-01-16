@@ -10,7 +10,7 @@ using System.Windows;
 [assembly: AssemblyTitle("JigsawPuzzleSolver")]
 [assembly: AssemblyDescription("Solving jigsaw puzzles by comparing the edges of the puzzle pieces against each other and joining them.")]
 [assembly: AssemblyConfiguration("Release")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Markus Scheich")]
 [assembly: AssemblyProduct("JigsawPuzzleSolver")]
 [assembly: AssemblyCopyright("Copyright ©  2018")]
 [assembly: AssemblyTrademark("")]

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Drawing;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.IO;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using Emgu.CV.CvEnum;
@@ -142,73 +143,10 @@ namespace JigsawPuzzleSolver
 
         //##############################################################################################################################################################################################
 
-        /*
-        private void extract_pieces(string path, int piece_size, bool needs_filter, int threshold)
-        {
-            List<Image<Rgb, byte>> color_images_tmp = Utils.GetImagesFromDirectory(path);
-            List<Mat> color_images = new List<Mat>();
-            foreach(Image<Rgb, byte> img in color_images_tmp) { color_images.Add(img.Mat); }
-            
-            List<Mat> bw_images = new List<Mat>();
-            if (needs_filter)
-            {
-                List<Mat> blured_images = Utils.MedianBlur(color_images.Select(x => x.ToImage<Rgb, byte>()).ToList(), 5).Select(x => x.Mat).ToList();
-                bw_images = Utils.ColorToBw(blured_images.Select(x => x.ToImage<Rgb, byte>()).ToList(), threshold).Select(x => x.Mat).ToList();
-            }
-            else
-            {
-                bw_images = Utils.ColorToBw(color_images.Select(x => x.ToImage<Rgb, byte>()).ToList(), threshold).Select(x => x.Mat).ToList();
-                Utils.Filter(bw_images, 2);
-            }
-
-            //For each input image
-            for (int i = 0; i < color_images.Count; i++)
-            {
-                VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint();
-                
-                Mat bw_img_clone = bw_images[i].Clone();    //Need to clone because it will get modified
-                CvInvoke.FindContours(bw_img_clone, contours, null, RetrType.List, ChainApproxMethod.ChainApproxNone);
-                
-                //For each contour in that image
-                //TODO: In anticipation of the other TODO's Re-create the b/w image based off of the contour to eliminate noise in the layer mask
-                for (int j = 0; j < contours.Size; j++)
-                {
-                    int bordersize = 15;
-                    Rectangle rect = CvInvoke.BoundingRectangle(contours[j]);
-                    if (rect.Width < piece_size || rect.Height < piece_size) continue;
-
-                    Mat new_bw = Mat.Zeros(rect.Height + 2 * bordersize, rect.Width + 2 * bordersize, DepthType.Cv8U, 1);
-                    VectorOfVectorOfPoint contours_to_draw = new VectorOfVectorOfPoint();
-                    contours_to_draw.Push(Utils.TranslateContour(contours[j], bordersize - rect.X, bordersize - rect.Y));
-                    CvInvoke.DrawContours(new_bw, contours_to_draw, -1, new MCvScalar(255), 2);
-
-                    _logHandle.Report(new LogBox.LogEventImage("Image #" + i.ToString() + " Contour #" + j.ToString(), new_bw.Bitmap));
-
-                    rect.Width += bordersize * 2;
-                    rect.Height += bordersize * 2;
-                    rect.X -= bordersize;
-                    rect.Y -= bordersize;       
-
-                    Mat mini_color = new Mat(color_images[i], rect);
-                    Mat mini_bw = new_bw;
-                                             
-                    mini_color = mini_color.Clone();        //Create a copy so it can't conflict.
-                    mini_bw = mini_bw.Clone();
-                    
-                    Piece p = new Piece(mini_color.ToImage<Rgb, byte>(), mini_bw.ToImage<Gray, byte>(), SolverParameters);
-                    pieces.Add(p);
-                }
-            }
-        }
-        */
-        //**********************************************************************************************************************************************************************************************
-
         /// <summary>
-        /// Extract all pieces from the source image. 
+        /// Extract all pieces from the source image using HSV color space for segmentation. 
         /// </summary>
-        /// see: https://docs.opencv.org/trunk/d8/d83/tutorial_py_grabcut.html
-        /// see: http://www.emgu.com/forum/viewtopic.php?t=1923
-        private void extract_pieces2()
+        private void extract_pieces_HSV_segmentation()
         {
             try
             {
@@ -218,32 +156,45 @@ namespace JigsawPuzzleSolver
                 NumberPuzzlePieces = 0;
 
                 pieces.Clear();
-                List<Image<Rgb, byte>> color_images = Utils.GetImagesFromDirectory(PuzzlePiecesFolderPath);
 
-                if (SolverParameters.PuzzleApplyMedianBlurFilter)
+                List<string> imageExtensions = new List<string>() { ".jpg", ".png", ".bmp", ".tiff" };
+                FileAttributes attr = File.GetAttributes(PuzzlePiecesFolderPath);
+                List<FileInfo> imageFilesInfo = new List<FileInfo>();
+                if ((attr & FileAttributes.Directory) == FileAttributes.Directory)      //detect whether its a directory or file
                 {
-                    color_images = Utils.MedianBlur(color_images, 5);
+                    DirectoryInfo folderInfo = new DirectoryInfo(PuzzlePiecesFolderPath);
+                    imageFilesInfo = folderInfo.GetFiles().ToList();
                 }
-#warning Segment using HSV color model, CvInvoke.InRange, CvInvoke.CvtColor
-                List<Image<Gray, byte>> bw_images = Utils.ColorToBw(color_images, 50);
+                else
+                {
+                    FileInfo fileInfo = new FileInfo(PuzzlePiecesFolderPath);
+                    imageFilesInfo.Add(fileInfo);
+                }
+
+                imageFilesInfo = imageFilesInfo.Where(f => imageExtensions.Contains(f.Extension)).ToList();
 
                 //For each input image
-                for (int i = 0; i < bw_images.Count; i++) //color_images.Count; i++)
+                for (int i = 0; i < imageFilesInfo.Count; i++)
                 {
-                    Image<Rgb, byte> sourceImg = new Image<Rgb, byte>(color_images[i].Bitmap);
-                    Image<Gray, byte> mask = new Image<Gray, byte>(bw_images[i].Bitmap);
+                    Image<Rgb, byte> sourceImg = CvInvoke.Imread(imageFilesInfo[i].FullName).ToImage<Rgb, byte>();
+                    CvInvoke.CvtColor(sourceImg, sourceImg, ColorConversion.Bgr2Rgb);               // Images are read in BGR model (not RGB)
+                    if (SolverParameters.PuzzleApplyMedianBlurFilter) { CvInvoke.MedianBlur(sourceImg, sourceImg, 5); }
+                    
+                    Image<Hsv, byte> hsvSourceImg = sourceImg.Clone().Convert<Hsv, byte>();
+                    Image<Gray, byte> mask = new Image<Gray, byte>(sourceImg.Size);
 
-                    /*int maxWidth = 1000, maxHeight = 1000;
-                    if (sourceImg.Width > maxWidth || sourceImg.Height > maxHeight)
+                    if (SolverParameters.PuzzleIsInputBackgroundWhite)
                     {
-                        sourceImg = sourceImg.Copy(new Rectangle(new Point(20, 20), Size.Subtract(sourceImg.Size, new Size(20, 20))));      // Used to remove a black line at the top of a scanned image
-                        sourceImg = sourceImg.Resize(maxWidth, maxHeight, Inter.Cubic, true);
-                    }*/
+#warning White color values must be adjusted with real scanned image
+                        mask = hsvSourceImg.InRange(new Hsv(0, 0, 220), new Hsv(180, 20, 255)).Not();    // white background is defined as the inner region of the top of the HSV color cylinder (hue=0...180, sat=0...20, val=220...255)
+                    }
+                    else
+                    {
+                        mask = hsvSourceImg.InRange(new Hsv(0, 0, 0), new Hsv(180, 255, 50)).Not();    // black background is defined as the whole lower base of the HSV color cylinder (hue=0...180, sat=0...255, val=0...50)
+                    }
 
                     _logHandle.Report(new LogBox.LogEventImage("Extracting Pieces from source image " + i.ToString(), sourceImg.ToBitmap()));
-
-                    //Image<Gray, byte> mask = sourceImg.GrabCut(new Rectangle(1, 1, sourceImg.Width - 1, sourceImg.Height - 1), 20); //10);
-                    //mask = mask.ThresholdBinary(new Gray(2), new Gray(255));            // Change the mask. All values bigger than 2 get mapped to 255. All values equal or smaller than 2 get mapped to 0.
+                    _logHandle.Report(new LogBox.LogEventImage("Mask " + i.ToString(), mask.ToBitmap()));
 
                     CvBlobDetector blobDetector = new CvBlobDetector();                 // Find all blobs in the mask image, extract them and add them to the list of pieces
                     CvBlobs blobs = new CvBlobs();
@@ -292,26 +243,18 @@ namespace JigsawPuzzleSolver
                         pieces.Add(p);
                         NumberPuzzlePieces++;
 
-                        pieceSourceImg.Dispose();
-                        pieceSourceImgMasked.Dispose();
-                        pieceMask.Dispose();
-                        pieceSourceImageForeground.Dispose();
-                        pieceMaskInverted.Dispose();
-                        background.Dispose();
-                        pieceSourceImageBackground.Dispose();
-
-                        CurrentSolverStepPercentageFinished = (int)(((i + 1) / (double)bw_images.Count) * 100);
+                        CurrentSolverStepPercentageFinished = (int)(((i + 1) / (double)imageFilesInfo.Count) * 100);
                     }
 
                     _logHandle.Report(new LogBox.LogEventImage("Source Img " + i.ToString() + " Pieces", sourceImgPiecesMarked.ToBitmap()));
                 }
             }
-            catch(OperationCanceledException)
+            catch (OperationCanceledException)
             {
                 _logHandle.Report(new LogBox.LogEventWarning("The operation was canceled. Step: " + CurrentSolverState.ToString()));
                 CurrentSolverState = PuzzleSolverState.UNSOLVED;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logHandle.Report(new LogBox.LogEventError("The following error occured in step " + CurrentSolverState.ToString() + ":\n" + ex.Message));
                 CurrentSolverState = PuzzleSolverState.UNSOLVED;
@@ -319,6 +262,7 @@ namespace JigsawPuzzleSolver
         }
 
         //**********************************************************************************************************************************************************************************************
+
         /*
         /// <summary>
         /// Create an image for all pieces with all edges drawn 
@@ -400,7 +344,7 @@ namespace JigsawPuzzleSolver
         {
             await Task.Run(() =>
             {
-                extract_pieces2();
+                extract_pieces_HSV_segmentation();
             }, _cancelToken);
         }
 
@@ -482,7 +426,7 @@ namespace JigsawPuzzleSolver
 
         private Bitmap GenerateSolutionImage(Matrix<int> solutionLocations, int solutionID)
         { 
-            if (!Solved) { Solve(); }
+            if (!Solved) { return null; }
 
             int border = 10;
             float out_image_width = 0, out_image_height = 0;
@@ -582,7 +526,9 @@ namespace JigsawPuzzleSolver
 
         private Bitmap GenerateSolutionImage2(Matrix<int> solutionLocations, int solutionID)
         {
-            if (!Solved) { Solve(); }
+#warning Add PieceIDs to solution image !!!
+
+            if (!Solved) { return null; }
             
             int out_image_width = 0, out_image_height = 0;
             int max_piece_width = 0, max_piece_height = 0;
@@ -603,6 +549,7 @@ namespace JigsawPuzzleSolver
 
             Bitmap outImg = new Bitmap(out_image_width, out_image_height);
             Graphics g = Graphics.FromImage(outImg);
+            g.Clear(Color.White);
 
             for (int i = 0; i < solutionLocations.Size.Width; i++)
             {

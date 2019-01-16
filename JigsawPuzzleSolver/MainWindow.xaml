@@ -119,9 +119,9 @@
             </TabItem>
         </TabControl>
 
-        <GridSplitter ResizeDirection="Rows" Grid.Row="2" Height="5" ShowsPreview="False" HorizontalAlignment="Stretch" VerticalAlignment="Top" Background="#FFB2B2B2" />
+        <GridSplitter ResizeDirection="Rows" Grid.Row="2" Height="5" Margin="0,5,0,5" ShowsPreview="False" HorizontalAlignment="Stretch" VerticalAlignment="Top" Background="#FFB2B2B2" />
 
-        <LogBox:LogBoxControl x:Name="logBox1" Margin="5" Grid.Row="2"/>
+        <LogBox:LogBoxControl x:Name="logBox1" Margin="5,15,5,5" Grid.Row="2"/>
 
         <Grid Grid.Row="4">
             <Grid.ColumnDefinitions>

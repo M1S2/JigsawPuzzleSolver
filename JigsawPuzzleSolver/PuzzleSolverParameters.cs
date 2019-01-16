@@ -12,6 +12,7 @@ namespace JigsawPuzzleSolver
 
         public int PuzzleMinPieceSize { get; set; }
         public bool PuzzleApplyMedianBlurFilter { get; set; }
+        public bool PuzzleIsInputBackgroundWhite { get; set; }      // true -> white background on input images, otherwise black background
         public float PuzzleSolverKeepMatchesThreshold { get; set; }
 
         public int PieceFindCornersGFTTMaxCorners { get; set; }
@@ -29,6 +30,7 @@ namespace JigsawPuzzleSolver
             SolverShowDebugResults = false;
             PuzzleMinPieceSize = 50;
             PuzzleApplyMedianBlurFilter = true;
+            PuzzleIsInputBackgroundWhite = true;
             PuzzleSolverKeepMatchesThreshold = 4; //2.5f;
             PieceFindCornersGFTTMaxCorners = 500;
             PieceFindCornersGFTTQualityLevel = 0.01;
