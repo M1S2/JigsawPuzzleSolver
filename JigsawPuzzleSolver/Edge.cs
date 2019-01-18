@@ -184,47 +184,54 @@ namespace JigsawPuzzleSolver
         /// 100000000: One of the contour sizes is 0</returns>
         public double Compare(Edge edge2)
         {
-            //Return large numbers if we know that these shapes simply wont match...
-            if (PieceID == edge2.PieceID) { return 300000000; }
-            if (EdgeType == EdgeTypes.LINE || edge2.EdgeType == EdgeTypes.LINE) { return 200000000; }
-            if (EdgeType == edge2.EdgeType) { return 150000000; }
-            if (normalized_contour.Size == 0 || edge2.reverse_normalized_contour.Size == 0) { return 100000000; }
-            double cost = 0;
-            double total_length = CvInvoke.ArcLength(normalized_contour, false) + CvInvoke.ArcLength(edge2.reverse_normalized_contour, false);
-
-            int windowSizePoints = (int)(Math.Max(normalized_contour.Size, edge2.reverse_normalized_contour.Size) * SolverParameters.EdgeCompareWindowSizePercent);
-
-            double distEndpointsContour1 = Utils.Distance(normalized_contour[0], normalized_contour[normalized_contour.Size - 1]);
-            double distEndpointsContour2 = Utils.Distance(edge2.reverse_normalized_contour[0], edge2.reverse_normalized_contour[edge2.reverse_normalized_contour.Size - 1]);
-            double distEndpointContoursDiff = Math.Abs(distEndpointsContour1 - distEndpointsContour2);
-            if(distEndpointContoursDiff <= SolverParameters.EdgeCompareEndpointDiffIgnoreThreshold) { distEndpointContoursDiff = 0; }
-
-            for (int i = 0; i < Math.Min(normalized_contour.Size, edge2.reverse_normalized_contour.Size); i++)
+            try
             {
-                double min = 10000000;
-                for(int j = Math.Max(0, i - windowSizePoints); j < Math.Min(edge2.reverse_normalized_contour.Size, i + windowSizePoints); j++)
+                //Return large numbers if we know that these shapes simply wont match...
+                if (PieceID == edge2.PieceID) { return 300000000; }
+                if (EdgeType == EdgeTypes.LINE || edge2.EdgeType == EdgeTypes.LINE) { return 200000000; }
+                if (EdgeType == edge2.EdgeType) { return 150000000; }
+                if (normalized_contour.Size == 0 || edge2.reverse_normalized_contour.Size == 0) { return 100000000; }
+                double cost = 0;
+                double total_length = CvInvoke.ArcLength(normalized_contour, false) + CvInvoke.ArcLength(edge2.reverse_normalized_contour, false);
+
+                int windowSizePoints = (int)(Math.Max(normalized_contour.Size, edge2.reverse_normalized_contour.Size) * SolverParameters.EdgeCompareWindowSizePercent);
+
+                double distEndpointsContour1 = Utils.Distance(normalized_contour[0], normalized_contour[normalized_contour.Size - 1]);
+                double distEndpointsContour2 = Utils.Distance(edge2.reverse_normalized_contour[0], edge2.reverse_normalized_contour[edge2.reverse_normalized_contour.Size - 1]);
+                double distEndpointContoursDiff = Math.Abs(distEndpointsContour1 - distEndpointsContour2);
+                if (distEndpointContoursDiff <= SolverParameters.EdgeCompareEndpointDiffIgnoreThreshold) { distEndpointContoursDiff = 0; }
+
+                for (int i = 0; i < Math.Min(normalized_contour.Size, edge2.reverse_normalized_contour.Size); i++)
                 {
-                    if (_cancelToken.IsCancellationRequested) { _cancelToken.ThrowIfCancellationRequested(); }
+                    double min = 10000000;
+                    for (int j = Math.Max(0, i - windowSizePoints); j < Math.Min(edge2.reverse_normalized_contour.Size, i + windowSizePoints); j++)
+                    {
+                        if (_cancelToken.IsCancellationRequested) { _cancelToken.ThrowIfCancellationRequested(); }
 
-                    double dist = Utils.Distance(normalized_contour[i], edge2.reverse_normalized_contour[j]);
-                    if (dist < min) min = dist;
+                        double dist = Utils.Distance(normalized_contour[i], edge2.reverse_normalized_contour[j]);
+                        if (dist < min) min = dist;
+                    }
+                    cost += min;
                 }
-                cost += min;
-            }
-            double matchResult = cost / total_length;
+                double matchResult = cost / total_length;
 
-            if (SolverParameters.SolverShowDebugResults)
+                if (SolverParameters.SolverShowDebugResults)
+                {
+                    Image<Rgb, byte> contourOverlay = new Image<Rgb, byte>(500, 500);
+                    VectorOfPoint contour1 = GetTranslatedContour(100, 0);
+                    VectorOfPoint contour2 = edge2.GetTranslatedContourReverse(100, 0);
+                    CvInvoke.DrawContours(contourOverlay, new VectorOfVectorOfPoint(contour1), -1, new MCvScalar(0, 255, 0), 2);
+                    CvInvoke.DrawContours(contourOverlay, new VectorOfVectorOfPoint(contour2), -1, new MCvScalar(0, 0, 255), 2);
+
+                    _logHandle.Report(new LogBox.LogEventImage("Compare " + PieceID + "_Edge" + EdgeNumber + " <-->" + edge2.PieceID + "_Edge" + edge2.EdgeNumber + " ==> distEndpoint = " + distEndpointContoursDiff.ToString() + ", MatchResult = " + matchResult, contourOverlay.Bitmap));
+                }
+
+                return distEndpointContoursDiff + matchResult;
+            }
+            catch (OperationCanceledException ex)
             {
-                Image<Rgb, byte> contourOverlay = new Image<Rgb, byte>(500, 500);
-                VectorOfPoint contour1 = GetTranslatedContour(100, 0);
-                VectorOfPoint contour2 = edge2.GetTranslatedContourReverse(100, 0);
-                CvInvoke.DrawContours(contourOverlay, new VectorOfVectorOfPoint(contour1), -1, new MCvScalar(0, 255, 0), 2);
-                CvInvoke.DrawContours(contourOverlay, new VectorOfVectorOfPoint(contour2), -1, new MCvScalar(0, 0, 255), 2);
-
-                _logHandle.Report(new LogBox.LogEventImage("Compare " + PieceID + "_Edge" + EdgeNumber + " <-->" + edge2.PieceID + "_Edge" + edge2.EdgeNumber + " ==> distEndpoint = " + distEndpointContoursDiff.ToString() + ", MatchResult = " + matchResult, contourOverlay.Bitmap));
+                throw ex;
             }
-
-            return distEndpointContoursDiff + matchResult;
         }
 
     }

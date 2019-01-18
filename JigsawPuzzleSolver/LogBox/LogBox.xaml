@@ -51,7 +51,7 @@
 
             <ListView x:Name="listView_Log" Grid.Column="0" SelectedItem="{Binding SelectedLogEvent, Mode=TwoWay}" VirtualizingPanel.IsVirtualizing="True">
                 <ListView.View>
-                    <GridView>
+                    <local:AutoSizedGridView>
                         <GridViewColumn Header="" Width="40">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
@@ -73,7 +73,7 @@
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
-                    </GridView>
+                    </local:AutoSizedGridView>
                 </ListView.View>
             </ListView>
 

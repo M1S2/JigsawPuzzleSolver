@@ -7,7 +7,7 @@
 
 ## Purpose
 Solving jigsaw puzzles by comparing the edges of the puzzle pieces against each other and joining them.
-The solver only uses the shapes of the edges to compare them. No color matching is made.
+The solver only uses the shapes of the edges to compare them. No color matching is done.
 
 ## Usage
 1. Scan all puzzle pieces that should be joined. There can be multiple pieces per input image. The single pieces are extracted from the input image by segmentation. Scan the rear side of the pieces to get better edges.

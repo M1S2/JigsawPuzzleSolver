@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -21,7 +22,7 @@ namespace JigsawPuzzleSolver
     /// </summary>
     /// see: https://github.com/jzeimen/PuzzleSolver/blob/master/PuzzleSolver/puzzle.cpp
     public class Puzzle : ObservableObject
-    {       
+    {
         public PuzzleSolverParameters SolverParameters { get; private set; }
 
         public bool Solved { get { return CurrentSolverState == PuzzleSolverState.SOLVED; } }
@@ -39,7 +40,7 @@ namespace JigsawPuzzleSolver
                 OnPropertyChanged("IsSolverRunning");
             }
         }
-        
+
         public int PercentageOfFinishedSolverSteps
         {
             get { return (int)((NumberOfFinishedSolverSteps / (double)NumberOfSolverSteps) * 100); }
@@ -54,7 +55,7 @@ namespace JigsawPuzzleSolver
         {
             get { return Enum.GetNames(typeof(PuzzleSolverState)).Count() - 2; }        // -2 because "SOLVED" and "UNSOLVED" aren't real solver steps
         }
-        
+
         public bool IsSolverRunning
         {
             get { return (CurrentSolverState != PuzzleSolverState.SOLVED && CurrentSolverState != PuzzleSolverState.UNSOLVED); }
@@ -82,7 +83,7 @@ namespace JigsawPuzzleSolver
         }
 
         //**********************************************************************************************************************************************************************************************
-        
+
         private ObservableDictionary<string, Bitmap> _puzzleSolutions = new ObservableDictionary<string, Bitmap>();
         public ObservableDictionary<string, Bitmap> PuzzleSolutions
         {
@@ -151,6 +152,7 @@ namespace JigsawPuzzleSolver
             try
             {
                 CurrentSolverState = PuzzleSolverState.INIT_PIECES;
+                Piece.NextPieceID = 0;
                 CurrentSolverStepPercentageFinished = 0;
                 _logHandle.Report(new LogBox.LogEventInfo("Extracting Pieces"));
                 NumberPuzzlePieces = 0;
@@ -179,7 +181,7 @@ namespace JigsawPuzzleSolver
                     Image<Rgb, byte> sourceImg = CvInvoke.Imread(imageFilesInfo[i].FullName).ToImage<Rgb, byte>();
                     CvInvoke.CvtColor(sourceImg, sourceImg, ColorConversion.Bgr2Rgb);               // Images are read in BGR model (not RGB)
                     if (SolverParameters.PuzzleApplyMedianBlurFilter) { CvInvoke.MedianBlur(sourceImg, sourceImg, 5); }
-                    
+
                     Image<Hsv, byte> hsvSourceImg = sourceImg.Clone().Convert<Hsv, byte>();
                     Image<Gray, byte> mask = new Image<Gray, byte>(sourceImg.Size);
 
@@ -238,13 +240,13 @@ namespace JigsawPuzzleSolver
 
                         Image<Rgb, byte> pieceSourceImgMasked = new Image<Rgb, byte>(pieceSourceImg.Size);
                         CvInvoke.BitwiseOr(pieceSourceImageForeground, pieceSourceImageBackground, pieceSourceImgMasked);
-
-                        Piece p = new Piece(pieceSourceImgMasked, pieceMask, SolverParameters, _logHandle, _cancelToken);
+                        
+                        Piece p = new Piece(pieceSourceImgMasked, pieceMask, Path.GetFileName(imageFilesInfo[i].FullName), SolverParameters, _logHandle, _cancelToken);
                         pieces.Add(p);
                         NumberPuzzlePieces++;
-
-                        CurrentSolverStepPercentageFinished = (int)(((i + 1) / (double)imageFilesInfo.Count) * 100);
                     }
+
+                    CurrentSolverStepPercentageFinished = (int)(((i + 1) / (double)imageFilesInfo.Count) * 100);
 
                     _logHandle.Report(new LogBox.LogEventImage("Source Img " + i.ToString() + " Pieces", sourceImgPiecesMarked.ToBitmap()));
                 }
@@ -290,51 +292,69 @@ namespace JigsawPuzzleSolver
         */
         //**********************************************************************************************************************************************************************************************
 
+#warning Tried to use parallel loops but seems to be slower ?!
+        //ConcurrentDictionary<int, MatchScore> matchesDict = new ConcurrentDictionary<int, MatchScore>();        // Using ConcurrentDictionary because ConcurrentList doesn't exist
+        //ConcurrentDictionary<int, int> threadDict = new ConcurrentDictionary<int, int>();           // <ThreadID, NumberExecutedLoops>
+        //ParallelOptions parallelOptions = new ParallelOptions();
+        //parallelOptions.CancellationToken = _cancelToken;
+        //parallelOptions.MaxDegreeOfParallelism = Environment.ProcessorCount;
+        //Parallel.For(0, no_edges, parallelOptions, (i) => { });
+        //if (!threadDict.Keys.Contains(Thread.CurrentThread.ManagedThreadId)) { threadDict.TryAdd(Thread.CurrentThread.ManagedThreadId, 0); }
+        //else { threadDict[Thread.CurrentThread.ManagedThreadId]++; }
+
         /// <summary>
         /// Fill the list with all match scores for all piece edge combinations
         /// </summary>
         private void compareAllEdges()
         {
-            CurrentSolverState = PuzzleSolverState.COMPARE_EDGES;
-            CurrentSolverStepPercentageFinished = 0;
-            _logHandle.Report(new LogBox.LogEventInfo("Comparing all edges"));
-
-            matches.Clear();
-            int no_edges = (int)pieces.Count * 4;
-            int no_compares = (no_edges * (no_edges + 1)) / 2;      // Number of loop runs of the following nested loops 
-            int loop_count = 0;
-
-            for (int i = 0; i < no_edges; i++)
+            try
             {
-                for (int j = i; j < no_edges; j++)
+                CurrentSolverState = PuzzleSolverState.COMPARE_EDGES;
+                CurrentSolverStepPercentageFinished = 0;
+                _logHandle.Report(new LogBox.LogEventInfo("Comparing all edges"));
+
+                matches.Clear();
+                int no_edges = (int)pieces.Count * 4;
+                int no_compares = (no_edges * (no_edges + 1)) / 2;      // Number of loop runs of the following nested loops 
+                int loop_count = 0;
+
+                for (int i = 0; i < no_edges; i++)
                 {
-                    if (_cancelToken.IsCancellationRequested) { _cancelToken.ThrowIfCancellationRequested(); }
+                    for (int j = i; j < no_edges; j++)
+                    {
+                        if (_cancelToken.IsCancellationRequested) { _cancelToken.ThrowIfCancellationRequested(); }
+                        
+                        loop_count++;
+                        if (loop_count > no_compares) { loop_count = no_compares; }
+                        CurrentSolverStepPercentageFinished = (int)((loop_count / (double)no_compares) * 100);
 
-                    loop_count++;
-                    if(loop_count > no_compares) { loop_count = no_compares; }
-                    CurrentSolverStepPercentageFinished = (int)((loop_count / (double)no_compares) * 100);
+                        MatchScore matchScore = new MatchScore();
+                        matchScore.PieceIndex1 = i / 4;
+                        matchScore.PieceIndex2 = j / 4;
+                        matchScore.EdgeIndex1 = i % 4;
+                        matchScore.EdgeIndex2 = j % 4;
+                        matchScore.score = pieces[matchScore.PieceIndex1].Edges[matchScore.EdgeIndex1].Compare(pieces[matchScore.PieceIndex2].Edges[matchScore.EdgeIndex2]);
 
-                    MatchScore matchScore = new MatchScore();
-                    matchScore.PieceIndex1 = i / 4;
-                    matchScore.PieceIndex2 = j / 4;
-                    matchScore.EdgeIndex1 = i % 4;
-                    matchScore.EdgeIndex2 = j % 4;
-                    matchScore.score = pieces[matchScore.PieceIndex1].Edges[matchScore.EdgeIndex1].Compare(pieces[matchScore.PieceIndex2].Edges[matchScore.EdgeIndex2]);
+                        if (matchScore.score <= SolverParameters.PuzzleSolverKeepMatchesThreshold)  // Keep only the best matches (all scores above or equal 100000000 mean that the edges won't match)
+                        {
+                            matches.Add(matchScore);
+                        }
+                    }
+                }
+                
+                matches.Sort(new MatchScoreComparer(ScoreOrders.LOWEST_FIRST)); // Sort the matches to get the best scores first. The puzzle is solved by the order of the MatchScores
 
-                    if (matchScore.score <= SolverParameters.PuzzleSolverKeepMatchesThreshold) { matches.Add(matchScore); }
+                if (SolverParameters.SolverShowDebugResults)
+                {
+                    foreach (MatchScore matchScore in matches)
+                    {
+                        _logHandle.Report(new LogBox.LogEventImage("MatchScore " + pieces[matchScore.PieceIndex1].PieceID + "_Edge" + (matchScore.EdgeIndex1).ToString() + " <-->" + pieces[matchScore.PieceIndex2].PieceID + "_Edge" + (matchScore.EdgeIndex2).ToString() + " = " + matchScore.score.ToString(), Utils.Combine2ImagesHorizontal(pieces[matchScore.PieceIndex1].Edges[matchScore.EdgeIndex1].ContourImg, pieces[matchScore.PieceIndex2].Edges[matchScore.EdgeIndex2].ContourImg, 20).ToBitmap()));
+                    }
                 }
             }
-
-            //double bestMatchScore = matches.Select(m => m.score).Min();
-            //matches = matches.Where(m => m.score < SolverParameters.PuzzleSolverKeepBestMatchesFactor * bestMatchScore).ToList();           // Get only the best matches (all scores above or equal 100000000 mean that the edges won't match)
-            matches.Sort(new MatchScoreComparer(ScoreOrders.LOWEST_FIRST)); // Sort the matches to get the best scores first. The puzzle is solved by the order of the MatchScores
-
-            if (SolverParameters.SolverShowDebugResults)
+            catch (OperationCanceledException ex)
             {
-                foreach (MatchScore matchScore in matches)
-                {
-                    _logHandle.Report(new LogBox.LogEventImage("MatchScore " + pieces[matchScore.PieceIndex1].PieceID + "_Edge" + (matchScore.EdgeIndex1).ToString() + " <-->" + pieces[matchScore.PieceIndex2].PieceID + "_Edge" + (matchScore.EdgeIndex2).ToString() + " = " + matchScore.score.ToString(), Utils.Combine2ImagesHorizontal(pieces[matchScore.PieceIndex1].Edges[matchScore.EdgeIndex1].ContourImg, pieces[matchScore.PieceIndex2].Edges[matchScore.EdgeIndex2].ContourImg, 20).ToBitmap()));
-                }
+                throw ex;
             }
         }
 
@@ -559,6 +579,10 @@ namespace JigsawPuzzleSolver
                     if (piece_number == -1) { continue; }
 
                     g.DrawImage(pieces[piece_number].Full_color.Bitmap, i * max_piece_width, j * max_piece_height);
+                    Rectangle pieceRect = new Rectangle(i * max_piece_width, j * max_piece_height, max_piece_width, max_piece_height);
+                    g.DrawRectangle(new Pen(Color.Red, 4), pieceRect);
+                    StringFormat stringFormat = new StringFormat() { Alignment = StringAlignment.Near, LineAlignment = StringAlignment.Near };
+                    g.DrawString(pieces[piece_number].PieceID + Environment.NewLine + pieces[piece_number].PieceSourceFileName, new Font("Arial", 40), new SolidBrush(Color.Blue), pieceRect, stringFormat);
                 }
             }
 

@@ -20,7 +20,7 @@ namespace JigsawPuzzleSolver
     /// see: https://github.com/jzeimen/PuzzleSolver/blob/master/PuzzleSolver/piece.cpp
     public class Piece
     {
-        public static int NextPieceID { get; private set; }
+        public static int NextPieceID { get; set; }
 
         static Piece()
         {
@@ -32,6 +32,11 @@ namespace JigsawPuzzleSolver
         private VectorOfPoint corners = new VectorOfPoint();
 
         public PuzzleSolverParameters SolverParameters { get; private set; }
+
+        /// <summary>
+        /// The name of the file from where the piece was extracted.
+        /// </summary>
+        public string PieceSourceFileName { get; private set; }
 
         /// <summary>
         /// Type of the Piece (CORNER, BORDER, INNER)
@@ -48,7 +53,7 @@ namespace JigsawPuzzleSolver
 
         //##############################################################################################################################################################################################
 
-        public Piece(Image<Rgb, byte> color, Image<Gray, byte> bw, PuzzleSolverParameters solverParameters, IProgress<LogBox.LogEvent> logHandle, CancellationToken cancelToken)
+        public Piece(Image<Rgb, byte> color, Image<Gray, byte> bw, string pieceSourceFileName, PuzzleSolverParameters solverParameters, IProgress<LogBox.LogEvent> logHandle, CancellationToken cancelToken)
         {
             _logHandle = logHandle;
             _cancelToken = cancelToken;
@@ -57,6 +62,7 @@ namespace JigsawPuzzleSolver
             NextPieceID++;
             Full_color = color.Clone();
             Bw = bw.Clone();
+            PieceSourceFileName = pieceSourceFileName;
             
             _logHandle.Report(new LogBox.LogEventImage(PieceID + " Color", color.Clone().Bitmap));
             _logHandle.Report(new LogBox.LogEventImage(PieceID + " Bw", bw.Clone().Bitmap));

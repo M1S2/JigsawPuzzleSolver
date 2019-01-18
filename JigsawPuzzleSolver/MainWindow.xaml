@@ -10,7 +10,7 @@
         mc:Ignorable="d"
         Title="Puzzle Solver" Height="900" Width="1200"
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
-        Icon="Resources/PuzzlePiece.png">
+        Icon="Resources/PuzzlePiece.png" Closing="Window_Closing">
 
     <Window.Resources>
         <LogBox:BitmapToImageSourceConverter x:Key="BitmapConverter"/>

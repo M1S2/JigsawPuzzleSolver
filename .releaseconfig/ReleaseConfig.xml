@@ -60,21 +60,24 @@
       <RemoveWhileBuilding>true</RemoveWhileBuilding>
       <SourcePath>\JigsawPuzzleSolver\bin\Release\de</SourcePath>
       <DestinationPath>/bin/de</DestinationPath>
+      <FileExcludeFilters />
     </BinaryObject>
     <BinaryObject xsi:type="BinaryFolder">
       <RemoveWhileBuilding>true</RemoveWhileBuilding>
       <SourcePath>\JigsawPuzzleSolver\bin\Release\x64</SourcePath>
       <DestinationPath>/bin/x64</DestinationPath>
+      <FileExcludeFilters />
     </BinaryObject>
     <BinaryObject xsi:type="BinaryFolder">
       <RemoveWhileBuilding>true</RemoveWhileBuilding>
       <SourcePath>\JigsawPuzzleSolver\bin\Release\x86</SourcePath>
       <DestinationPath>/bin/x86</DestinationPath>
+      <FileExcludeFilters />
     </BinaryObject>
   </BinaryObjects>
   <ReleaseBuildProcesses>
     <BuildProcess>
-      <Executablepath>C:\Program Files (x86)\MSBuild\14.0\Bin\MSBuild.exe</Executablepath>
+      <Executablepath>C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\MSBuild.exe</Executablepath>
       <Arguments>JigsawPuzzleSolver.sln /p:Configuration=Release</Arguments>
       <WorkDir>/</WorkDir>
     </BuildProcess>

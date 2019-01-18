@@ -30,7 +30,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
+    <Optimize>false</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
@@ -83,6 +83,7 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     <Compile Include="Enumerations\EdgeTypes.cs" />
     <Compile Include="Enumerations\PieceTypes.cs" />
     <Compile Include="Enumerations\PuzzleSolverState.cs" />
+    <Compile Include="LogBox\AutoSizedGridView.cs" />
     <Compile Include="LogBox\ColumnDefinitionExtended.cs" />
     <Compile Include="LogBox\LogBox.xaml.cs">
       <DependentUpon>LogBox.xaml</DependentUpon>

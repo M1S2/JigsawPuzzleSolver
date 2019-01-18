@@ -65,6 +65,7 @@ namespace JigsawPuzzleSolver
         private IProgress<LogBox.LogEvent> logHandle;
         private DispatcherTimer stopWatchDispatcherTimer;       // This timer is used to notify the GUI that the StopWatchSolver.Elapsed property has changed
         private CancellationTokenSource cancelTokenSource;
+        private Task workerTask;
 
         //##############################################################################################################################################################################################
 
@@ -87,19 +88,19 @@ namespace JigsawPuzzleSolver
         //##############################################################################################################################################################################################
 
         private void btn_open_new_puzzle_Click(object sender, RoutedEventArgs e)
-        {
+        {            
             cancelTokenSource = new CancellationTokenSource();
 
-            /*System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
+            System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
             folderBrowserDialog1.Description = "Select a folder containing all scanned puzzle piece images.";
             if(PuzzleHandle != null) { folderBrowserDialog1.SelectedPath = PuzzleHandle.PuzzlePiecesFolderPath; }
             if(folderBrowserDialog1.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 PuzzleHandle = new Puzzle(folderBrowserDialog1.SelectedPath, solverParameters, logHandle, cancelTokenSource.Token);
-            }*/
+            }
 
-#warning Only for faster testing !!!
-            PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", solverParameters, logHandle, cancelTokenSource.Token);
+//#warning Only for faster testing !!!
+            //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", solverParameters, logHandle, cancelTokenSource.Token);
             //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", solverParameters, logHandle, cancelTokenSource.Token);
         }
 
@@ -116,8 +117,10 @@ namespace JigsawPuzzleSolver
             StopWatchSolver.Restart();
             try
             {
-                await PuzzleHandle.Init();
-                await PuzzleHandle.Solve();
+                workerTask = PuzzleHandle.Init();
+                await workerTask;
+                workerTask = PuzzleHandle.Solve();
+                await workerTask;
             }
             catch (OperationCanceledException) { /* the exceptions are catches inside the methods */ }
             StopWatchSolver.Stop();
@@ -130,6 +133,27 @@ namespace JigsawPuzzleSolver
         private void btn_stop_solving_Click(object sender, RoutedEventArgs e)
         {
             if (cancelTokenSource != null) { cancelTokenSource.Cancel(); }
+        }
+
+        //**********************************************************************************************************************************************************************************************
+
+        private async void Window_Closing(object sender, CancelEventArgs e)
+        {
+            if (cancelTokenSource != null)
+            {
+                cancelTokenSource.Cancel();
+                if(workerTask != null && !workerTask.IsCompleted)
+                {
+                    this.Hide();
+                    e.Cancel = true;
+                    try
+                    {
+                        await workerTask;
+                    }
+                    catch (OperationCanceledException) { /* Nothing to do here because we expect the task to cancel */ }
+                    this.Close();
+                }
+            }
         }
 
         //**********************************************************************************************************************************************************************************************

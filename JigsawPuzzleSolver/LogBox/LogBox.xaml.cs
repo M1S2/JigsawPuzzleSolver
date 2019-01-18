@@ -24,8 +24,6 @@ namespace LogBox
     /// </summary>
     public partial class LogBoxControl : UserControl, INotifyPropertyChanged
     {
-#warning Width of Message column isn't adapted correctly
-
         public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
