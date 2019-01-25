@@ -83,6 +83,11 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     <Compile Include="Enumerations\EdgeTypes.cs" />
     <Compile Include="Enumerations\PieceTypes.cs" />
     <Compile Include="Enumerations\PuzzleSolverState.cs" />
+    <Compile Include="GUI Elements\Converters\FullPathToFileNameConverter.cs" />
+    <Compile Include="GUI Elements\Converters\OpenCVImageToImageSourceConverter.cs" />
+    <Compile Include="GUI Elements\PieceViewer.xaml.cs">
+      <DependentUpon>PieceViewer.xaml</DependentUpon>
+    </Compile>
     <Compile Include="LogBox\AutoSizedGridView.cs" />
     <Compile Include="LogBox\ColumnDefinitionExtended.cs" />
     <Compile Include="LogBox\LogBox.xaml.cs">
@@ -113,9 +118,13 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     <Compile Include="Forest.cs" />
     <Compile Include="Structures\MatchScore.cs" />
     <Compile Include="Utils.cs" />
-    <Compile Include="GUI Elements\ZoomBorder.xaml.cs">
+    <Compile Include="LogBox\ZoomBorder.xaml.cs">
       <DependentUpon>ZoomBorder.xaml</DependentUpon>
     </Compile>
+    <Page Include="GUI Elements\PieceViewer.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="LogBox\LogBox.xaml">
       <SubType>Designer</SubType>
       <Generator>XamlIntelliSenseFileGenerator</Generator>
@@ -136,7 +145,7 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="GUI Elements\ZoomBorder.xaml">
+    <Page Include="LogBox\ZoomBorder.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

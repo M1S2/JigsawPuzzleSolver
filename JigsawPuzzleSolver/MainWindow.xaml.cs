@@ -46,6 +46,8 @@ namespace JigsawPuzzleSolver
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
+        //##############################################################################################################################################################################################
+
         private Stopwatch _stopWatchSolver;
         public Stopwatch StopWatchSolver
         {
@@ -91,17 +93,17 @@ namespace JigsawPuzzleSolver
         {            
             cancelTokenSource = new CancellationTokenSource();
 
-            System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
+            /*System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
             folderBrowserDialog1.Description = "Select a folder containing all scanned puzzle piece images.";
             if(PuzzleHandle != null) { folderBrowserDialog1.SelectedPath = PuzzleHandle.PuzzlePiecesFolderPath; }
             if(folderBrowserDialog1.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 PuzzleHandle = new Puzzle(folderBrowserDialog1.SelectedPath, solverParameters, logHandle, cancelTokenSource.Token);
-            }
+            }*/
 
-//#warning Only for faster testing !!!
+#warning Only for faster testing !!!
             //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", solverParameters, logHandle, cancelTokenSource.Token);
-            //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", solverParameters, logHandle, cancelTokenSource.Token);
+            PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", solverParameters, logHandle, cancelTokenSource.Token);
         }
 
         //**********************************************************************************************************************************************************************************************

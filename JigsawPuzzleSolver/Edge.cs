@@ -80,7 +80,7 @@ namespace JigsawPuzzleSolver
                 EdgeType = EdgeTypes.LINE;
 
                 for (int i = 0; i < contour.Size; i++) { CvInvoke.Circle(ContourImg, Point.Round(contour[i]), 2, new MCvScalar(255, 0, 0), 1); }
-                _logHandle.Report(new LogBox.LogEventImage(PieceID + " Edge " + EdgeNumber.ToString() + " " + EdgeType.ToString(), ContourImg.Bitmap));
+                if (SolverParameters.SolverShowDebugResults) { _logHandle.Report(new LogBox.LogEventImage(PieceID + " Edge " + EdgeNumber.ToString() + " " + EdgeType.ToString(), ContourImg.Bitmap)); }
                 return;
             }
 
@@ -103,7 +103,7 @@ namespace JigsawPuzzleSolver
             }
             
             for (int i = 0; i < contour.Size; i++) { CvInvoke.Circle(ContourImg, Point.Round(contour[i]), 2, new MCvScalar(255, 0, 0), 1); }
-            _logHandle.Report(new LogBox.LogEventImage(PieceID + " Edge " + EdgeNumber.ToString() + " " + EdgeType.ToString(), ContourImg.Bitmap));
+            if (SolverParameters.SolverShowDebugResults) { _logHandle.Report(new LogBox.LogEventImage(PieceID + " Edge " + EdgeNumber.ToString() + " " + EdgeType.ToString(), ContourImg.Bitmap)); }
         }
 
         //**********************************************************************************************************************************************************************************************

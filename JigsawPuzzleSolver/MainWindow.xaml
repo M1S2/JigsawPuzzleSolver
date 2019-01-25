@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:JigsawPuzzleSolver"
         xmlns:LogBox="clr-namespace:LogBox"
-        xmlns:guiElements="clr-namespace:GUIElements"
+        xmlns:guiElements="clr-namespace:JigsawPuzzleSolver.GUI_Elements"
         x:Class="JigsawPuzzleSolver.MainWindow"
         mc:Ignorable="d"
         Title="Puzzle Solver" Height="900" Width="1200"
@@ -30,7 +30,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="35"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="300"/>
+            <RowDefinition Height="200"/>
             <RowDefinition Height="40"/>
         </Grid.RowDefinitions>
 
@@ -108,15 +108,20 @@
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
-            
+
+            <TabItem Header="Piece Viewer">
+                <guiElements:PieceViewer Margin="10" PieceList="{Binding PuzzleHandle.Pieces, Mode=OneWay}"/>
+            </TabItem>
+
             <TabItem Header="Solver Result">
                 <DockPanel Margin="10">
-                    <ComboBox DockPanel.Dock="Top" SelectedValuePath="Key" DisplayMemberPath="Key" ItemsSource="{Binding PuzzleHandle.PuzzleSolutions}" SelectedValue="{Binding PuzzleHandle.SelectedSolutionKey}"/>
-                    <guiElements:ZoomBorder DockPanel.Dock="Top" BorderBrush="#FFB2B2B2" BorderThickness="1" ClipToBounds="True" Margin="0,10,0,0">
+                    <ComboBox DockPanel.Dock="Top" SelectedValuePath="Key" DisplayMemberPath="Key" ItemsSource="{Binding PuzzleHandle.PuzzleSolutionImages}" SelectedValue="{Binding PuzzleHandle.SelectedSolutionImageKey}"/>
+                    <LogBox:ZoomBorder DockPanel.Dock="Top" BorderBrush="#FFB2B2B2" BorderThickness="1" ClipToBounds="True" Margin="0,10,0,0">
                         <Image Source="{Binding PuzzleHandle.SelectedSolutionImage, Converter={StaticResource BitmapConverter}}"/>
-                    </guiElements:ZoomBorder>
+                    </LogBox:ZoomBorder>
                 </DockPanel>
             </TabItem>
+
         </TabControl>
 
         <GridSplitter ResizeDirection="Rows" Grid.Row="2" Height="5" Margin="0,5,0,5" ShowsPreview="False" HorizontalAlignment="Stretch" VerticalAlignment="Top" Background="#FFB2B2B2" />

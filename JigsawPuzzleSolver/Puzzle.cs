@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -84,18 +85,18 @@ namespace JigsawPuzzleSolver
 
         //**********************************************************************************************************************************************************************************************
 
-        private ObservableDictionary<string, Bitmap> _puzzleSolutions = new ObservableDictionary<string, Bitmap>();
-        public ObservableDictionary<string, Bitmap> PuzzleSolutions
+        private ObservableDictionary<string, Bitmap> _puzzleSolutionImages = new ObservableDictionary<string, Bitmap>();
+        public ObservableDictionary<string, Bitmap> PuzzleSolutionImages
         {
-            get { return _puzzleSolutions; }
-            set { _puzzleSolutions = value; OnPropertyChanged(); }
+            get { return _puzzleSolutionImages; }
+            set { _puzzleSolutionImages = value; OnPropertyChanged(); }
         }
 
-        private string _selectedSolutionKey;
-        public string SelectedSolutionKey
+        private string _selectedSolutionImageKey;
+        public string SelectedSolutionImageKey
         {
-            get { return _selectedSolutionKey; }
-            set { _selectedSolutionKey = value; OnPropertyChanged(); SelectedSolutionImage = PuzzleSolutions[_selectedSolutionKey]; }
+            get { return _selectedSolutionImageKey; }
+            set { _selectedSolutionImageKey = value; OnPropertyChanged(); SelectedSolutionImage = PuzzleSolutionImages[_selectedSolutionImageKey]; }
         }
 
         private Bitmap _selectedSolutionImage;
@@ -111,10 +112,10 @@ namespace JigsawPuzzleSolver
         private CancellationToken _cancelToken;
 
         private List<MatchScore> matches = new List<MatchScore>();
-        private List<Piece> pieces = new List<Piece>();
 
-        private Matrix<int> solution;
-        private Matrix<int> solution_rotations;
+        public ObservableCollection<Matrix<int>> Solutions { get; private set; }
+        public ObservableCollection<Matrix<int>> SolutionsRotations { get; private set; }
+        public ObservableCollection<Piece> Pieces { get; private set; }
 
         //##############################################################################################################################################################################################
 
@@ -126,6 +127,10 @@ namespace JigsawPuzzleSolver
             _cancelToken = cancelToken;
             NumberPuzzlePieces = 0;
             CurrentSolverState = PuzzleSolverState.UNSOLVED;
+
+            Solutions = new ObservableCollection<Matrix<int>>();
+            SolutionsRotations = new ObservableCollection<Matrix<int>>();
+            Pieces = new ObservableCollection<Piece>();
         }
 
         public Puzzle()
@@ -157,7 +162,7 @@ namespace JigsawPuzzleSolver
                 _logHandle.Report(new LogBox.LogEventInfo("Extracting Pieces"));
                 NumberPuzzlePieces = 0;
 
-                pieces.Clear();
+                System.Windows.Application.Current.Dispatcher.Invoke(() => { Pieces.Clear(); });
 
                 List<string> imageExtensions = new List<string>() { ".jpg", ".png", ".bmp", ".tiff" };
                 FileAttributes attr = File.GetAttributes(PuzzlePiecesFolderPath);
@@ -196,7 +201,7 @@ namespace JigsawPuzzleSolver
                     }
 
                     _logHandle.Report(new LogBox.LogEventImage("Extracting Pieces from source image " + i.ToString(), sourceImg.ToBitmap()));
-                    _logHandle.Report(new LogBox.LogEventImage("Mask " + i.ToString(), mask.ToBitmap()));
+                    if (SolverParameters.SolverShowDebugResults) { _logHandle.Report(new LogBox.LogEventImage("Mask " + i.ToString(), mask.ToBitmap())); }
 
                     CvBlobDetector blobDetector = new CvBlobDetector();                 // Find all blobs in the mask image, extract them and add them to the list of pieces
                     CvBlobs blobs = new CvBlobs();
@@ -241,8 +246,8 @@ namespace JigsawPuzzleSolver
                         Image<Rgb, byte> pieceSourceImgMasked = new Image<Rgb, byte>(pieceSourceImg.Size);
                         CvInvoke.BitwiseOr(pieceSourceImageForeground, pieceSourceImageBackground, pieceSourceImgMasked);
                         
-                        Piece p = new Piece(pieceSourceImgMasked, pieceMask, Path.GetFileName(imageFilesInfo[i].FullName), SolverParameters, _logHandle, _cancelToken);
-                        pieces.Add(p);
+                        Piece p = new Piece(pieceSourceImgMasked, pieceMask, imageFilesInfo[i].FullName, SolverParameters, _logHandle, _cancelToken);
+                        System.Windows.Application.Current.Dispatcher.Invoke(() => { Pieces.Add(p); });
                         NumberPuzzlePieces++;
                     }
 
@@ -314,7 +319,7 @@ namespace JigsawPuzzleSolver
                 _logHandle.Report(new LogBox.LogEventInfo("Comparing all edges"));
 
                 matches.Clear();
-                int no_edges = (int)pieces.Count * 4;
+                int no_edges = (int)Pieces.Count * 4;
                 int no_compares = (no_edges * (no_edges + 1)) / 2;      // Number of loop runs of the following nested loops 
                 int loop_count = 0;
 
@@ -333,7 +338,7 @@ namespace JigsawPuzzleSolver
                         matchScore.PieceIndex2 = j / 4;
                         matchScore.EdgeIndex1 = i % 4;
                         matchScore.EdgeIndex2 = j % 4;
-                        matchScore.score = pieces[matchScore.PieceIndex1].Edges[matchScore.EdgeIndex1].Compare(pieces[matchScore.PieceIndex2].Edges[matchScore.EdgeIndex2]);
+                        matchScore.score = Pieces[matchScore.PieceIndex1].Edges[matchScore.EdgeIndex1].Compare(Pieces[matchScore.PieceIndex2].Edges[matchScore.EdgeIndex2]);
 
                         if (matchScore.score <= SolverParameters.PuzzleSolverKeepMatchesThreshold)  // Keep only the best matches (all scores above or equal 100000000 mean that the edges won't match)
                         {
@@ -348,7 +353,7 @@ namespace JigsawPuzzleSolver
                 {
                     foreach (MatchScore matchScore in matches)
                     {
-                        _logHandle.Report(new LogBox.LogEventImage("MatchScore " + pieces[matchScore.PieceIndex1].PieceID + "_Edge" + (matchScore.EdgeIndex1).ToString() + " <-->" + pieces[matchScore.PieceIndex2].PieceID + "_Edge" + (matchScore.EdgeIndex2).ToString() + " = " + matchScore.score.ToString(), Utils.Combine2ImagesHorizontal(pieces[matchScore.PieceIndex1].Edges[matchScore.EdgeIndex1].ContourImg, pieces[matchScore.PieceIndex2].Edges[matchScore.EdgeIndex2].ContourImg, 20).ToBitmap()));
+                        _logHandle.Report(new LogBox.LogEventImage("MatchScore " + Pieces[matchScore.PieceIndex1].PieceID + "_Edge" + (matchScore.EdgeIndex1).ToString() + " <-->" + Pieces[matchScore.PieceIndex2].PieceID + "_Edge" + (matchScore.EdgeIndex2).ToString() + " = " + matchScore.score.ToString(), Utils.Combine2ImagesHorizontal(Pieces[matchScore.PieceIndex1].Edges[matchScore.EdgeIndex1].ContourImg, Pieces[matchScore.PieceIndex2].Edges[matchScore.EdgeIndex2].ContourImg, 20).ToBitmap()));
                     }
                 }
             }
@@ -380,7 +385,7 @@ namespace JigsawPuzzleSolver
 
                     CurrentSolverState = PuzzleSolverState.SOLVE_PUZZLE;
                     CurrentSolverStepPercentageFinished = 0;
-                    PuzzleDisjointSet p = new PuzzleDisjointSet(pieces.Count);
+                    PuzzleDisjointSet p = new PuzzleDisjointSet(Pieces.Count);
 
                     _logHandle.Report(new LogBox.LogEventInfo("Join Pieces"));
 
@@ -405,8 +410,8 @@ namespace JigsawPuzzleSolver
                     int setNo = 0;
                     foreach (Forest jointSet in p.GetJointSets())
                     {
-                        solution = jointSet.locations;
-                        solution_rotations = jointSet.rotations;
+                        Matrix<int> solution = jointSet.locations;
+                        Matrix<int> solution_rotations = jointSet.rotations;
 
                         for (int i = 0; i < solution.Size.Width; i++)
                         {
@@ -414,18 +419,25 @@ namespace JigsawPuzzleSolver
                             {
                                 int piece_number = solution[j, i];
                                 if (piece_number == -1) { continue; }
-                                pieces[piece_number].Rotate(4 - solution_rotations[j, i]);
+                                Pieces[piece_number].Rotate(4 - solution_rotations[j, i]);
+
+                                Pieces[piece_number].SolutionRotation = solution_rotations[j, i] * 90;
+                                Pieces[piece_number].SolutionLocation = new Point(i, j);
+                                Pieces[piece_number].SolutionID = "Solution #" + setNo;
                             }
                         }
-                        Bitmap solutionImg = GenerateSolutionImage2(solution, setNo);
-                        if(PuzzleSolutions == null) { PuzzleSolutions = new ObservableDictionary<string, Bitmap>(); }
+                        Solutions.Add(solution);
+                        SolutionsRotations.Add(solution_rotations);
 
-                        System.Windows.Application.Current.Dispatcher.Invoke(() => { PuzzleSolutions.Add("Solution #" + setNo.ToString(), solutionImg); });
+                        Bitmap solutionImg = GenerateSolutionImage2(solution, setNo);
+                        if(PuzzleSolutionImages == null) { PuzzleSolutionImages = new ObservableDictionary<string, Bitmap>(); }
+
+                        System.Windows.Application.Current.Dispatcher.Invoke(() => { PuzzleSolutionImages.Add("Solution #" + setNo.ToString(), solutionImg); });
 
                         _logHandle.Report(new LogBox.LogEventImage("Solution #" + setNo.ToString(), solutionImg));
                         setNo++;
                     }
-                    SelectedSolutionKey = PuzzleSolutions.Keys.First();
+                    SelectedSolutionImageKey = PuzzleSolutionImages.Keys.First();
                 }
                 catch (OperationCanceledException)
                 {
@@ -458,8 +470,8 @@ namespace JigsawPuzzleSolver
                     int piece_number = solutionLocations[j, i];
                     if (piece_number == -1) { continue; }
 
-                    float piece_size_x = (float)Utils.Distance(pieces[piece_number].GetCorner(0), pieces[piece_number].GetCorner(3));
-                    float piece_size_y = (float)Utils.Distance(pieces[piece_number].GetCorner(0), pieces[piece_number].GetCorner(1));
+                    float piece_size_x = (float)Utils.Distance(Pieces[piece_number].GetCorner(0), Pieces[piece_number].GetCorner(3));
+                    float piece_size_y = (float)Utils.Distance(Pieces[piece_number].GetCorner(0), Pieces[piece_number].GetCorner(1));
 
                     out_image_width += piece_size_x;
                     out_image_height += piece_size_y;
@@ -485,8 +497,8 @@ namespace JigsawPuzzleSolver
                         failed = true;
                         break;
                     }
-                    float piece_size_x = (float)Utils.Distance(pieces[piece_number].GetCorner(0), pieces[piece_number].GetCorner(3));
-                    float piece_size_y = (float)Utils.Distance(pieces[piece_number].GetCorner(0), pieces[piece_number].GetCorner(1));
+                    float piece_size_x = (float)Utils.Distance(Pieces[piece_number].GetCorner(0), Pieces[piece_number].GetCorner(3));
+                    float piece_size_y = (float)Utils.Distance(Pieces[piece_number].GetCorner(0), Pieces[piece_number].GetCorner(1));
                     VectorOfPointF src = new VectorOfPointF();
                     VectorOfPointF dst = new VectorOfPointF();
 
@@ -508,9 +520,9 @@ namespace JigsawPuzzleSolver
                     //dst.Push(points[i, j + 1]);
                     dst.Push(points[i, j + 1]);
                     dst.Push(points[i + 1, j]);
-                    src.Push(pieces[piece_number].GetCorner(0));
-                    src.Push(pieces[piece_number].GetCorner(1));
-                    src.Push(pieces[piece_number].GetCorner(3));
+                    src.Push(Pieces[piece_number].GetCorner(0));
+                    src.Push(Pieces[piece_number].GetCorner(1));
+                    src.Push(Pieces[piece_number].GetCorner(3));
 
                     //true means use affine transform
                     Mat a_trans_mat = CvInvoke.EstimateRigidTransform(src, dst, true);
@@ -518,7 +530,7 @@ namespace JigsawPuzzleSolver
                     Matrix<double> A = new Matrix<double>(a_trans_mat.Rows, a_trans_mat.Cols);
                     a_trans_mat.CopyTo(A);
                     
-                    PointF l_r_c = pieces[piece_number].GetCorner(2);       //Lower right corner of each piece
+                    PointF l_r_c = Pieces[piece_number].GetCorner(2);       //Lower right corner of each piece
 
                     //Doing my own matrix multiplication
                     points[i + 1, j + 1] = new PointF((float)(A[0, 0] * l_r_c.X + A[0, 1] * l_r_c.Y + A[0, 2]), (float)(A[1, 0] * l_r_c.X + A[1, 1] * l_r_c.Y + A[1, 2]));
@@ -526,8 +538,8 @@ namespace JigsawPuzzleSolver
                     Mat layer = new Mat();
                     Mat layer_mask = new Mat();
 
-                    CvInvoke.WarpAffine(pieces[piece_number].Full_color, layer, a_trans_mat, new Size((int)out_image_width, (int)out_image_height), Inter.Linear, Warp.Default, BorderType.Transparent);
-                    CvInvoke.WarpAffine(pieces[piece_number].Bw, layer_mask, a_trans_mat, new Size((int)out_image_width, (int)out_image_height), Inter.Nearest, Warp.Default, BorderType.Transparent);
+                    CvInvoke.WarpAffine(Pieces[piece_number].PieceImgColor, layer, a_trans_mat, new Size((int)out_image_width, (int)out_image_height), Inter.Linear, Warp.Default, BorderType.Transparent);
+                    CvInvoke.WarpAffine(Pieces[piece_number].PieceImgBw, layer_mask, a_trans_mat, new Size((int)out_image_width, (int)out_image_height), Inter.Nearest, Warp.Default, BorderType.Transparent);
 
                     layer.CopyTo(final_out_image, layer_mask);
                 }
@@ -560,10 +572,11 @@ namespace JigsawPuzzleSolver
                     int piece_number = solutionLocations[j, i];
                     if (piece_number == -1) { continue; }
 
-                    max_piece_width = Math.Max(max_piece_width, pieces[piece_number].Full_color.Width);
-                    max_piece_height = Math.Max(max_piece_height, pieces[piece_number].Full_color.Height);
+                    max_piece_width = Math.Max(max_piece_width, Pieces[piece_number].PieceImgColor.Width);
+                    max_piece_height = Math.Max(max_piece_height, Pieces[piece_number].PieceImgColor.Height);
                 }
             }
+            max_piece_height += 150;
             out_image_width = max_piece_width * solutionLocations.Size.Width;
             out_image_height = max_piece_height * solutionLocations.Size.Height;
 
@@ -578,11 +591,11 @@ namespace JigsawPuzzleSolver
                     int piece_number = solutionLocations[j, i];
                     if (piece_number == -1) { continue; }
 
-                    g.DrawImage(pieces[piece_number].Full_color.Bitmap, i * max_piece_width, j * max_piece_height);
+                    g.DrawImage(Pieces[piece_number].PieceImgColor.Bitmap, i * max_piece_width, j * max_piece_height + 150);
                     Rectangle pieceRect = new Rectangle(i * max_piece_width, j * max_piece_height, max_piece_width, max_piece_height);
                     g.DrawRectangle(new Pen(Color.Red, 4), pieceRect);
                     StringFormat stringFormat = new StringFormat() { Alignment = StringAlignment.Near, LineAlignment = StringAlignment.Near };
-                    g.DrawString(pieces[piece_number].PieceID + Environment.NewLine + pieces[piece_number].PieceSourceFileName, new Font("Arial", 40), new SolidBrush(Color.Blue), pieceRect, stringFormat);
+                    g.DrawString(Pieces[piece_number].PieceID + Environment.NewLine + Path.GetFileName(Pieces[piece_number].PieceSourceFileName), new Font("Arial", 40), new SolidBrush(Color.Blue), pieceRect, stringFormat);
                 }
             }
 
