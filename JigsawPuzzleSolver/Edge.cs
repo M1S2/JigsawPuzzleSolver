@@ -10,6 +10,9 @@ using Emgu.CV.Structure;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Util;
 using Emgu.CV.Cvb;
+using System.Runtime.Serialization;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace JigsawPuzzleSolver
 {
@@ -17,8 +20,28 @@ namespace JigsawPuzzleSolver
     /// The paradigm for edges is that if you walked along the edge of the contour from beginning to end, the piece will be to the left, and empty space to right.
     /// </summary>
     /// see: https://github.com/jzeimen/PuzzleSolver/blob/master/PuzzleSolver/edge.cpp
-    public class Edge
+    [DataContract]
+    public class Edge : SaveableObject<Edge>, INotifyPropertyChanged
     {
+        #region INotifyPropertyChanged implementation
+        /// <summary>
+        /// Raised when a property on this object has a new value.
+        /// </summary>
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        /// <summary>
+        /// This method is called by the Set accessor of each property. The CallerMemberName attribute that is applied to the optional propertyName parameter causes the property name of the caller to be substituted as an argument.
+        /// </summary>
+        /// <param name="propertyName">Name of the property that is changed</param>
+        /// see: https://docs.microsoft.com/de-de/dotnet/framework/winforms/how-to-implement-the-inotifypropertychanged-interface
+        public void OnPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+        #endregion
+
+        //##############################################################################################################################################################################################
+
         private VectorOfPoint contour;                      //The original contour passed into the function.
         private VectorOfPoint normalized_contour;          //Normalized contour produces a contour that has its begining at (0,0) and its endpoint straight above it (0,y). This is used internally to classify the piece.
         private VectorOfPoint reverse_normalized_contour;
@@ -26,15 +49,19 @@ namespace JigsawPuzzleSolver
         /// <summary>
         /// Type of the Edge (LINE, BULB, HOLE)
         /// </summary>
+        [DataMember]
         public EdgeTypes EdgeType { get; private set; }
 
+        [DataMember]
         public PuzzleSolverParameters SolverParameters { get; private set; }
 
+        [DataMember]
         public string PieceID { get; private set; }
+        [DataMember]
         public int EdgeNumber { get; private set; }
 
-        public Image<Rgb, byte> Full_color;
-        public Image<Rgb, byte> ContourImg;
+        public Image<Rgb, byte> Full_color { get; private set; }
+        public Image<Rgb, byte> ContourImg { get; private set; }
 
         private IProgress<LogBox.LogEvent> _logHandle;
         private CancellationToken _cancelToken;
@@ -59,8 +86,11 @@ namespace JigsawPuzzleSolver
             classify();
         }
 
+        public Edge()
+        { }
+
         //##############################################################################################################################################################################################
-        
+
         /// <summary>
         /// Calculate the edge type (LINE, BULB, HOLE)
         /// </summary>

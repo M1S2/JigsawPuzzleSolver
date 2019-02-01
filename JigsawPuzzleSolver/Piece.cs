@@ -11,6 +11,9 @@ using Emgu.CV.CvEnum;
 using Emgu.CV.Util;
 using Emgu.CV.Cvb;
 using Emgu.CV.Features2D;
+using System.Runtime.Serialization;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace JigsawPuzzleSolver
 {
@@ -18,8 +21,28 @@ namespace JigsawPuzzleSolver
     /// The paradigm for the piece is that there are 4 edges the edge "numbers" go from 0-3 in counter clockwise order starting from the left.
     /// </summary>
     /// see: https://github.com/jzeimen/PuzzleSolver/blob/master/PuzzleSolver/piece.cpp
-    public class Piece : ObservableObject
+    [DataContract]
+    public class Piece : SaveableObject<Piece>, INotifyPropertyChanged
     {
+        #region INotifyPropertyChanged implementation
+        /// <summary>
+        /// Raised when a property on this object has a new value.
+        /// </summary>
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        /// <summary>
+        /// This method is called by the Set accessor of each property. The CallerMemberName attribute that is applied to the optional propertyName parameter causes the property name of the caller to be substituted as an argument.
+        /// </summary>
+        /// <param name="propertyName">Name of the property that is changed</param>
+        /// see: https://docs.microsoft.com/de-de/dotnet/framework/winforms/how-to-implement-the-inotifypropertychanged-interface
+        public void OnPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+        #endregion
+
+        //##############################################################################################################################################################################################
+
         public static int NextPieceID { get; set; }
 
         static Piece()
@@ -33,6 +56,7 @@ namespace JigsawPuzzleSolver
         /// <summary>
         /// The name of the file from where the piece was extracted.
         /// </summary>
+        [DataMember]
         public string PieceSourceFileName
         {
             get { return _pieceSourceFileName; }
@@ -43,6 +67,7 @@ namespace JigsawPuzzleSolver
         /// <summary>
         /// Type of the Piece (CORNER, BORDER, INNER)
         /// </summary>
+        [DataMember]
         public PieceTypes PieceType
         {
             get { return _pieceType; }
@@ -53,6 +78,7 @@ namespace JigsawPuzzleSolver
         /// <summary>
         /// A string that is unique for each extracted Piece.
         /// </summary>
+        [DataMember]
         public string PieceID
         {
             get { return _pieceID; }
@@ -83,6 +109,7 @@ namespace JigsawPuzzleSolver
         /// <summary>
         /// Rotation of the piece in the solution image
         /// </summary>
+        [DataMember]
         public int SolutionRotation
         {
             get { return _solutionRotation; }
@@ -93,6 +120,7 @@ namespace JigsawPuzzleSolver
         /// <summary>
         /// Location of the piece in the solution image (not pixel coordinates, but row and column index)
         /// </summary>
+        [DataMember]
         public Point SolutionLocation
         {
             get { return _solutionLocation; }
@@ -103,16 +131,20 @@ namespace JigsawPuzzleSolver
         /// <summary>
         /// Id of the solution the piece belongs to (there are more solutions if not all pieces fit together and there are multiple groups of pieces)
         /// </summary>
+        [DataMember]
         public string SolutionID
         {
             get { return _solutionID; }
             set { _solutionID = value; OnPropertyChanged(); }
         }
 
+        [DataMember]
         public Edge[] Edges = new Edge[4];
 
+        [DataMember]
         public PuzzleSolverParameters SolverParameters { get; private set; }
 
+        [DataMember]
         private VectorOfPoint corners = new VectorOfPoint();
         private IProgress<LogBox.LogEvent> _logHandle;
         private CancellationToken _cancelToken;
@@ -135,6 +167,9 @@ namespace JigsawPuzzleSolver
 
             process();
         }
+
+        public Piece()
+        { }
 
         //##############################################################################################################################################################################################
 

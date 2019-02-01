@@ -36,12 +36,26 @@
 
         <ToolBar Grid.Row="0">
             <Button Click="btn_open_new_puzzle_Click">
-                    <StackPanel Orientation="Horizontal">
-                        <Image Height="16" Source="Resources/OpenFolder_16x.png"/>
-                        <TextBlock Text="Open new Puzzle" Margin="5,0,0,0"/>
-                    </StackPanel>
-                </Button>
-                <Separator/>
+                <StackPanel Orientation="Horizontal">
+                    <Image Height="16" Source="Resources/NewFile_16x.png"/>
+                    <TextBlock Text="Open new Puzzle" Margin="5,0,0,0"/>
+                </StackPanel>
+            </Button>
+            <Separator/>
+            <Button Click="btn_save_puzzle_Click">
+                <StackPanel Orientation="Horizontal">
+                    <Image Height="16" Source="Resources/Save_16x.png"/>
+                    <TextBlock Text="Save Puzzle" Margin="5,0,0,0"/>
+                </StackPanel>
+            </Button>
+            <Separator/>
+            <Button Click="btn_open_puzzle_Click">
+                <StackPanel Orientation="Horizontal">
+                    <Image Height="16" Source="Resources/OpenFolder_16x.png"/>
+                    <TextBlock Text="Open Puzzle" Margin="5,0,0,0"/>
+                </StackPanel>
+            </Button>
+            <Separator/>
             <Button Click="btn_info_Click">
                 <StackPanel Orientation="Horizontal">
                     <Image Height="16" Source="Resources/Info.png"/>

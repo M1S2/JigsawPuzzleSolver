@@ -15,6 +15,7 @@ using Emgu.CV.Structure;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Util;
 using Emgu.CV.Cvb;
+using System.Runtime.Serialization;
 
 namespace JigsawPuzzleSolver
 {
@@ -22,13 +23,38 @@ namespace JigsawPuzzleSolver
     /// Class that is used to extract all pieces from a set of images, store the pieces and solve the puzzle.
     /// </summary>
     /// see: https://github.com/jzeimen/PuzzleSolver/blob/master/PuzzleSolver/puzzle.cpp
-    public class Puzzle : ObservableObject
+    [DataContract]
+    public class Puzzle : SaveableObject<Puzzle>, INotifyPropertyChanged
     {
+        #region INotifyPropertyChanged implementation
+        /// <summary>
+        /// Raised when a property on this object has a new value.
+        /// </summary>
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        /// <summary>
+        /// This method is called by the Set accessor of each property. The CallerMemberName attribute that is applied to the optional propertyName parameter causes the property name of the caller to be substituted as an argument.
+        /// </summary>
+        /// <param name="propertyName">Name of the property that is changed</param>
+        /// see: https://docs.microsoft.com/de-de/dotnet/framework/winforms/how-to-implement-the-inotifypropertychanged-interface
+        public void OnPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+        #endregion
+
+        //##############################################################################################################################################################################################
+
+        [DataMember]
         public PuzzleSolverParameters SolverParameters { get; private set; }
 
-        public bool Solved { get { return CurrentSolverState == PuzzleSolverState.SOLVED; } }
+        public bool Solved
+        {
+            get { return CurrentSolverState == PuzzleSolverState.SOLVED; }
+        }
 
         private PuzzleSolverState _currentSolverState;
+        [DataMember]
         public PuzzleSolverState CurrentSolverState
         {
             get { return _currentSolverState; }
@@ -63,6 +89,7 @@ namespace JigsawPuzzleSolver
         }
 
         private int _currentSolverStepPercentageFinished;
+        [DataMember]
         public int CurrentSolverStepPercentageFinished
         {
             get { return _currentSolverStepPercentageFinished; }
@@ -70,6 +97,7 @@ namespace JigsawPuzzleSolver
         }
 
         private int _numberPuzzlePieces;
+        [DataMember]
         public int NumberPuzzlePieces
         {
             get { return _numberPuzzlePieces; }
@@ -77,6 +105,7 @@ namespace JigsawPuzzleSolver
         }
 
         private string _puzzlePiecesFolderPath;
+        [DataMember]
         public string PuzzlePiecesFolderPath
         {
             get { return _puzzlePiecesFolderPath; }
@@ -86,6 +115,7 @@ namespace JigsawPuzzleSolver
         //**********************************************************************************************************************************************************************************************
 
         private ObservableDictionary<string, Bitmap> _puzzleSolutionImages = new ObservableDictionary<string, Bitmap>();
+        [DataMember]
         public ObservableDictionary<string, Bitmap> PuzzleSolutionImages
         {
             get { return _puzzleSolutionImages; }
@@ -93,29 +123,39 @@ namespace JigsawPuzzleSolver
         }
 
         private string _selectedSolutionImageKey;
+        [DataMember]
         public string SelectedSolutionImageKey
         {
             get { return _selectedSolutionImageKey; }
-            set { _selectedSolutionImageKey = value; OnPropertyChanged(); SelectedSolutionImage = PuzzleSolutionImages[_selectedSolutionImageKey]; }
+            set
+            {
+                _selectedSolutionImageKey = value;
+                OnPropertyChanged();
+                if (PuzzleSolutionImages != null) { SelectedSolutionImage = PuzzleSolutionImages[_selectedSolutionImageKey]; }
+            }
         }
 
         private Bitmap _selectedSolutionImage;
+        [DataMember]
         public Bitmap SelectedSolutionImage
         {
             get { return _selectedSolutionImage; }
             set { _selectedSolutionImage = value; OnPropertyChanged(); }
         }
 
+
+        public ObservableCollection<Matrix<int>> Solutions { get; private set; }
+        public ObservableCollection<Matrix<int>> SolutionsRotations { get; private set; }
+        [DataMember]
+        public ObservableCollection<Piece> Pieces { get; private set; }
+
         //##############################################################################################################################################################################################
 
         private IProgress<LogBox.LogEvent> _logHandle;
         private CancellationToken _cancelToken;
 
+        [DataMember]
         private List<MatchScore> matches = new List<MatchScore>();
-
-        public ObservableCollection<Matrix<int>> Solutions { get; private set; }
-        public ObservableCollection<Matrix<int>> SolutionsRotations { get; private set; }
-        public ObservableCollection<Piece> Pieces { get; private set; }
 
         //##############################################################################################################################################################################################
 

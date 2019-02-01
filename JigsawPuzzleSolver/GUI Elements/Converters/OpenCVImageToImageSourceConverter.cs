@@ -21,6 +21,7 @@ namespace JigsawPuzzleSolver.GUI_Elements.Converters
         // see: https://stackoverflow.com/questions/22499407/how-to-display-a-bitmap-in-a-wpf-image
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
+            if(value == null) { return null; }
             Bitmap bitmap = ((IImage)value).Bitmap;
             if(bitmap == null) { return null; }
             using (MemoryStream memory = new MemoryStream())

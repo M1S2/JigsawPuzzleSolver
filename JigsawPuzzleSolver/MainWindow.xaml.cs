@@ -89,6 +89,12 @@ namespace JigsawPuzzleSolver
 
         //##############################################################################################################################################################################################
 
+#warning Change SolverParameters to static class
+#warning Add DataMembers in puzzle, ...
+
+        //TestClass testClass;
+        string puzzleFile = @"C:\Users\masc107\Desktop\C#\JigsawPuzzleSolver\PuzzlePersistent.xml";
+
         private void btn_open_new_puzzle_Click(object sender, RoutedEventArgs e)
         {            
             cancelTokenSource = new CancellationTokenSource();
@@ -102,8 +108,28 @@ namespace JigsawPuzzleSolver
             }*/
 
 #warning Only for faster testing !!!
-            //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", solverParameters, logHandle, cancelTokenSource.Token);
-            PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", solverParameters, logHandle, cancelTokenSource.Token);
+            PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", solverParameters, logHandle, cancelTokenSource.Token);
+            //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", solverParameters, logHandle, cancelTokenSource.Token);
+
+            //testClass = new TestClass(DateTime.Now.ToString());
+        }
+
+        //**********************************************************************************************************************************************************************************************
+
+        private void btn_save_puzzle_Click(object sender, RoutedEventArgs e)
+        {
+            PuzzleHandle.Save(puzzleFile);
+
+            //testClass.Save(puzzleFile);
+        }
+
+        //**********************************************************************************************************************************************************************************************
+
+        private void btn_open_puzzle_Click(object sender, RoutedEventArgs e)
+        {
+            PuzzleHandle = Puzzle.Load(puzzleFile);
+
+            //testClass = TestClass.Load(puzzleFile);
         }
 
         //**********************************************************************************************************************************************************************************************
