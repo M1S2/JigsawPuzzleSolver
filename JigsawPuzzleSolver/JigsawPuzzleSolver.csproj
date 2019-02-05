@@ -89,6 +89,7 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     <Compile Include="GUI Elements\PieceViewer.xaml.cs">
       <DependentUpon>PieceViewer.xaml</DependentUpon>
     </Compile>
+    <Compile Include="GUI Elements\RelayCommand.cs" />
     <Compile Include="LogBox\AutoSizedGridView.cs" />
     <Compile Include="LogBox\ColumnDefinitionExtended.cs" />
     <Compile Include="LogBox\LogBox.xaml.cs">
@@ -109,11 +110,8 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     </Compile>
     <Compile Include="NegateBooleanConverter.cs" />
     <Compile Include="ObservableDictionary.cs" />
-    <Compile Include="ObservableObject.cs" />
     <Compile Include="PuzzleSolverParameters.cs" />
-    <Compile Include="Serialization\BitmapSerializable.cs" />
     <Compile Include="Serialization\SaveableObject.cs" />
-    <Compile Include="Serialization\SaveableObjectXML.cs" />
     <Compile Include="Structures\FindCornerRectangleScore.cs" />
     <Compile Include="MatchScoreComparer.cs" />
     <Compile Include="Piece.cs" />
@@ -234,6 +232,11 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\Save_16x.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Scrollbar_16x.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
   </ItemGroup>

@@ -6,28 +6,30 @@ using System.Threading.Tasks;
 
 namespace JigsawPuzzleSolver
 {
-    public class PuzzleSolverParameters
+    public static class PuzzleSolverParameters
     {
-        public bool SolverShowDebugResults { get; set; }
+        public static bool SolverShowDebugResults { get; set; }
+        public static bool CompressPuzzleOutputFile { get; set; }
 
-        public int PuzzleMinPieceSize { get; set; }
-        public bool PuzzleApplyMedianBlurFilter { get; set; }
-        public bool PuzzleIsInputBackgroundWhite { get; set; }      // true -> white background on input images, otherwise black background
-        public float PuzzleSolverKeepMatchesThreshold { get; set; }
+        public static int PuzzleMinPieceSize { get; set; }
+        public static bool PuzzleApplyMedianBlurFilter { get; set; }
+        public static bool PuzzleIsInputBackgroundWhite { get; set; }      // true -> white background on input images, otherwise black background
+        public static float PuzzleSolverKeepMatchesThreshold { get; set; }
 
-        public int PieceFindCornersGFTTMaxCorners { get; set; }
-        public double PieceFindCornersGFTTQualityLevel { get; set; }
-        public double PieceFindCornersGFTTMinDist { get; set; }
-        public int PieceFindCornersGFTTBlockSize { get; set; }
-        public double PieceFindCornersMaxAngleDiff { get; set; }
-        public double PieceFindCornersMaxCornerDistRatio { get; set; }
+        public static int PieceFindCornersGFTTMaxCorners { get; set; }
+        public static double PieceFindCornersGFTTQualityLevel { get; set; }
+        public static double PieceFindCornersGFTTMinDist { get; set; }
+        public static int PieceFindCornersGFTTBlockSize { get; set; }
+        public static double PieceFindCornersMaxAngleDiff { get; set; }
+        public static double PieceFindCornersMaxCornerDistRatio { get; set; }
 
-        public double EdgeCompareWindowSizePercent { get; set; }        // Not all points are taken into account to speed up the calculation. Therefore a window is defined by the percentage of total points in the longer contour
-        public double EdgeCompareEndpointDiffIgnoreThreshold { get; set; }
+        public static double EdgeCompareWindowSizePercent { get; set; }        // Not all points are taken into account to speed up the calculation. Therefore a window is defined by the percentage of total points in the longer contour
+        public static double EdgeCompareEndpointDiffIgnoreThreshold { get; set; }
 
-        public PuzzleSolverParameters()
+        static PuzzleSolverParameters()
         {
             SolverShowDebugResults = false;
+            CompressPuzzleOutputFile = true;
             PuzzleMinPieceSize = 50;
             PuzzleApplyMedianBlurFilter = true;
             PuzzleIsInputBackgroundWhite = true;

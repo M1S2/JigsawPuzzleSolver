@@ -45,9 +45,6 @@ namespace JigsawPuzzleSolver
 
         //##############################################################################################################################################################################################
 
-        [DataMember]
-        public PuzzleSolverParameters SolverParameters { get; private set; }
-
         public bool Solved
         {
             get { return CurrentSolverState == PuzzleSolverState.SOLVED; }
@@ -112,6 +109,14 @@ namespace JigsawPuzzleSolver
             private set { _puzzlePiecesFolderPath = value; OnPropertyChanged(); }
         }
 
+        private string _puzzleXMLOutputPath;
+        [DataMember]
+        public string PuzzleXMLOutputPath
+        {
+            get { return _puzzleXMLOutputPath; }
+            set { _puzzleXMLOutputPath = value; OnPropertyChanged(); }
+        }
+
         //**********************************************************************************************************************************************************************************************
 
         private ObservableDictionary<string, Bitmap> _puzzleSolutionImages = new ObservableDictionary<string, Bitmap>();
@@ -143,26 +148,35 @@ namespace JigsawPuzzleSolver
             set { _selectedSolutionImage = value; OnPropertyChanged(); }
         }
 
+        [DataMember]
+        public ObservableCollection<Piece> Pieces { get; private set; }
 
         public ObservableCollection<Matrix<int>> Solutions { get; private set; }
         public ObservableCollection<Matrix<int>> SolutionsRotations { get; private set; }
-        [DataMember]
-        public ObservableCollection<Piece> Pieces { get; private set; }
 
         //##############################################################################################################################################################################################
 
         private IProgress<LogBox.LogEvent> _logHandle;
         private CancellationToken _cancelToken;
 
-        [DataMember]
         private List<MatchScore> matches = new List<MatchScore>();
 
         //##############################################################################################################################################################################################
 
-        public Puzzle(string piecesFolderPath, PuzzleSolverParameters solverParameters, IProgress<LogBox.LogEvent> logHandle, CancellationToken cancelToken)
+        public Puzzle(string piecesFolderPath, IProgress<LogBox.LogEvent> logHandle, CancellationToken cancelToken)
         {
-            PuzzlePiecesFolderPath = piecesFolderPath;
-            SolverParameters = solverParameters;
+            PuzzlePiecesFolderPath = Path.GetFullPath(piecesFolderPath);
+
+            FileAttributes attr = File.GetAttributes(PuzzlePiecesFolderPath);
+            if ((attr & FileAttributes.Directory) == FileAttributes.Directory)      //detect whether its a directory or file
+            {
+                PuzzleXMLOutputPath = PuzzlePiecesFolderPath + "\\SavedPuzzle_" + new DirectoryInfo(PuzzlePiecesFolderPath).Name + ".xml";
+            }
+            else
+            {
+                PuzzleXMLOutputPath = Path.GetDirectoryName(PuzzlePiecesFolderPath) + "\\SavedPuzzle_" + Path.GetFileNameWithoutExtension(PuzzlePiecesFolderPath) + ".xml";
+            }
+
             _logHandle = logHandle;
             _cancelToken = cancelToken;
             NumberPuzzlePieces = 0;
@@ -225,12 +239,12 @@ namespace JigsawPuzzleSolver
                 {
                     Image<Rgb, byte> sourceImg = CvInvoke.Imread(imageFilesInfo[i].FullName).ToImage<Rgb, byte>();
                     CvInvoke.CvtColor(sourceImg, sourceImg, ColorConversion.Bgr2Rgb);               // Images are read in BGR model (not RGB)
-                    if (SolverParameters.PuzzleApplyMedianBlurFilter) { CvInvoke.MedianBlur(sourceImg, sourceImg, 5); }
+                    if (PuzzleSolverParameters.PuzzleApplyMedianBlurFilter) { CvInvoke.MedianBlur(sourceImg, sourceImg, 5); }
 
                     Image<Hsv, byte> hsvSourceImg = sourceImg.Clone().Convert<Hsv, byte>();
                     Image<Gray, byte> mask = new Image<Gray, byte>(sourceImg.Size);
 
-                    if (SolverParameters.PuzzleIsInputBackgroundWhite)
+                    if (PuzzleSolverParameters.PuzzleIsInputBackgroundWhite)
                     {
 #warning White color values must be adjusted with real scanned image
                         mask = hsvSourceImg.InRange(new Hsv(0, 0, 220), new Hsv(180, 20, 255)).Not();    // white background is defined as the inner region of the top of the HSV color cylinder (hue=0...180, sat=0...20, val=220...255)
@@ -240,8 +254,8 @@ namespace JigsawPuzzleSolver
                         mask = hsvSourceImg.InRange(new Hsv(0, 0, 0), new Hsv(180, 255, 50)).Not();    // black background is defined as the whole lower base of the HSV color cylinder (hue=0...180, sat=0...255, val=0...50)
                     }
 
-                    _logHandle.Report(new LogBox.LogEventImage("Extracting Pieces from source image " + i.ToString(), sourceImg.ToBitmap()));
-                    if (SolverParameters.SolverShowDebugResults) { _logHandle.Report(new LogBox.LogEventImage("Mask " + i.ToString(), mask.ToBitmap())); }
+                    _logHandle.Report(new LogBox.LogEventImage("Extracting Pieces from source image " + i.ToString(), sourceImg.Bitmap));
+                    if (PuzzleSolverParameters.SolverShowDebugResults) { _logHandle.Report(new LogBox.LogEventImage("Mask " + i.ToString(), mask.Bitmap)); }
 
                     CvBlobDetector blobDetector = new CvBlobDetector();                 // Find all blobs in the mask image, extract them and add them to the list of pieces
                     CvBlobs blobs = new CvBlobs();
@@ -249,7 +263,7 @@ namespace JigsawPuzzleSolver
 
                     Image<Rgb, byte> sourceImgPiecesMarked = sourceImg.Copy();
 
-                    foreach (CvBlob blob in blobs.Values.Where(b => b.BoundingBox.Width >= SolverParameters.PuzzleMinPieceSize && b.BoundingBox.Height >= SolverParameters.PuzzleMinPieceSize))
+                    foreach (CvBlob blob in blobs.Values.Where(b => b.BoundingBox.Width >= PuzzleSolverParameters.PuzzleMinPieceSize && b.BoundingBox.Height >= PuzzleSolverParameters.PuzzleMinPieceSize))
                     {
                         if (_cancelToken.IsCancellationRequested) { _cancelToken.ThrowIfCancellationRequested(); }
 
@@ -286,14 +300,14 @@ namespace JigsawPuzzleSolver
                         Image<Rgb, byte> pieceSourceImgMasked = new Image<Rgb, byte>(pieceSourceImg.Size);
                         CvInvoke.BitwiseOr(pieceSourceImageForeground, pieceSourceImageBackground, pieceSourceImgMasked);
                         
-                        Piece p = new Piece(pieceSourceImgMasked, pieceMask, imageFilesInfo[i].FullName, SolverParameters, _logHandle, _cancelToken);
+                        Piece p = new Piece(pieceSourceImgMasked, pieceMask, imageFilesInfo[i].FullName, _logHandle, _cancelToken);
                         System.Windows.Application.Current.Dispatcher.Invoke(() => { Pieces.Add(p); });
                         NumberPuzzlePieces++;
                     }
 
                     CurrentSolverStepPercentageFinished = (int)(((i + 1) / (double)imageFilesInfo.Count) * 100);
 
-                    _logHandle.Report(new LogBox.LogEventImage("Source Img " + i.ToString() + " Pieces", sourceImgPiecesMarked.ToBitmap()));
+                    _logHandle.Report(new LogBox.LogEventImage("Source Img " + i.ToString() + " Pieces", sourceImgPiecesMarked.Bitmap));
                 }
             }
             catch (OperationCanceledException)
@@ -380,7 +394,7 @@ namespace JigsawPuzzleSolver
                         matchScore.EdgeIndex2 = j % 4;
                         matchScore.score = Pieces[matchScore.PieceIndex1].Edges[matchScore.EdgeIndex1].Compare(Pieces[matchScore.PieceIndex2].Edges[matchScore.EdgeIndex2]);
 
-                        if (matchScore.score <= SolverParameters.PuzzleSolverKeepMatchesThreshold)  // Keep only the best matches (all scores above or equal 100000000 mean that the edges won't match)
+                        if (matchScore.score <= PuzzleSolverParameters.PuzzleSolverKeepMatchesThreshold)  // Keep only the best matches (all scores above or equal 100000000 mean that the edges won't match)
                         {
                             matches.Add(matchScore);
                         }
@@ -389,11 +403,11 @@ namespace JigsawPuzzleSolver
                 
                 matches.Sort(new MatchScoreComparer(ScoreOrders.LOWEST_FIRST)); // Sort the matches to get the best scores first. The puzzle is solved by the order of the MatchScores
 
-                if (SolverParameters.SolverShowDebugResults)
+                if (PuzzleSolverParameters.SolverShowDebugResults)
                 {
                     foreach (MatchScore matchScore in matches)
                     {
-                        _logHandle.Report(new LogBox.LogEventImage("MatchScore " + Pieces[matchScore.PieceIndex1].PieceID + "_Edge" + (matchScore.EdgeIndex1).ToString() + " <-->" + Pieces[matchScore.PieceIndex2].PieceID + "_Edge" + (matchScore.EdgeIndex2).ToString() + " = " + matchScore.score.ToString(), Utils.Combine2ImagesHorizontal(Pieces[matchScore.PieceIndex1].Edges[matchScore.EdgeIndex1].ContourImg, Pieces[matchScore.PieceIndex2].Edges[matchScore.EdgeIndex2].ContourImg, 20).ToBitmap()));
+                        _logHandle.Report(new LogBox.LogEventImage("MatchScore " + Pieces[matchScore.PieceIndex1].PieceID + "_Edge" + (matchScore.EdgeIndex1).ToString() + " <-->" + Pieces[matchScore.PieceIndex2].PieceID + "_Edge" + (matchScore.EdgeIndex2).ToString() + " = " + matchScore.score.ToString(), Utils.Combine2ImagesHorizontal(Pieces[matchScore.PieceIndex1].Edges[matchScore.EdgeIndex1].ContourImg, Pieces[matchScore.PieceIndex2].Edges[matchScore.EdgeIndex2].ContourImg, 20)));
                     }
                 }
             }
@@ -578,8 +592,8 @@ namespace JigsawPuzzleSolver
                     Mat layer = new Mat();
                     Mat layer_mask = new Mat();
 
-                    CvInvoke.WarpAffine(Pieces[piece_number].PieceImgColor, layer, a_trans_mat, new Size((int)out_image_width, (int)out_image_height), Inter.Linear, Warp.Default, BorderType.Transparent);
-                    CvInvoke.WarpAffine(Pieces[piece_number].PieceImgBw, layer_mask, a_trans_mat, new Size((int)out_image_width, (int)out_image_height), Inter.Nearest, Warp.Default, BorderType.Transparent);
+                    CvInvoke.WarpAffine(new Image<Rgb, byte>(Pieces[piece_number].PieceImgColor), layer, a_trans_mat, new Size((int)out_image_width, (int)out_image_height), Inter.Linear, Warp.Default, BorderType.Transparent);
+                    CvInvoke.WarpAffine(new Image<Gray, byte>(Pieces[piece_number].PieceImgBw), layer_mask, a_trans_mat, new Size((int)out_image_width, (int)out_image_height), Inter.Nearest, Warp.Default, BorderType.Transparent);
 
                     layer.CopyTo(final_out_image, layer_mask);
                 }
@@ -598,8 +612,6 @@ namespace JigsawPuzzleSolver
 
         private Bitmap GenerateSolutionImage2(Matrix<int> solutionLocations, int solutionID)
         {
-#warning Add PieceIDs to solution image !!!
-
             if (!Solved) { return null; }
             
             int out_image_width = 0, out_image_height = 0;
@@ -631,7 +643,7 @@ namespace JigsawPuzzleSolver
                     int piece_number = solutionLocations[j, i];
                     if (piece_number == -1) { continue; }
 
-                    g.DrawImage(Pieces[piece_number].PieceImgColor.Bitmap, i * max_piece_width, j * max_piece_height + 150);
+                    g.DrawImage(Pieces[piece_number].PieceImgColor, i * max_piece_width, j * max_piece_height + 150);
                     Rectangle pieceRect = new Rectangle(i * max_piece_width, j * max_piece_height, max_piece_width, max_piece_height);
                     g.DrawRectangle(new Pen(Color.Red, 4), pieceRect);
                     StringFormat stringFormat = new StringFormat() { Alignment = StringAlignment.Near, LineAlignment = StringAlignment.Near };

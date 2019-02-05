@@ -62,7 +62,80 @@ namespace JigsawPuzzleSolver
             set { _puzzleHandle = value; OnPropertyChanged(); }
         }
 
-        private PuzzleSolverParameters solverParameters;
+        //##############################################################################################################################################################################################
+
+        #region Commands
+
+        private ICommand _openNewPuzzleCommand;
+        public ICommand OpenNewPuzzleCommand
+        {
+            get
+            {
+                if (_openNewPuzzleCommand == null) { _openNewPuzzleCommand = new JigsawPuzzleSolver.GUI_Elements.RelayCommand(param => this.OpenNewPuzzle()); }
+                return _openNewPuzzleCommand;
+            }
+        }
+
+        private ICommand _savePuzzleCommand;
+        public ICommand SavePuzzleCommand
+        {
+            get
+            {
+                if (_savePuzzleCommand == null) { _savePuzzleCommand = new JigsawPuzzleSolver.GUI_Elements.RelayCommand(param => this.SavePuzzle(), param => { return PuzzleHandle != null; }); }
+                return _savePuzzleCommand;
+            }
+        }
+
+        private ICommand _loadPuzzleCommand;
+        public ICommand LoadPuzzleCommand
+        {
+            get
+            {
+                if (_loadPuzzleCommand == null) { _loadPuzzleCommand = new JigsawPuzzleSolver.GUI_Elements.RelayCommand(param => this.LoadPuzzle()); }
+                return _loadPuzzleCommand;
+            }
+        }
+
+        private ICommand _infoCommand;
+        public ICommand InfoCommand
+        {
+            get
+            {
+                if (_infoCommand == null)
+                {
+                    _infoCommand = new JigsawPuzzleSolver.GUI_Elements.RelayCommand(param =>
+                    {
+                        AssemblyInfoHelper_WPF.WindowAssemblyInfo windowAssemblyInfo = new AssemblyInfoHelper_WPF.WindowAssemblyInfo();
+                        windowAssemblyInfo.ShowDialog();
+                    });
+                }
+                return _infoCommand;
+            }
+        }
+
+        private ICommand _startSolvingCommand;
+        public ICommand StartSolvingCommand
+        {
+            get
+            {
+                if (_startSolvingCommand == null) { _startSolvingCommand = new JigsawPuzzleSolver.GUI_Elements.RelayCommand(param => this.StartSolving(), param => { return PuzzleHandle?.IsSolverRunning == false; }); }
+                return _startSolvingCommand;
+            }
+        }
+
+        private ICommand _stopSolvingCommand;
+        public ICommand StopSolvingCommand
+        {
+            get
+            {
+                if (_stopSolvingCommand == null) { _stopSolvingCommand = new JigsawPuzzleSolver.GUI_Elements.RelayCommand(param => { cancelTokenSource?.Cancel(); CommandManager.InvalidateRequerySuggested(); }, param => { return PuzzleHandle?.IsSolverRunning == true; }); }
+                return _stopSolvingCommand;
+            }
+        }
+
+        #endregion
+
+        //##############################################################################################################################################################################################
 
         private IProgress<LogBox.LogEvent> logHandle;
         private DispatcherTimer stopWatchDispatcherTimer;       // This timer is used to notify the GUI that the StopWatchSolver.Elapsed property has changed
@@ -79,8 +152,11 @@ namespace JigsawPuzzleSolver
             stopWatchDispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 10);
             stopWatchDispatcherTimer.Tick += new EventHandler((obj, e) => this.OnPropertyChanged("StopWatchSolver"));
 
-            solverParameters = new PuzzleSolverParameters() { SolverShowDebugResults = false, PuzzleIsInputBackgroundWhite = false };
-            
+            PuzzleSolverParameters.SolverShowDebugResults = false;
+            PuzzleSolverParameters.PuzzleIsInputBackgroundWhite = false;
+            PuzzleSolverParameters.CompressPuzzleOutputFile = true;
+
+            logBox1.AutoScrollToLastLogEntry = true;
             logHandle = new Progress<LogBox.LogEvent>(progressValue =>
             {
                 logBox1.LogEvent(progressValue);
@@ -89,55 +165,87 @@ namespace JigsawPuzzleSolver
 
         //##############################################################################################################################################################################################
 
-#warning Change SolverParameters to static class
-#warning Add DataMembers in puzzle, ...
-
-        //TestClass testClass;
-        string puzzleFile = @"C:\Users\masc107\Desktop\C#\JigsawPuzzleSolver\PuzzlePersistent.xml";
-
-        private void btn_open_new_puzzle_Click(object sender, RoutedEventArgs e)
-        {            
+        private void OpenNewPuzzle()
+        {
             cancelTokenSource = new CancellationTokenSource();
 
-            /*System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
+            System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
             folderBrowserDialog1.Description = "Select a folder containing all scanned puzzle piece images.";
             if(PuzzleHandle != null) { folderBrowserDialog1.SelectedPath = PuzzleHandle.PuzzlePiecesFolderPath; }
             if(folderBrowserDialog1.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                PuzzleHandle = new Puzzle(folderBrowserDialog1.SelectedPath, solverParameters, logHandle, cancelTokenSource.Token);
-            }*/
+                PuzzleHandle = new Puzzle(folderBrowserDialog1.SelectedPath, logHandle, cancelTokenSource.Token);
+            }
 
-#warning Only for faster testing !!!
-            PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", solverParameters, logHandle, cancelTokenSource.Token);
-            //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", solverParameters, logHandle, cancelTokenSource.Token);
-
-            //testClass = new TestClass(DateTime.Now.ToString());
+//#warning Only for faster testing !!!
+            //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", logHandle, cancelTokenSource.Token);
+            //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", logHandle, cancelTokenSource.Token);
         }
 
         //**********************************************************************************************************************************************************************************************
 
-        private void btn_save_puzzle_Click(object sender, RoutedEventArgs e)
+        private async void SavePuzzle()
         {
-            PuzzleHandle.Save(puzzleFile);
-
-            //testClass.Save(puzzleFile);
+            try
+            {
+                if(PuzzleHandle == null) { return; }
+                System.Windows.Forms.SaveFileDialog saveFileDialog = new System.Windows.Forms.SaveFileDialog();
+                saveFileDialog.Title = "Please enter the output file name";
+                saveFileDialog.Filter = "XML file|*.xml";
+                saveFileDialog.InitialDirectory = System.IO.Path.GetDirectoryName(PuzzleHandle.PuzzleXMLOutputPath);
+                saveFileDialog.RestoreDirectory = true;
+                saveFileDialog.FileName = System.IO.Path.GetFileName(PuzzleHandle.PuzzleXMLOutputPath);
+                if (saveFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    PuzzleHandle.PuzzleXMLOutputPath = saveFileDialog.FileName;
+                    logHandle.Report(new LogBox.LogEventInfo("Saving puzzle to \"" + PuzzleHandle.PuzzleXMLOutputPath + "\""));
+                    await Task.Run(() => { PuzzleHandle.Save(PuzzleHandle.PuzzleXMLOutputPath, PuzzleSolverParameters.CompressPuzzleOutputFile); });
+                    logHandle.Report(new LogBox.LogEventInfo("Saving puzzle ready."));
+                }                
+            }
+            catch(Exception ex)
+            {
+                logHandle.Report(new LogBox.LogEventError("Error while saving: " + ex.Message));
+            }
         }
 
         //**********************************************************************************************************************************************************************************************
 
-        private void btn_open_puzzle_Click(object sender, RoutedEventArgs e)
+        private async void LoadPuzzle()
         {
-            PuzzleHandle = Puzzle.Load(puzzleFile);
-
-            //testClass = TestClass.Load(puzzleFile);
+            try
+            {
+                System.Windows.Forms.OpenFileDialog openFileDialog = new System.Windows.Forms.OpenFileDialog();
+                openFileDialog.Title = "Please choose the file to open";
+                openFileDialog.Filter = "XML file|*.xml";
+                if (PuzzleHandle != null)
+                {
+                    openFileDialog.InitialDirectory = System.IO.Path.GetDirectoryName(PuzzleHandle.PuzzleXMLOutputPath);
+                    openFileDialog.RestoreDirectory = true;
+                    openFileDialog.FileName = System.IO.Path.GetFileName(PuzzleHandle.PuzzleXMLOutputPath);
+                }
+                if (openFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    string xmlPath = openFileDialog.FileName;
+                    logHandle.Report(new LogBox.LogEventInfo("Loading puzzle from \"" + xmlPath + "\""));
+                    PuzzleHandle = await Task.Run(() => { return Puzzle.Load(xmlPath, PuzzleSolverParameters.CompressPuzzleOutputFile); });
+                    PuzzleHandle.PuzzleXMLOutputPath = xmlPath;
+                    logHandle.Report(new LogBox.LogEventInfo("Loading puzzle ready."));
+                }
+            }
+            catch (Exception ex)
+            {
+                logHandle.Report(new LogBox.LogEventError("Error while loading: " + ex.Message));
+            }
         }
 
         //**********************************************************************************************************************************************************************************************
 
-        private async void btn_start_solving_Click(object sender, RoutedEventArgs e)
+        private async void StartSolving()
         {
             if(PuzzleHandle == null) { return; }
 
+            logBox1.AutoScrollToLastLogEntry = false;
             cancelTokenSource = new CancellationTokenSource();
             PuzzleHandle.ResetCancelToken(cancelTokenSource.Token);
             
@@ -153,14 +261,8 @@ namespace JigsawPuzzleSolver
             catch (OperationCanceledException) { /* the exceptions are catches inside the methods */ }
             StopWatchSolver.Stop();
             stopWatchDispatcherTimer.Stop();
-            logBox1.ScrollToSpecificLogEvent(logBox1.LogEvents.Last());
-        }
-
-        //**********************************************************************************************************************************************************************************************
-
-        private void btn_stop_solving_Click(object sender, RoutedEventArgs e)
-        {
-            if (cancelTokenSource != null) { cancelTokenSource.Cancel(); }
+            CommandManager.InvalidateRequerySuggested();
+            logBox1.AutoScrollToLastLogEntry = true;
         }
 
         //**********************************************************************************************************************************************************************************************
@@ -182,14 +284,6 @@ namespace JigsawPuzzleSolver
                     this.Close();
                 }
             }
-        }
-
-        //**********************************************************************************************************************************************************************************************
-
-        private void btn_info_Click(object sender, RoutedEventArgs e)
-        {
-            AssemblyInfoHelper_WPF.WindowAssemblyInfo windowAssemblyInfo = new AssemblyInfoHelper_WPF.WindowAssemblyInfo();
-            windowAssemblyInfo.ShowDialog();
         }
 
     }

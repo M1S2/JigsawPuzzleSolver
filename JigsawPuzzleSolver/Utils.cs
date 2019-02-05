@@ -307,6 +307,33 @@ namespace JigsawPuzzleSolver
 
         //**********************************************************************************************************************************************************************************************
 
+        /// <summary>
+        /// Combine the two images into one (horizontal)
+        /// </summary>
+        /// <param name="image1">Image 1</param>
+        /// <param name="image2">Image 2</param>
+        /// <param name="spacing">Space between the two images</param>
+        /// <returns>Combination of image1 and image2</returns>
+        public static Bitmap Combine2ImagesHorizontal(Bitmap image1, Bitmap image2, int spacing)
+        {
+            if (image1 == null) { image1 = new Bitmap(1, 1); }
+            if (image2 == null) { image2 = new Bitmap(1, 1); }
+
+            int ImageWidth = image1.Width + image2.Width + spacing;
+            int ImageHeight = Math.Max(image1.Height, image2.Height);
+
+            Bitmap combinedBitmap = new Bitmap(ImageWidth, ImageHeight);
+            using (Graphics g = Graphics.FromImage(combinedBitmap))
+            {
+                g.DrawImage(image1, 0, 0);
+                g.DrawImage(image2, image1.Width + spacing, 0);
+            }
+
+            return combinedBitmap;
+        }
+
+        //**********************************************************************************************************************************************************************************************
+
         public static Mat RotateMat(Mat src, int angle)
         {
             if (angle % 90 != 0) { return src; }

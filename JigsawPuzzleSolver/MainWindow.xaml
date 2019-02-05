@@ -35,28 +35,28 @@
         </Grid.RowDefinitions>
 
         <ToolBar Grid.Row="0">
-            <Button Click="btn_open_new_puzzle_Click">
+            <Button Command="{Binding OpenNewPuzzleCommand}">
                 <StackPanel Orientation="Horizontal">
                     <Image Height="16" Source="Resources/NewFile_16x.png"/>
                     <TextBlock Text="Open new Puzzle" Margin="5,0,0,0"/>
                 </StackPanel>
             </Button>
             <Separator/>
-            <Button Click="btn_save_puzzle_Click">
+            <Button Command="{Binding SavePuzzleCommand}">
                 <StackPanel Orientation="Horizontal">
                     <Image Height="16" Source="Resources/Save_16x.png"/>
                     <TextBlock Text="Save Puzzle" Margin="5,0,0,0"/>
                 </StackPanel>
             </Button>
             <Separator/>
-            <Button Click="btn_open_puzzle_Click">
+            <Button Command="{Binding LoadPuzzleCommand}">
                 <StackPanel Orientation="Horizontal">
                     <Image Height="16" Source="Resources/OpenFolder_16x.png"/>
-                    <TextBlock Text="Open Puzzle" Margin="5,0,0,0"/>
+                    <TextBlock Text="Load Puzzle" Margin="5,0,0,0"/>
                 </StackPanel>
             </Button>
             <Separator/>
-            <Button Click="btn_info_Click">
+            <Button Command="{Binding InfoCommand}">
                 <StackPanel Orientation="Horizontal">
                     <Image Height="16" Source="Resources/Info.png"/>
                     <TextBlock Text="About" Margin="5,0,0,0"/>
@@ -69,13 +69,13 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Orientation="Vertical">
                         <StackPanel Orientation="Horizontal">
-                            <Button HorizontalAlignment="Left" VerticalAlignment="Top" Height="35" Width="120" Margin="10,10,0,0" Click="btn_start_solving_Click" IsEnabled="{Binding PuzzleHandle.IsSolverRunning, Converter={StaticResource BooleanInverter}, FallbackValue=True}">
+                            <Button HorizontalAlignment="Left" VerticalAlignment="Top" Height="35" Width="120" Margin="10,10,0,0" Command="{Binding StartSolvingCommand}">
                                 <StackPanel Orientation="Horizontal">
                                     <Image Height="20" Source="Resources/Run_16x.png"/>
                                     <TextBlock Text="Start Solving" Margin="5,0,0,0"/>
                                 </StackPanel>
                             </Button>
-                            <Button HorizontalAlignment="Left" VerticalAlignment="Top" Height="35" Width="120" Margin="10,10,0,0" Click="btn_stop_solving_Click" IsEnabled="{Binding PuzzleHandle.IsSolverRunning, FallbackValue=False}">
+                            <Button HorizontalAlignment="Left" VerticalAlignment="Top" Height="35" Width="120" Margin="10,10,0,0" Command="{Binding StopSolvingCommand}">
                                 <StackPanel Orientation="Horizontal">
                                     <Image Height="20" Source="Resources/Stop_16x.png"/>
                                     <TextBlock Text="Stop Solving" Margin="5,0,0,0"/>
@@ -149,7 +149,7 @@
             </Grid.ColumnDefinitions>
 
             <TextBlock Grid.Column="0" Text="{Binding PuzzleHandle.PuzzlePiecesFolderPath}" VerticalAlignment="Center" Margin="10"/>
-            <TextBlock Grid.Column="1" Text="{Binding PuzzleHandle.CurrentSolverStep}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="10"/>
+            <TextBlock Grid.Column="1" Text="{Binding PuzzleHandle.CurrentSolverState}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="10"/>
         </Grid>
     </Grid>
 </Window>

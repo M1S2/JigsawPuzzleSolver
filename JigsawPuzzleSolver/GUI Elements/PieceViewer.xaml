@@ -13,6 +13,7 @@
 
     <UserControl.Resources>
         <converters:OpenCVImageToImageSourceConverter x:Key="ImageConverter"/>
+        <logBox:BitmapToImageSourceConverter x:Key="BitmapConverter"/>
         <converters:FullPathToFileNameConverter x:Key="FilePathNameConverter"/>
 
         <CollectionViewSource Source="{Binding PieceList, ElementName=PieceViewerControl}" x:Key="collectionViewSourcePieces">
@@ -72,10 +73,10 @@
                             <Image>
                                 <Image.Style>
                                     <Style>
-                                        <Setter Property="Image.Source" Value="{Binding PieceImgColor, Converter={StaticResource ImageConverter}}"/>
+                                        <Setter Property="Image.Source" Value="{Binding PieceImgColor, Converter={StaticResource BitmapConverter}}"/>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding ElementName=imgTypeToggleSwitch, Path=IsChecked}" Value="True">
-                                                <Setter Property="Image.Source" Value="{Binding PieceImgBw, Converter={StaticResource ImageConverter}}"/>
+                                                <Setter Property="Image.Source" Value="{Binding PieceImgBw, Converter={StaticResource BitmapConverter}}"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>

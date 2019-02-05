@@ -53,30 +53,28 @@ namespace JigsawPuzzleSolver
         public EdgeTypes EdgeType { get; private set; }
 
         [DataMember]
-        public PuzzleSolverParameters SolverParameters { get; private set; }
-
-        [DataMember]
         public string PieceID { get; private set; }
         [DataMember]
         public int EdgeNumber { get; private set; }
 
-        public Image<Rgb, byte> Full_color { get; private set; }
-        public Image<Rgb, byte> ContourImg { get; private set; }
+        [DataMember]
+        public Bitmap PieceImgColor { get; private set; }
+
+        public Bitmap ContourImg { get; private set; }
 
         private IProgress<LogBox.LogEvent> _logHandle;
         private CancellationToken _cancelToken;
 
         //##############################################################################################################################################################################################
 
-        public Edge(string pieceID, int edgeNumber, Image<Rgb, byte> full_color, VectorOfPoint edgeContour, PuzzleSolverParameters solverParameters, IProgress<LogBox.LogEvent> logHandle, CancellationToken cancelToken)
+        public Edge(string pieceID, int edgeNumber, Bitmap pieceImgColor, VectorOfPoint edgeContour, IProgress<LogBox.LogEvent> logHandle, CancellationToken cancelToken)
         {
             _logHandle = logHandle;
             _cancelToken = cancelToken;
-            SolverParameters = solverParameters;
             PieceID = pieceID;
             EdgeNumber = edgeNumber;
             contour = edgeContour;
-            Full_color = full_color;
+            PieceImgColor = new Bitmap(pieceImgColor);
 
             normalized_contour = normalize(contour);    //Normalized contours are used for comparisons
 
@@ -99,7 +97,7 @@ namespace JigsawPuzzleSolver
             EdgeType = EdgeTypes.UNKNOWN;
             if(normalized_contour.Size <= 1) { return; }
 
-            ContourImg = Full_color.Clone();
+            ContourImg = new Bitmap(PieceImgColor);
 
             //See if it is an outer edge comparing the distance between beginning and end with the arc length.
             double contour_length = CvInvoke.ArcLength(normalized_contour, false);
@@ -108,32 +106,38 @@ namespace JigsawPuzzleSolver
             if (contour_length < begin_end_distance * 1.3)
             {
                 EdgeType = EdgeTypes.LINE;
-
-                for (int i = 0; i < contour.Size; i++) { CvInvoke.Circle(ContourImg, Point.Round(contour[i]), 2, new MCvScalar(255, 0, 0), 1); }
-                if (SolverParameters.SolverShowDebugResults) { _logHandle.Report(new LogBox.LogEventImage(PieceID + " Edge " + EdgeNumber.ToString() + " " + EdgeType.ToString(), ContourImg.Bitmap)); }
-                return;
             }
 
-            //Find the minimum or maximum value for x in the normalized contour and base the classification on that
-            int minx = 100000000;
-            int maxx = -100000000;
-            for (int i = 0; i < normalized_contour.Size; i++)
+            if (EdgeType == EdgeTypes.UNKNOWN)
             {
-                if (minx > normalized_contour[i].X) { minx = (int)normalized_contour[i].X; }
-                if (maxx < normalized_contour[i].X) { maxx = (int)normalized_contour[i].X; }
+                //Find the minimum or maximum value for x in the normalized contour and base the classification on that
+                int minx = 100000000;
+                int maxx = -100000000;
+                for (int i = 0; i < normalized_contour.Size; i++)
+                {
+                    if (minx > normalized_contour[i].X) { minx = (int)normalized_contour[i].X; }
+                    if (maxx < normalized_contour[i].X) { maxx = (int)normalized_contour[i].X; }
+                }
+
+                if (Math.Abs(minx) > Math.Abs(maxx))
+                {
+                    EdgeType = EdgeTypes.BULB;
+                }
+                else
+                {
+                    EdgeType = EdgeTypes.HOLE;
+                }
             }
 
-            if (Math.Abs(minx) > Math.Abs(maxx))
+            if (PuzzleSolverParameters.SolverShowDebugResults)
             {
-                EdgeType = EdgeTypes.BULB;
+                for (int i = 0; i < contour.Size; i++)
+                {
+                    Graphics g = Graphics.FromImage(ContourImg);
+                    g.DrawEllipse(new Pen(Color.Red), new RectangleF(PointF.Subtract(contour[i], new Size(1, 1)), new SizeF(2, 2)));
+                }
+                _logHandle.Report(new LogBox.LogEventImage(PieceID + " Edge " + EdgeNumber.ToString() + " " + EdgeType.ToString(), ContourImg));
             }
-            else
-            {
-                EdgeType = EdgeTypes.HOLE;
-            }
-            
-            for (int i = 0; i < contour.Size; i++) { CvInvoke.Circle(ContourImg, Point.Round(contour[i]), 2, new MCvScalar(255, 0, 0), 1); }
-            if (SolverParameters.SolverShowDebugResults) { _logHandle.Report(new LogBox.LogEventImage(PieceID + " Edge " + EdgeNumber.ToString() + " " + EdgeType.ToString(), ContourImg.Bitmap)); }
         }
 
         //**********************************************************************************************************************************************************************************************
@@ -224,12 +228,12 @@ namespace JigsawPuzzleSolver
                 double cost = 0;
                 double total_length = CvInvoke.ArcLength(normalized_contour, false) + CvInvoke.ArcLength(edge2.reverse_normalized_contour, false);
 
-                int windowSizePoints = (int)(Math.Max(normalized_contour.Size, edge2.reverse_normalized_contour.Size) * SolverParameters.EdgeCompareWindowSizePercent);
+                int windowSizePoints = (int)(Math.Max(normalized_contour.Size, edge2.reverse_normalized_contour.Size) * PuzzleSolverParameters.EdgeCompareWindowSizePercent);
 
                 double distEndpointsContour1 = Utils.Distance(normalized_contour[0], normalized_contour[normalized_contour.Size - 1]);
                 double distEndpointsContour2 = Utils.Distance(edge2.reverse_normalized_contour[0], edge2.reverse_normalized_contour[edge2.reverse_normalized_contour.Size - 1]);
                 double distEndpointContoursDiff = Math.Abs(distEndpointsContour1 - distEndpointsContour2);
-                if (distEndpointContoursDiff <= SolverParameters.EdgeCompareEndpointDiffIgnoreThreshold) { distEndpointContoursDiff = 0; }
+                if (distEndpointContoursDiff <= PuzzleSolverParameters.EdgeCompareEndpointDiffIgnoreThreshold) { distEndpointContoursDiff = 0; }
 
                 for (int i = 0; i < Math.Min(normalized_contour.Size, edge2.reverse_normalized_contour.Size); i++)
                 {
@@ -245,7 +249,7 @@ namespace JigsawPuzzleSolver
                 }
                 double matchResult = cost / total_length;
 
-                if (SolverParameters.SolverShowDebugResults)
+                if (PuzzleSolverParameters.SolverShowDebugResults)
                 {
                     Image<Rgb, byte> contourOverlay = new Image<Rgb, byte>(500, 500);
                     VectorOfPoint contour1 = GetTranslatedContour(100, 0);
