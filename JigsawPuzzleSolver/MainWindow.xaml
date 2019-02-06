@@ -15,6 +15,7 @@
     <Window.Resources>
         <LogBox:BitmapToImageSourceConverter x:Key="BitmapConverter"/>
         <local:NegateBooleanConverter x:Key="BooleanInverter"/>
+        <local:PuzzleSavingStateToIconConverter x:Key="SavingStateConverter"/>
 
         <!-- Style to gray out disabled images -->
         <Style TargetType="{x:Type Image}">
@@ -31,7 +32,7 @@
             <RowDefinition Height="35"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="200"/>
-            <RowDefinition Height="40"/>
+            <RowDefinition Height="35"/>
         </Grid.RowDefinitions>
 
         <ToolBar Grid.Row="0">
@@ -90,6 +91,7 @@
                                 <RowDefinition Height="30"/>
                                 <RowDefinition Height="30"/>
                                 <RowDefinition Height="30"/>
+                                <RowDefinition Height="30"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
@@ -117,6 +119,8 @@
                             <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding StopWatchSolver.Elapsed, StringFormat='hh\\:mm\\:ss\\.ff', Mode=OneWay}" VerticalAlignment="Center"/>
                             <TextBlock Grid.Row="4" Grid.Column="0" Text="Number pieces found: " VerticalAlignment="Center"/>
                             <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding PuzzleHandle.NumberPuzzlePieces, Mode=OneWay}" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Row="5" Grid.Column="0" Text="Puzzle pieces folder: " VerticalAlignment="Center"/>
+                            <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding PuzzleHandle.PuzzlePiecesFolderPath}" VerticalAlignment="Center"/>
 
                         </Grid>
                     </StackPanel>
@@ -144,12 +148,25 @@
 
         <Grid Grid.Row="4">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="35"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="150"/>
             </Grid.ColumnDefinitions>
 
-            <TextBlock Grid.Column="0" Text="{Binding PuzzleHandle.PuzzlePiecesFolderPath}" VerticalAlignment="Center" Margin="10"/>
-            <TextBlock Grid.Column="1" Text="{Binding PuzzleHandle.CurrentSolverState}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="10"/>
+            <Image Grid.Column="0" Height="16" VerticalAlignment="Center" Source="{Binding PuzzleSavingState, Converter={StaticResource SavingStateConverter}}" ToolTip="{Binding PuzzleSavingState}"/>
+            <TextBlock Grid.Column="1" Text="{Binding PuzzleHandle.PuzzleXMLOutputPath}" VerticalAlignment="Center">
+                <TextBlock.Style>
+                    <Style TargetType="{x:Type TextBlock}">
+                        <Setter Property="Visibility" Value="Visible"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding PuzzleSavingState}" Value="NEW_UNSAVED">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+            <TextBlock Grid.Column="2" Text="{Binding PuzzleHandle.CurrentSolverState}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="10"/>
         </Grid>
     </Grid>
 </Window>

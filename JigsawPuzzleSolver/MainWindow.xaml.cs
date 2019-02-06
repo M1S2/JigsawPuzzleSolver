@@ -62,6 +62,13 @@ namespace JigsawPuzzleSolver
             set { _puzzleHandle = value; OnPropertyChanged(); }
         }
 
+        private PuzzleSavingStates _puzzleSavingState;
+        public PuzzleSavingStates PuzzleSavingState
+        {
+            get { return _puzzleSavingState; }
+            set { _puzzleSavingState = value; OnPropertyChanged(); }
+        }
+
         //##############################################################################################################################################################################################
 
         #region Commands
@@ -71,7 +78,7 @@ namespace JigsawPuzzleSolver
         {
             get
             {
-                if (_openNewPuzzleCommand == null) { _openNewPuzzleCommand = new JigsawPuzzleSolver.GUI_Elements.RelayCommand(param => this.OpenNewPuzzle()); }
+                if (_openNewPuzzleCommand == null) { _openNewPuzzleCommand = new JigsawPuzzleSolver.GUI_Elements.RelayCommand(param => this.OpenNewPuzzle(), param => { return (PuzzleSavingState != PuzzleSavingStates.SAVING && PuzzleSavingState != PuzzleSavingStates.LOADING); }); }
                 return _openNewPuzzleCommand;
             }
         }
@@ -81,7 +88,7 @@ namespace JigsawPuzzleSolver
         {
             get
             {
-                if (_savePuzzleCommand == null) { _savePuzzleCommand = new JigsawPuzzleSolver.GUI_Elements.RelayCommand(param => this.SavePuzzle(), param => { return PuzzleHandle != null; }); }
+                if (_savePuzzleCommand == null) { _savePuzzleCommand = new JigsawPuzzleSolver.GUI_Elements.RelayCommand(param => this.SavePuzzle(), param => { return (PuzzleHandle != null && PuzzleSavingState != PuzzleSavingStates.SAVING && PuzzleSavingState != PuzzleSavingStates.LOADING); }); }
                 return _savePuzzleCommand;
             }
         }
@@ -91,7 +98,7 @@ namespace JigsawPuzzleSolver
         {
             get
             {
-                if (_loadPuzzleCommand == null) { _loadPuzzleCommand = new JigsawPuzzleSolver.GUI_Elements.RelayCommand(param => this.LoadPuzzle()); }
+                if (_loadPuzzleCommand == null) { _loadPuzzleCommand = new JigsawPuzzleSolver.GUI_Elements.RelayCommand(param => this.LoadPuzzle(), param => { return (PuzzleSavingState != PuzzleSavingStates.SAVING && PuzzleSavingState != PuzzleSavingStates.LOADING); }); }
                 return _loadPuzzleCommand;
             }
         }
@@ -118,7 +125,7 @@ namespace JigsawPuzzleSolver
         {
             get
             {
-                if (_startSolvingCommand == null) { _startSolvingCommand = new JigsawPuzzleSolver.GUI_Elements.RelayCommand(param => this.StartSolving(), param => { return PuzzleHandle?.IsSolverRunning == false; }); }
+                if (_startSolvingCommand == null) { _startSolvingCommand = new JigsawPuzzleSolver.GUI_Elements.RelayCommand(param => this.StartSolving(), param => { return (PuzzleHandle?.IsSolverRunning == false && PuzzleSavingState != PuzzleSavingStates.SAVING && PuzzleSavingState != PuzzleSavingStates.LOADING); }); }
                 return _startSolvingCommand;
             }
         }
@@ -128,7 +135,7 @@ namespace JigsawPuzzleSolver
         {
             get
             {
-                if (_stopSolvingCommand == null) { _stopSolvingCommand = new JigsawPuzzleSolver.GUI_Elements.RelayCommand(param => { cancelTokenSource?.Cancel(); CommandManager.InvalidateRequerySuggested(); }, param => { return PuzzleHandle?.IsSolverRunning == true; }); }
+                if (_stopSolvingCommand == null) { _stopSolvingCommand = new JigsawPuzzleSolver.GUI_Elements.RelayCommand(param => { cancelTokenSource?.Cancel(); CommandManager.InvalidateRequerySuggested(); }, param => { return (PuzzleHandle?.IsSolverRunning == true && PuzzleSavingState != PuzzleSavingStates.SAVING && PuzzleSavingState != PuzzleSavingStates.LOADING); }); }
                 return _stopSolvingCommand;
             }
         }
@@ -152,6 +159,8 @@ namespace JigsawPuzzleSolver
             stopWatchDispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 10);
             stopWatchDispatcherTimer.Tick += new EventHandler((obj, e) => this.OnPropertyChanged("StopWatchSolver"));
 
+            PuzzleSavingState = PuzzleSavingStates.NEW_UNSAVED;
+
             PuzzleSolverParameters.SolverShowDebugResults = false;
             PuzzleSolverParameters.PuzzleIsInputBackgroundWhite = false;
             PuzzleSolverParameters.CompressPuzzleOutputFile = true;
@@ -169,17 +178,19 @@ namespace JigsawPuzzleSolver
         {
             cancelTokenSource = new CancellationTokenSource();
 
-            System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
+            /*System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
             folderBrowserDialog1.Description = "Select a folder containing all scanned puzzle piece images.";
             if(PuzzleHandle != null) { folderBrowserDialog1.SelectedPath = PuzzleHandle.PuzzlePiecesFolderPath; }
             if(folderBrowserDialog1.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 PuzzleHandle = new Puzzle(folderBrowserDialog1.SelectedPath, logHandle, cancelTokenSource.Token);
-            }
+            }*/
 
 //#warning Only for faster testing !!!
             //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", logHandle, cancelTokenSource.Token);
-            //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", logHandle, cancelTokenSource.Token);
+            PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", logHandle, cancelTokenSource.Token);
+
+            PuzzleSavingState = PuzzleSavingStates.NEW_UNSAVED;
         }
 
         //**********************************************************************************************************************************************************************************************
@@ -197,10 +208,13 @@ namespace JigsawPuzzleSolver
                 saveFileDialog.FileName = System.IO.Path.GetFileName(PuzzleHandle.PuzzleXMLOutputPath);
                 if (saveFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
-                    PuzzleHandle.PuzzleXMLOutputPath = saveFileDialog.FileName;
+                    PuzzleSavingState = PuzzleSavingStates.SAVING;
                     logHandle.Report(new LogBox.LogEventInfo("Saving puzzle to \"" + PuzzleHandle.PuzzleXMLOutputPath + "\""));
+                    PuzzleHandle.PuzzleXMLOutputPath = saveFileDialog.FileName;
                     await Task.Run(() => { PuzzleHandle.Save(PuzzleHandle.PuzzleXMLOutputPath, PuzzleSolverParameters.CompressPuzzleOutputFile); });
+                    PuzzleSavingState = PuzzleSavingStates.SAVED;
                     logHandle.Report(new LogBox.LogEventInfo("Saving puzzle ready."));
+                    CommandManager.InvalidateRequerySuggested();
                 }                
             }
             catch(Exception ex)
@@ -227,10 +241,14 @@ namespace JigsawPuzzleSolver
                 if (openFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
                     string xmlPath = openFileDialog.FileName;
+                    PuzzleSavingState = PuzzleSavingStates.LOADING;
                     logHandle.Report(new LogBox.LogEventInfo("Loading puzzle from \"" + xmlPath + "\""));
+                    PuzzleHandle = new Puzzle() { PuzzleXMLOutputPath = xmlPath };      // Neccessary to show the path while loading (when PuzzleHandle is null, no path is displayed)
                     PuzzleHandle = await Task.Run(() => { return Puzzle.Load(xmlPath, PuzzleSolverParameters.CompressPuzzleOutputFile); });
                     PuzzleHandle.PuzzleXMLOutputPath = xmlPath;
+                    PuzzleSavingState = PuzzleSavingStates.LOADED;
                     logHandle.Report(new LogBox.LogEventInfo("Loading puzzle ready."));
+                    CommandManager.InvalidateRequerySuggested();
                 }
             }
             catch (Exception ex)
