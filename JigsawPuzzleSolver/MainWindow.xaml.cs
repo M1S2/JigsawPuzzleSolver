@@ -187,8 +187,8 @@ namespace JigsawPuzzleSolver
             }*/
 
 //#warning Only for faster testing !!!
-            //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", logHandle, cancelTokenSource.Token);
-            PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", logHandle, cancelTokenSource.Token);
+            PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", logHandle, cancelTokenSource.Token);
+            //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", logHandle, cancelTokenSource.Token);
 
             PuzzleSavingState = PuzzleSavingStates.NEW_UNSAVED;
         }

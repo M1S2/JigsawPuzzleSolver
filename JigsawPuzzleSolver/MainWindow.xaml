@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:JigsawPuzzleSolver"
-        xmlns:LogBox="clr-namespace:LogBox"
+        xmlns:LogBox="clr-namespace:LogBox;assembly=LogBox"
         xmlns:guiElements="clr-namespace:JigsawPuzzleSolver.GUI_Elements"
         x:Class="JigsawPuzzleSolver.MainWindow"
         mc:Ignorable="d"
@@ -14,7 +14,6 @@
 
     <Window.Resources>
         <LogBox:BitmapToImageSourceConverter x:Key="BitmapConverter"/>
-        <local:NegateBooleanConverter x:Key="BooleanInverter"/>
         <local:PuzzleSavingStateToIconConverter x:Key="SavingStateConverter"/>
 
         <!-- Style to gray out disabled images -->

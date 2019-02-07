@@ -52,6 +52,9 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
       <HintPath>..\packages\EMGU.CV.3.4.3.3016\lib\net35\Emgu.CV.World.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="LogBox">
+      <HintPath>..\LogBox\bin\Debug\LogBox.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
@@ -91,25 +94,6 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
       <DependentUpon>PieceViewer.xaml</DependentUpon>
     </Compile>
     <Compile Include="GUI Elements\RelayCommand.cs" />
-    <Compile Include="LogBox\AutoSizedGridView.cs" />
-    <Compile Include="LogBox\ColumnDefinitionExtended.cs" />
-    <Compile Include="LogBox\LogBox.xaml.cs">
-      <DependentUpon>LogBox.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="LogBox\LogEvent.cs" />
-    <Compile Include="LogBox\LogEventInfo.cs" />
-    <Compile Include="LogBox\LogEventImage.cs" />
-    <Compile Include="LogBox\LogEventWarning.cs" />
-    <Compile Include="LogBox\LogEventError.cs" />
-    <Compile Include="LogBox\LogTypes.cs" />
-    <Compile Include="LogBox\Converters\BitmapToImageSourceConverter.cs" />
-    <Compile Include="LogBox\Converters\LogTypesToIconFilenameConverter.cs" />
-    <Compile Include="LogBox\Converters\SubtractConverter.cs" />
-    <Compile Include="LogBox\Converters\PercentageConverter.cs" />
-    <Compile Include="LogBox\ToggleSwitch.xaml.cs">
-      <DependentUpon>ToggleSwitch.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="NegateBooleanConverter.cs" />
     <Compile Include="ObservableDictionary.cs" />
     <Compile Include="PuzzleSolverParameters.cs" />
     <Compile Include="Serialization\SaveableObject.cs" />
@@ -121,20 +105,9 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     <Compile Include="Forest.cs" />
     <Compile Include="Structures\MatchScore.cs" />
     <Compile Include="Utils.cs" />
-    <Compile Include="LogBox\ZoomBorder.xaml.cs">
-      <DependentUpon>ZoomBorder.xaml</DependentUpon>
-    </Compile>
     <Page Include="GUI Elements\PieceViewer.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="LogBox\LogBox.xaml">
-      <SubType>Designer</SubType>
-      <Generator>XamlIntelliSenseFileGenerator</Generator>
-    </Page>
-    <Page Include="LogBox\ToggleSwitch.xaml">
-      <SubType>Designer</SubType>
-      <Generator>XamlIntelliSenseFileGenerator</Generator>
     </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -148,10 +121,6 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="LogBox\ZoomBorder.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
