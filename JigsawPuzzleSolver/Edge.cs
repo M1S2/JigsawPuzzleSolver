@@ -27,6 +27,7 @@ namespace JigsawPuzzleSolver
         /// <summary>
         /// Raised when a property on this object has a new value.
         /// </summary>
+        [field: NonSerialized]
         public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>

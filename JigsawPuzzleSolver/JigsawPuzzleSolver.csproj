@@ -52,6 +52,9 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
       <HintPath>..\packages\EMGU.CV.3.4.3.3016\lib\net35\Emgu.CV.World.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="ImageGallery">
+      <HintPath>..\ImageGallery\bin\Debug\ImageGallery.dll</HintPath>
+    </Reference>
     <Reference Include="LogBox">
       <HintPath>..\LogBox\bin\Debug\LogBox.dll</HintPath>
     </Reference>

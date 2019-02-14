@@ -186,7 +186,7 @@ namespace JigsawPuzzleSolver
                 PuzzleHandle = new Puzzle(folderBrowserDialog1.SelectedPath, logHandle, cancelTokenSource.Token);
             }*/
 
-//#warning Only for faster testing !!!
+#warning Only for faster testing !!!
             PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", logHandle, cancelTokenSource.Token);
             //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", logHandle, cancelTokenSource.Token);
 

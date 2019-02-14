@@ -233,6 +233,76 @@ namespace JigsawPuzzleSolver
             vector.Push(new PointF[] { point });
         }
 
+        //**********************************************************************************************************************************************************************************************
+
+        /// <summary>
+        /// Convert a multidimensional array into an serializable type
+        /// </summary>
+        /// <typeparam name="T">Type of the array</typeparam>
+        /// <param name="inputArray">input multidimensional array</param>
+        /// <returns>serializable array</returns>
+        /// see: https://social.msdn.microsoft.com/Forums/vstudio/en-US/ff233917-eabf-47a3-8127-55fac4188b94/define-double-as-datamember?forum=wcf
+        public static T[][] FlattenMultidimArray<T>(T[,] inputArray)
+        {
+            int dimension0 = inputArray.GetLength(0);
+            int dimension1 = inputArray.GetLength(1);
+            T[][] surrogateArray = new T[dimension0][];
+            for (int i = 0; i < dimension0; i++)
+            {
+                surrogateArray[i] = new T[dimension1];
+                for (int j = 0; j < dimension1; j++)
+                {
+                    surrogateArray[i][j] = inputArray[i, j];
+                }
+            }
+            return surrogateArray;
+        }
+
+        //**********************************************************************************************************************************************************************************************
+
+        /// <summary>
+        /// Convert the serializable array to a multidimensional array
+        /// </summary>
+        /// <typeparam name="T">Type of the array</typeparam>
+        /// <param name="inputArray">input serializable array</param>
+        /// <returns>multidimensional array</returns>
+        /// see: https://social.msdn.microsoft.com/Forums/vstudio/en-US/ff233917-eabf-47a3-8127-55fac4188b94/define-double-as-datamember?forum=wcf
+        public static T[,] DeFlattenMultidimArray<T>(T[][] inputArray)
+        {
+            T[,] outputArray;
+
+            if (inputArray == null) { outputArray = null; }
+            else
+            {
+                int dimension0 = inputArray.Length;
+                if (dimension0 == 0)
+                {
+                    outputArray = new T[0, 0];
+                }
+                else
+                {
+                    int dimension1 = inputArray[0].Length;
+                    for (int i = 1; i < dimension0; i++)
+                    {
+                        if (inputArray[i].Length != dimension1)
+                        {
+                            throw new InvalidOperationException("Surrogate (jagged) array does not correspond to a rectangular one");
+                        }
+                    }
+
+                    outputArray = new T[dimension0, dimension1];
+                    for (int i = 0; i < dimension0; i++)
+                    {
+                        for (int j = 0; j < dimension1; j++)
+                        {
+                            outputArray[i, j] = inputArray[i][j];
+                        }
+                    }
+                }
+            }
+            return outputArray;
+        }
+
         #endregion
 
         //**********************************************************************************************************************************************************************************************

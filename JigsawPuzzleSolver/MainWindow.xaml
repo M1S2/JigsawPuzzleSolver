@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:JigsawPuzzleSolver"
         xmlns:LogBox="clr-namespace:LogBox;assembly=LogBox"
+        xmlns:ImgGallery="clr-namespace:ImageGallery;assembly=ImageGallery"
         xmlns:guiElements="clr-namespace:JigsawPuzzleSolver.GUI_Elements"
         x:Class="JigsawPuzzleSolver.MainWindow"
         mc:Ignorable="d"
@@ -113,7 +114,7 @@
                             <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding PuzzleHandle.CurrentSolverState, Mode=OneWay}" VerticalAlignment="Center"/>
                             <TextBlock Grid.Row="2" Grid.Column="0" Text="Current state progress: " VerticalAlignment="Center"/>
                             <ProgressBar Grid.Row="2" Grid.Column="1" Margin="2" Value="{Binding PuzzleHandle.CurrentSolverStepPercentageFinished, Mode=OneWay}"/>
-                            <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding PuzzleHandle.CurrentSolverStepPercentageFinished, StringFormat='{}{0} %', Mode=OneWay}" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding PuzzleHandle.CurrentSolverStepPercentageFinished, StringFormat='{}{0:N2} %', Mode=OneWay}" VerticalAlignment="Center"/>
                             <TextBlock Grid.Row="3" Grid.Column="0" Text="Elapsed time: " VerticalAlignment="Center"/>
                             <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding StopWatchSolver.Elapsed, StringFormat='hh\\:mm\\:ss\\.ff', Mode=OneWay}" VerticalAlignment="Center"/>
                             <TextBlock Grid.Row="4" Grid.Column="0" Text="Number pieces found: " VerticalAlignment="Center"/>
@@ -126,17 +127,23 @@
                 </ScrollViewer>
             </TabItem>
 
+            <TabItem Header="Input Image Viewer">
+                <ImgGallery:ImageGalleryControl Margin="10" NextAtEndBeginsNew="True" ImgList="{Binding PuzzleHandle.InputImages, Mode=OneWay}"/>
+            </TabItem>
+
             <TabItem Header="Piece Viewer">
                 <guiElements:PieceViewer Margin="10" PieceList="{Binding PuzzleHandle.Pieces, Mode=OneWay}"/>
             </TabItem>
 
             <TabItem Header="Solver Result">
-                <DockPanel Margin="10">
+                <ImgGallery:ImageGalleryControl Margin="10" NextAtEndBeginsNew="True" ImgList="{Binding PuzzleHandle.PuzzleSolutionImages, Mode=OneWay}"/>
+                
+                <!--<DockPanel Margin="10">
                     <ComboBox DockPanel.Dock="Top" SelectedValuePath="Key" DisplayMemberPath="Key" ItemsSource="{Binding PuzzleHandle.PuzzleSolutionImages}" SelectedValue="{Binding PuzzleHandle.SelectedSolutionImageKey}"/>
                     <LogBox:ZoomBorder DockPanel.Dock="Top" BorderBrush="#FFB2B2B2" BorderThickness="1" ClipToBounds="True" Margin="0,10,0,0">
                         <Image Source="{Binding PuzzleHandle.SelectedSolutionImage, Converter={StaticResource BitmapConverter}}"/>
                     </LogBox:ZoomBorder>
-                </DockPanel>
+                </DockPanel>-->
             </TabItem>
 
         </TabControl>

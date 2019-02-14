@@ -10,12 +10,13 @@ using System.Drawing;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.IO;
+using System.Windows.Data;
+using System.Runtime.Serialization;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Util;
 using Emgu.CV.Cvb;
-using System.Runtime.Serialization;
 
 namespace JigsawPuzzleSolver
 {
@@ -30,6 +31,7 @@ namespace JigsawPuzzleSolver
         /// <summary>
         /// Raised when a property on this object has a new value.
         /// </summary>
+        [field: NonSerialized]
         public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
@@ -85,9 +87,9 @@ namespace JigsawPuzzleSolver
             get { return (CurrentSolverState != PuzzleSolverState.SOLVED && CurrentSolverState != PuzzleSolverState.UNSOLVED); }
         }
 
-        private int _currentSolverStepPercentageFinished;
+        private double _currentSolverStepPercentageFinished;
         [DataMember]
-        public int CurrentSolverStepPercentageFinished
+        public double CurrentSolverStepPercentageFinished
         {
             get { return _currentSolverStepPercentageFinished; }
             private set { _currentSolverStepPercentageFinished = value; OnPropertyChanged(); }
@@ -119,40 +121,71 @@ namespace JigsawPuzzleSolver
 
         //**********************************************************************************************************************************************************************************************
 
-        private ObservableDictionary<string, Bitmap> _puzzleSolutionImages = new ObservableDictionary<string, Bitmap>();
+        private static object _puzzleSolutionImgListLock = new object();
+        private ObservableCollection<ImageGallery.ImageDescribed> _puzzleSolutionImages;
         [DataMember]
-        public ObservableDictionary<string, Bitmap> PuzzleSolutionImages
+        public ObservableCollection<ImageGallery.ImageDescribed> PuzzleSolutionImages
         {
             get { return _puzzleSolutionImages; }
-            set { _puzzleSolutionImages = value; OnPropertyChanged(); }
+            private set { _puzzleSolutionImages = value; OnPropertyChanged(); }
         }
 
-        private string _selectedSolutionImageKey;
+        //**********************************************************************************************************************************************************************************************
+
+        private static object _inputImgListLock = new object();
+        private ObservableCollection<ImageGallery.ImageDescribed> _inputImages;
         [DataMember]
-        public string SelectedSolutionImageKey
+        public ObservableCollection<ImageGallery.ImageDescribed> InputImages
         {
-            get { return _selectedSolutionImageKey; }
+            get { return _inputImages; }
+            private set { _inputImages = value; OnPropertyChanged(); }
+        }
+
+        //**********************************************************************************************************************************************************************************************
+
+        private readonly object _piecesLock = new object();
+        private ObservableCollection<Piece> _pieces;
+        [DataMember]
+        public ObservableCollection<Piece> Pieces
+        {
+            get { return _pieces; }
+            private set { _pieces = value; OnPropertyChanged(); }
+        }
+        
+        public ObservableCollection<Matrix<int>> Solutions { get; private set; }
+        public ObservableCollection<Matrix<int>> SolutionsRotations { get; private set; }
+        
+        //##############################################################################################################################################################################################
+
+        /// <summary>
+        /// Don't use this property. They are only for serializing and deserializing an Emgu Matrix.
+        /// </summary>
+        [DataMember]
+        private List<int[][]> SolutionsData
+        {
+            get { return Solutions.Select(s => Utils.FlattenMultidimArray(s.Data)).ToList(); }
             set
             {
-                _selectedSolutionImageKey = value;
-                OnPropertyChanged();
-                if (PuzzleSolutionImages != null) { SelectedSolutionImage = PuzzleSolutionImages[_selectedSolutionImageKey]; }
+                if(Solutions == null) { Solutions = new ObservableCollection<Matrix<int>>(); }
+                Solutions.Clear();
+                foreach (int[][] solution in value) { Solutions.Add(new Matrix<int>(Utils.DeFlattenMultidimArray(solution))); }
             }
         }
 
-        private Bitmap _selectedSolutionImage;
+        /// <summary>
+        /// Don't use this property. They are only for serializing and deserializing an Emgu Matrix.
+        /// </summary>
         [DataMember]
-        public Bitmap SelectedSolutionImage
+        private List<int[][]> SolutionsRotationsData
         {
-            get { return _selectedSolutionImage; }
-            set { _selectedSolutionImage = value; OnPropertyChanged(); }
+            get { return SolutionsRotations.Select(s => Utils.FlattenMultidimArray(s.Data)).ToList(); }
+            set
+            {
+                if (SolutionsRotations == null) { SolutionsRotations = new ObservableCollection<Matrix<int>>(); }
+                SolutionsRotations.Clear();
+                foreach (int[][] solutionRotation in value) { SolutionsRotations.Add(new Matrix<int>(Utils.DeFlattenMultidimArray(solutionRotation))); }
+            }
         }
-
-        [DataMember]
-        public ObservableCollection<Piece> Pieces { get; private set; }
-
-        public ObservableCollection<Matrix<int>> Solutions { get; private set; }
-        public ObservableCollection<Matrix<int>> SolutionsRotations { get; private set; }
 
         //##############################################################################################################################################################################################
 
@@ -185,6 +218,15 @@ namespace JigsawPuzzleSolver
             Solutions = new ObservableCollection<Matrix<int>>();
             SolutionsRotations = new ObservableCollection<Matrix<int>>();
             Pieces = new ObservableCollection<Piece>();
+
+            InputImages = new ObservableCollection<ImageGallery.ImageDescribed>();
+            BindingOperations.EnableCollectionSynchronization(InputImages, _inputImgListLock);
+
+            PuzzleSolutionImages = new ObservableCollection<ImageGallery.ImageDescribed>();
+            BindingOperations.EnableCollectionSynchronization(PuzzleSolutionImages, _puzzleSolutionImgListLock);
+
+            Pieces = new ObservableCollection<Piece>();
+            BindingOperations.EnableCollectionSynchronization(Pieces, _piecesLock);
         }
 
         public Puzzle()
@@ -216,7 +258,8 @@ namespace JigsawPuzzleSolver
                 _logHandle.Report(new LogBox.LogEventInfo("Extracting Pieces"));
                 NumberPuzzlePieces = 0;
 
-                System.Windows.Application.Current.Dispatcher.Invoke(() => { Pieces.Clear(); });
+                Pieces.Clear();
+                InputImages.Clear();
 
                 List<string> imageExtensions = new List<string>() { ".jpg", ".png", ".bmp", ".tiff" };
                 FileAttributes attr = File.GetAttributes(PuzzlePiecesFolderPath);
@@ -268,7 +311,6 @@ namespace JigsawPuzzleSolver
                         if (_cancelToken.IsCancellationRequested) { _cancelToken.ThrowIfCancellationRequested(); }
 
                         Rectangle roi = blob.BoundingBox;
-                        sourceImgPiecesMarked.Draw(roi, new Rgb(255, 0, 0), 2);
 
                         Image<Rgb, byte> pieceSourceImg = new Image<Rgb, byte>(sourceImg.Size);
                         Image<Gray, byte> pieceMask = new Image<Gray, byte>(mask.Size);
@@ -299,15 +341,22 @@ namespace JigsawPuzzleSolver
 
                         Image<Rgb, byte> pieceSourceImgMasked = new Image<Rgb, byte>(pieceSourceImg.Size);
                         CvInvoke.BitwiseOr(pieceSourceImageForeground, pieceSourceImageBackground, pieceSourceImgMasked);
-                        
+
                         Piece p = new Piece(pieceSourceImgMasked, pieceMask, imageFilesInfo[i].FullName, _logHandle, _cancelToken);
-                        System.Windows.Application.Current.Dispatcher.Invoke(() => { Pieces.Add(p); });
+                        Pieces.Add(p);
+
+                        sourceImgPiecesMarked.Draw(roi, new Rgb(255, 0, 0), 2);
+                        int baseLine = 0;
+                        Size textSize = CvInvoke.GetTextSize(p.PieceID.Replace("Piece", ""), FontFace.HersheyDuplex, 3, 2, ref baseLine);
+                        CvInvoke.PutText(sourceImgPiecesMarked, p.PieceID.Replace("Piece", ""), Point.Add(roi.Location, new Size(0, textSize.Height + 10)), FontFace.HersheyDuplex, 3, new MCvScalar(255, 0, 0), 2);
+
                         NumberPuzzlePieces++;
                     }
 
-                    CurrentSolverStepPercentageFinished = (int)(((i + 1) / (double)imageFilesInfo.Count) * 100);
+                    CurrentSolverStepPercentageFinished = ((i + 1) / (double)imageFilesInfo.Count) * 100;
 
-                    _logHandle.Report(new LogBox.LogEventImage("Source Img " + i.ToString() + " Pieces", sourceImgPiecesMarked.Bitmap));
+                    _logHandle.Report(new LogBox.LogEventImage("Source Img " + i.ToString() + " Pieces", sourceImgPiecesMarked.Bitmap)); 
+                    InputImages.Add(new ImageGallery.ImageDescribed(Path.GetFileName(imageFilesInfo[i].FullName), sourceImgPiecesMarked.Bitmap)); 
                 }
             }
             catch (OperationCanceledException)
@@ -385,7 +434,7 @@ namespace JigsawPuzzleSolver
                         
                         loop_count++;
                         if (loop_count > no_compares) { loop_count = no_compares; }
-                        CurrentSolverStepPercentageFinished = (int)((loop_count / (double)no_compares) * 100);
+                        CurrentSolverStepPercentageFinished = (loop_count / (double)no_compares) * 100;
 
                         MatchScore matchScore = new MatchScore();
                         matchScore.PieceIndex1 = i / 4;
@@ -447,7 +496,7 @@ namespace JigsawPuzzleSolver
                     {
                         if (_cancelToken.IsCancellationRequested) { _cancelToken.ThrowIfCancellationRequested(); }
 
-                        CurrentSolverStepPercentageFinished = (int)((i / (double)matches.Count) * 100);
+                        CurrentSolverStepPercentageFinished = (i / (double)matches.Count) * 100;
                         if (p.InOneSet()) { break; }
 
                         int p1 = matches[i].PieceIndex1;
@@ -484,14 +533,13 @@ namespace JigsawPuzzleSolver
                         SolutionsRotations.Add(solution_rotations);
 
                         Bitmap solutionImg = GenerateSolutionImage2(solution, setNo);
-                        if(PuzzleSolutionImages == null) { PuzzleSolutionImages = new ObservableDictionary<string, Bitmap>(); }
 
-                        System.Windows.Application.Current.Dispatcher.Invoke(() => { PuzzleSolutionImages.Add("Solution #" + setNo.ToString(), solutionImg); });
+                        //System.Windows.Application.Current.Dispatcher.Invoke(() => { 
+                        PuzzleSolutionImages.Add(new ImageGallery.ImageDescribed("Solution #" + setNo.ToString(), solutionImg));
 
                         _logHandle.Report(new LogBox.LogEventImage("Solution #" + setNo.ToString(), solutionImg));
                         setNo++;
                     }
-                    SelectedSolutionImageKey = PuzzleSolutionImages.Keys.First();
                 }
                 catch (OperationCanceledException)
                 {

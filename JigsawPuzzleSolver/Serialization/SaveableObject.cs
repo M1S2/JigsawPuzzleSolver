@@ -34,8 +34,8 @@ namespace JigsawPuzzleSolver
 
             try
             {
-                List<Type> knownTypes = Assembly.GetExecutingAssembly().GetTypes().Where(t => t.BaseType != null && t.BaseType.IsGenericType && t.BaseType.GetGenericTypeDefinition() == typeof(SaveableObject<>)).ToList();
-                knownTypes.Add(typeof(System.Drawing.Point[]));
+                List<Type> knownTypes = typeof(Tchild).GetProperties().Select(p => p.PropertyType).ToList();
+                knownTypes.Add(typeof(Tchild));
 
                 fileStream = new FileStream(xmlFilepath, FileMode.Create);
                 if (compress) { compressedStream = new GZipStream(fileStream, CompressionMode.Compress, false); }
@@ -75,8 +75,8 @@ namespace JigsawPuzzleSolver
 
             try
             {
-                List<Type> knownTypes = Assembly.GetExecutingAssembly().GetTypes().Where(t => t.BaseType != null && t.BaseType.IsGenericType && t.BaseType.GetGenericTypeDefinition() == typeof(SaveableObject<>)).ToList();
-                knownTypes.Add(typeof(System.Drawing.Point[]));
+                List<Type> knownTypes = typeof(Tchild).GetProperties().Select(p => p.PropertyType).ToList();
+                knownTypes.Add(typeof(Tchild));
 
                 fileStream = new FileStream(xmlFilepath, FileMode.Open);
                 if (decompress) { decompressedStream = new GZipStream(fileStream, CompressionMode.Decompress, false); }
