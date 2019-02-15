@@ -97,6 +97,9 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
       <DependentUpon>PieceViewer.xaml</DependentUpon>
     </Compile>
     <Compile Include="GUI Elements\RelayCommand.cs" />
+    <Compile Include="GUI Elements\SolverControl.xaml.cs">
+      <DependentUpon>SolverControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ObservableDictionary.cs" />
     <Compile Include="PuzzleSolverParameters.cs" />
     <Compile Include="Serialization\SaveableObject.cs" />
@@ -109,6 +112,10 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     <Compile Include="Structures\MatchScore.cs" />
     <Compile Include="Utils.cs" />
     <Page Include="GUI Elements\PieceViewer.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="GUI Elements\SolverControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

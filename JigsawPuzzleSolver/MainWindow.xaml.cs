@@ -48,13 +48,6 @@ namespace JigsawPuzzleSolver
 
         //##############################################################################################################################################################################################
 
-        private Stopwatch _stopWatchSolver;
-        public Stopwatch StopWatchSolver
-        {
-            get { return _stopWatchSolver; }
-            set { _stopWatchSolver = value; OnPropertyChanged(); }
-        }
-
         private Puzzle _puzzleHandle;
         public Puzzle PuzzleHandle
         {
@@ -120,44 +113,17 @@ namespace JigsawPuzzleSolver
             }
         }
 
-        private ICommand _startSolvingCommand;
-        public ICommand StartSolvingCommand
-        {
-            get
-            {
-                if (_startSolvingCommand == null) { _startSolvingCommand = new JigsawPuzzleSolver.GUI_Elements.RelayCommand(param => this.StartSolving(), param => { return (PuzzleHandle?.IsSolverRunning == false && PuzzleSavingState != PuzzleSavingStates.SAVING && PuzzleSavingState != PuzzleSavingStates.LOADING); }); }
-                return _startSolvingCommand;
-            }
-        }
-
-        private ICommand _stopSolvingCommand;
-        public ICommand StopSolvingCommand
-        {
-            get
-            {
-                if (_stopSolvingCommand == null) { _stopSolvingCommand = new JigsawPuzzleSolver.GUI_Elements.RelayCommand(param => { cancelTokenSource?.Cancel(); CommandManager.InvalidateRequerySuggested(); }, param => { return (PuzzleHandle?.IsSolverRunning == true && PuzzleSavingState != PuzzleSavingStates.SAVING && PuzzleSavingState != PuzzleSavingStates.LOADING); }); }
-                return _stopSolvingCommand;
-            }
-        }
-
         #endregion
 
         //##############################################################################################################################################################################################
 
         private IProgress<LogBox.LogEvent> logHandle;
-        private DispatcherTimer stopWatchDispatcherTimer;       // This timer is used to notify the GUI that the StopWatchSolver.Elapsed property has changed
-        private CancellationTokenSource cancelTokenSource;
-        private Task workerTask;
 
         //##############################################################################################################################################################################################
 
         public MainWindow()
         {
             InitializeComponent();
-            StopWatchSolver = new Stopwatch();
-            stopWatchDispatcherTimer = new DispatcherTimer();
-            stopWatchDispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 10);
-            stopWatchDispatcherTimer.Tick += new EventHandler((obj, e) => this.OnPropertyChanged("StopWatchSolver"));
 
             PuzzleSavingState = PuzzleSavingStates.NEW_UNSAVED;
 
@@ -176,8 +142,6 @@ namespace JigsawPuzzleSolver
 
         private void OpenNewPuzzle()
         {
-            cancelTokenSource = new CancellationTokenSource();
-
             /*System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
             folderBrowserDialog1.Description = "Select a folder containing all scanned puzzle piece images.";
             if(PuzzleHandle != null) { folderBrowserDialog1.SelectedPath = PuzzleHandle.PuzzlePiecesFolderPath; }
@@ -187,8 +151,8 @@ namespace JigsawPuzzleSolver
             }*/
 
 #warning Only for faster testing !!!
-            PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", logHandle, cancelTokenSource.Token);
-            //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", logHandle, cancelTokenSource.Token);
+            PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", logHandle);
+            //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", logHandle);
 
             PuzzleSavingState = PuzzleSavingStates.NEW_UNSAVED;
         }
@@ -254,53 +218,6 @@ namespace JigsawPuzzleSolver
             catch (Exception ex)
             {
                 logHandle.Report(new LogBox.LogEventError("Error while loading: " + ex.Message));
-            }
-        }
-
-        //**********************************************************************************************************************************************************************************************
-
-        private async void StartSolving()
-        {
-            if(PuzzleHandle == null) { return; }
-
-            logBox1.AutoScrollToLastLogEntry = false;
-            cancelTokenSource = new CancellationTokenSource();
-            PuzzleHandle.ResetCancelToken(cancelTokenSource.Token);
-            
-            stopWatchDispatcherTimer.Start();
-            StopWatchSolver.Restart();
-            try
-            {
-                workerTask = PuzzleHandle.Init();
-                await workerTask;
-                workerTask = PuzzleHandle.Solve();
-                await workerTask;
-            }
-            catch (OperationCanceledException) { /* the exceptions are catches inside the methods */ }
-            StopWatchSolver.Stop();
-            stopWatchDispatcherTimer.Stop();
-            CommandManager.InvalidateRequerySuggested();
-            logBox1.AutoScrollToLastLogEntry = true;
-        }
-
-        //**********************************************************************************************************************************************************************************************
-
-        private async void Window_Closing(object sender, CancelEventArgs e)
-        {
-            if (cancelTokenSource != null)
-            {
-                cancelTokenSource.Cancel();
-                if(workerTask != null && !workerTask.IsCompleted)
-                {
-                    this.Hide();
-                    e.Cancel = true;
-                    try
-                    {
-                        await workerTask;
-                    }
-                    catch (OperationCanceledException) { /* Nothing to do here because we expect the task to cancel */ }
-                    this.Close();
-                }
             }
         }
 

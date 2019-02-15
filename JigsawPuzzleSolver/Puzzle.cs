@@ -95,6 +95,14 @@ namespace JigsawPuzzleSolver
             private set { _currentSolverStepPercentageFinished = value; OnPropertyChanged(); }
         }
 
+        private TimeSpan _solverElapsedTime;
+        [DataMember]
+        public TimeSpan SolverElapsedTime
+        {
+            get { return _solverElapsedTime; }
+            set { _solverElapsedTime = value; OnPropertyChanged(); }
+        }
+
         private int _numberPuzzlePieces;
         [DataMember]
         public int NumberPuzzlePieces
@@ -196,7 +204,7 @@ namespace JigsawPuzzleSolver
 
         //##############################################################################################################################################################################################
 
-        public Puzzle(string piecesFolderPath, IProgress<LogBox.LogEvent> logHandle, CancellationToken cancelToken)
+        public Puzzle(string piecesFolderPath, IProgress<LogBox.LogEvent> logHandle)
         {
             PuzzlePiecesFolderPath = Path.GetFullPath(piecesFolderPath);
 
@@ -211,7 +219,6 @@ namespace JigsawPuzzleSolver
             }
 
             _logHandle = logHandle;
-            _cancelToken = cancelToken;
             NumberPuzzlePieces = 0;
             CurrentSolverState = PuzzleSolverState.UNSOLVED;
 
@@ -235,10 +242,10 @@ namespace JigsawPuzzleSolver
         //##############################################################################################################################################################################################
 
         /// <summary>
-        /// Reset the cancel token by setting it to a new token
+        /// Set the cancel token
         /// </summary>
         /// <param name="newToken">New token obtained by a new CancellationTokenSource</param>
-        public void ResetCancelToken(CancellationToken newToken)
+        public void SetCancelToken(CancellationToken newToken)
         {
             _cancelToken = newToken;
         }
