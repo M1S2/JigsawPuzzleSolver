@@ -79,12 +79,12 @@ namespace JigsawPuzzleSolver
 
         public int NumberOfSolverSteps
         {
-            get { return Enum.GetNames(typeof(PuzzleSolverState)).Count() - 2; }        // -2 because "SOLVED" and "UNSOLVED" aren't real solver steps
+            get { return Enum.GetNames(typeof(PuzzleSolverState)).Count() - 3; }        // -2 because "SOLVED", "UNSOLVED" and "ERROR" aren't real solver steps
         }
 
         public bool IsSolverRunning
         {
-            get { return (CurrentSolverState != PuzzleSolverState.SOLVED && CurrentSolverState != PuzzleSolverState.UNSOLVED); }
+            get { return (CurrentSolverState != PuzzleSolverState.SOLVED && CurrentSolverState != PuzzleSolverState.UNSOLVED && CurrentSolverState != PuzzleSolverState.ERROR); }
         }
 
         private double _currentSolverStepPercentageFinished;
@@ -374,7 +374,8 @@ namespace JigsawPuzzleSolver
             catch (Exception ex)
             {
                 _logHandle.Report(new LogBox.LogEventError("The following error occured in step " + CurrentSolverState.ToString() + ":\n" + ex.Message));
-                CurrentSolverState = PuzzleSolverState.UNSOLVED;
+                CurrentSolverState = PuzzleSolverState.ERROR;
+                CurrentSolverStepPercentageFinished = 100;
             }
         }
 
@@ -467,7 +468,7 @@ namespace JigsawPuzzleSolver
                     }
                 }
             }
-            catch (OperationCanceledException ex)
+            catch (Exception ex)
             {
                 throw ex;
             }
@@ -556,7 +557,8 @@ namespace JigsawPuzzleSolver
                 catch (Exception ex)
                 {
                     _logHandle.Report(new LogBox.LogEventError("The following error occured in step " + CurrentSolverState.ToString() + ":\n" + ex.Message));
-                    CurrentSolverState = PuzzleSolverState.UNSOLVED;
+                    CurrentSolverState = PuzzleSolverState.ERROR;
+                    CurrentSolverStepPercentageFinished = 100;
                 }
             }, _cancelToken);
         }

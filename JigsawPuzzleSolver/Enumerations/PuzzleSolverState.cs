@@ -12,6 +12,11 @@ namespace JigsawPuzzleSolver
     public enum PuzzleSolverState
     {
         /// <summary>
+        /// An error occured while solving
+        /// </summary>
+        ERROR = -2,
+
+        /// <summary>
         /// The puzzle isn't solved yet.
         /// </summary>
         UNSOLVED = -1,

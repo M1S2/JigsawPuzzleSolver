@@ -92,7 +92,9 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     <Compile Include="Enumerations\PieceTypes.cs" />
     <Compile Include="Enumerations\PuzzleSolverState.cs" />
     <Compile Include="GUI Elements\Converters\PuzzleSavingStateToIconConverter.cs" />
+    <Compile Include="GUI Elements\Converters\PuzzleStateToProgressBarStateConverter.cs" />
     <Compile Include="GUI Elements\Converters\FullPathToFileNameConverter.cs" />
+    <Compile Include="GUI Elements\Converters\DivisionConverter.cs" />
     <Compile Include="GUI Elements\PieceViewer.xaml.cs">
       <DependentUpon>PieceViewer.xaml</DependentUpon>
     </Compile>

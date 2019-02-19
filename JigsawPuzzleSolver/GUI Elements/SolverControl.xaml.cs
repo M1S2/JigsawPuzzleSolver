@@ -116,7 +116,7 @@ namespace JigsawPuzzleSolver.GUI_Elements
         void SolverControl_Loaded(object sender, RoutedEventArgs e)
         {
             Window window = Window.GetWindow(this);
-            window.Closing += window_Closing;
+            if (window != null) { window.Closing += window_Closing; }
         }
 
         async void window_Closing(object sender, CancelEventArgs e)
@@ -155,10 +155,13 @@ namespace JigsawPuzzleSolver.GUI_Elements
             {
                 workerTask = PuzzleHandle.Init();
                 await workerTask;
-                workerTask = PuzzleHandle.Solve();
-                await workerTask;
+                if (PuzzleHandle.CurrentSolverState != PuzzleSolverState.ERROR)
+                {
+                    workerTask = PuzzleHandle.Solve();
+                    await workerTask;
+                }
             }
-            catch (OperationCanceledException) { /* the exceptions are catches inside the methods */ }
+            catch (Exception) { /* the exceptions are catches inside the methods */ }
             StopWatchSolver.Stop();
             stopWatchDispatcherTimer.Stop();
             CommandManager.InvalidateRequerySuggested();

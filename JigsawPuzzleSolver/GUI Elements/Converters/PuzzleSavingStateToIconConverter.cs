@@ -10,7 +10,7 @@ using System.Drawing;
 using Emgu.CV;
 using Emgu.CV.Structure;
 
-namespace JigsawPuzzleSolver
+namespace JigsawPuzzleSolver.GUI_Elements.Converters
 {
     /// <summary>
     /// Convert PuzzleSavingState enum values to icon filenames that can be used to display icons in an image control

@@ -147,10 +147,10 @@ namespace JigsawPuzzleSolver
             if(PuzzleHandle != null) { folderBrowserDialog1.SelectedPath = PuzzleHandle.PuzzlePiecesFolderPath; }
             if(folderBrowserDialog1.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                PuzzleHandle = new Puzzle(folderBrowserDialog1.SelectedPath, logHandle, cancelTokenSource.Token);
+                PuzzleHandle = new Puzzle(folderBrowserDialog1.SelectedPath, logHandle);
             }*/
 
-#warning Only for faster testing !!!
+//#warning Only for faster testing !!!
             PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", logHandle);
             //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", logHandle);
 

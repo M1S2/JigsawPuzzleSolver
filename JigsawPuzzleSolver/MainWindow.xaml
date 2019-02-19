@@ -7,6 +7,7 @@
         xmlns:LogBox="clr-namespace:LogBox;assembly=LogBox"
         xmlns:ImgGallery="clr-namespace:ImageGallery;assembly=ImageGallery"
         xmlns:guiElements="clr-namespace:JigsawPuzzleSolver.GUI_Elements"
+        xmlns:converters="clr-namespace:JigsawPuzzleSolver.GUI_Elements.Converters"
         x:Class="JigsawPuzzleSolver.MainWindow"
         mc:Ignorable="d"
         Title="Puzzle Solver" Height="900" Width="1200"
@@ -15,8 +16,10 @@
 
     <Window.Resources>
         <LogBox:BitmapToImageSourceConverter x:Key="BitmapConverter"/>
-        <local:PuzzleSavingStateToIconConverter x:Key="SavingStateConverter"/>
-
+        <converters:PuzzleSavingStateToIconConverter x:Key="SavingStateConverter"/>
+        <converters:DivisionConverter x:Key="DivConverter"/>
+        <converters:PuzzleStateToProgressBarStateConverter x:Key="ProgressBarStateConverter"/>
+        
         <!-- Style to gray out disabled images -->
         <Style TargetType="{x:Type Image}">
             <Style.Triggers>
@@ -26,6 +29,11 @@
             </Style.Triggers>
         </Style>
     </Window.Resources>
+
+    <!--see: https://entwickler.de/online/windowsdeveloper/wpf-status-taskbar-579796650.html-->
+    <Window.TaskbarItemInfo>
+        <TaskbarItemInfo ProgressState="{Binding PuzzleHandle.CurrentSolverState, Converter={StaticResource ProgressBarStateConverter}}" ProgressValue="{Binding PuzzleHandle.CurrentSolverStepPercentageFinished, Converter={StaticResource DivConverter}, ConverterParameter=100}" />
+    </Window.TaskbarItemInfo>
 
     <Grid>
         <Grid.RowDefinitions>
