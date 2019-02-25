@@ -64,6 +64,7 @@ namespace JigsawPuzzleSolver
                 OnPropertyChanged("PercentageOfFinishedSolverSteps");
                 OnPropertyChanged("NumberOfFinishedSolverSteps");
                 OnPropertyChanged("IsSolverRunning");
+                OnPropertyChanged("Solved");
             }
         }
 
@@ -159,11 +160,37 @@ namespace JigsawPuzzleSolver
             get { return _pieces; }
             private set { _pieces = value; OnPropertyChanged(); }
         }
-        
+
+        //##############################################################################################################################################################################################
+
+        public int NumberOfSolutions { get { return Solutions == null ? 0 : Solutions.Count; } }
         public ObservableCollection<Matrix<int>> Solutions { get; private set; }
         public ObservableCollection<Matrix<int>> SolutionsRotations { get; private set; }
-        
-        //##############################################################################################################################################################################################
+
+        private void Solutions_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) { OnPropertyChanged("Solutions"); }
+        private void SolutionsRotations_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) { OnPropertyChanged("SolutionsRotations"); }
+
+        //**********************************************************************************************************************************************************************************************
+
+        private int _currentSolutionNumber;
+        [DataMember]
+        public int CurrentSolutionNumber
+        {
+            get { return _currentSolutionNumber; }
+            set { _currentSolutionNumber = value; OnPropertyChanged(); }
+        }
+
+        //**********************************************************************************************************************************************************************************************
+
+        private int _currentSolutionPieceIndex;
+        [DataMember]
+        public int CurrentSolutionPieceIndex
+        {
+            get { return _currentSolutionPieceIndex; }
+            set { _currentSolutionPieceIndex = value; OnPropertyChanged(); }
+        }
+
+        //**********************************************************************************************************************************************************************************************
 
         /// <summary>
         /// Don't use this property. They are only for serializing and deserializing an Emgu Matrix.
@@ -179,6 +206,8 @@ namespace JigsawPuzzleSolver
                 foreach (int[][] solution in value) { Solutions.Add(new Matrix<int>(Utils.DeFlattenMultidimArray(solution))); }
             }
         }
+
+        //**********************************************************************************************************************************************************************************************
 
         /// <summary>
         /// Don't use this property. They are only for serializing and deserializing an Emgu Matrix.
@@ -223,7 +252,9 @@ namespace JigsawPuzzleSolver
             CurrentSolverState = PuzzleSolverState.UNSOLVED;
 
             Solutions = new ObservableCollection<Matrix<int>>();
+            Solutions.CollectionChanged += Solutions_CollectionChanged;
             SolutionsRotations = new ObservableCollection<Matrix<int>>();
+            SolutionsRotations.CollectionChanged += SolutionsRotations_CollectionChanged;
             Pieces = new ObservableCollection<Piece>();
 
             InputImages = new ObservableCollection<ImageGallery.ImageDescribed>();
@@ -518,6 +549,8 @@ namespace JigsawPuzzleSolver
                     _logHandle.Report(new LogBox.LogEventInfo("Possible solution found " + (p.InOneSet() ? "(one set)." : "(" + p.SetCount.ToString() + " sets)")));
                     CurrentSolverStepPercentageFinished = 100;
                     CurrentSolverState = PuzzleSolverState.SOLVED;
+                    CurrentSolutionNumber = 0;
+                    CurrentSolutionPieceIndex = 0;
                     int setNo = 0;
                     foreach (Forest jointSet in p.GetJointSets())
                     {
@@ -534,7 +567,7 @@ namespace JigsawPuzzleSolver
 
                                 Pieces[piece_number].SolutionRotation = solution_rotations[j, i] * 90;
                                 Pieces[piece_number].SolutionLocation = new Point(i, j);
-                                Pieces[piece_number].SolutionID = "Solution #" + setNo;
+                                Pieces[piece_number].SolutionID = setNo;
                             }
                         }
                         Solutions.Add(solution);

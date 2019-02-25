@@ -130,12 +130,12 @@ namespace JigsawPuzzleSolver
             set { _solutionLocation = value; OnPropertyChanged(); }
         }
 
-        private string _solutionID;
+        private int _solutionID;
         /// <summary>
         /// Id of the solution the piece belongs to (there are more solutions if not all pieces fit together and there are multiple groups of pieces)
         /// </summary>
         [DataMember]
-        public string SolutionID
+        public int SolutionID
         {
             get { return _solutionID; }
             set { _solutionID = value; OnPropertyChanged(); }

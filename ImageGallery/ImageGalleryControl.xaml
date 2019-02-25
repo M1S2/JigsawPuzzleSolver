@@ -77,7 +77,7 @@
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Width="150" Orientation="Vertical">
-                        <Image Height="65" Source="{Binding Img, Converter={StaticResource BitmapConverter}}"/>
+                        <Image Height="65" Margin="5" Source="{Binding Img, Converter={StaticResource BitmapConverter}}"/>
                         <TextBlock Foreground="Black" FontSize="14" Text="{Binding Description}" ToolTip="{Binding Description}" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,2,0,0"/>
                     </StackPanel>
                 </DataTemplate>

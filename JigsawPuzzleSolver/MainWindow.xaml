@@ -15,11 +15,10 @@
         Icon="Resources/PuzzlePiece.png">
 
     <Window.Resources>
-        <LogBox:BitmapToImageSourceConverter x:Key="BitmapConverter"/>
         <converters:PuzzleSavingStateToIconConverter x:Key="SavingStateConverter"/>
         <converters:DivisionConverter x:Key="DivConverter"/>
         <converters:PuzzleStateToProgressBarStateConverter x:Key="ProgressBarStateConverter"/>
-        
+
         <!-- Style to gray out disabled images -->
         <Style TargetType="{x:Type Image}">
             <Style.Triggers>
@@ -42,7 +41,7 @@
             <RowDefinition Height="200"/>
             <RowDefinition Height="35"/>
         </Grid.RowDefinitions>
-
+        
         <ToolBar Grid.Row="0">
             <Button Command="{Binding OpenNewPuzzleCommand}">
                 <StackPanel Orientation="Horizontal">
@@ -90,6 +89,10 @@
                 <ImgGallery:ImageGalleryControl Margin="10" NextAtEndBeginsNew="True" ImgList="{Binding PuzzleHandle.PuzzleSolutionImages, Mode=OneWay}"/>
             </TabItem>
 
+            <TabItem Header="Join Pieces">
+                <guiElements:PieceJoinerControl Margin="10" PuzzleHandle="{Binding PuzzleHandle, Mode=OneWay}"/>
+            </TabItem>
+            
         </TabControl>
 
         <GridSplitter ResizeDirection="Rows" Grid.Row="2" Height="5" Margin="0,5,0,5" ShowsPreview="False" HorizontalAlignment="Stretch" VerticalAlignment="Top" Background="#FFB2B2B2" />

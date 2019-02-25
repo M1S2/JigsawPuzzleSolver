@@ -1,0 +1,63 @@
+﻿<UserControl x:Class="JigsawPuzzleSolver.GUI_Elements.PieceJoinerControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:JigsawPuzzleSolver.GUI_Elements"
+             xmlns:logBox="clr-namespace:LogBox;assembly=LogBox"
+             mc:Ignorable="d" 
+             Name="PieceJoinerControlUserControl"
+             d:DesignHeight="300" d:DesignWidth="300">
+
+    <UserControl.Resources>
+        <CollectionViewSource Source="{Binding SurroundingPieces, ElementName=PieceJoinerControlUserControl}" x:Key="collectionViewSourcePieces"/>
+        <logBox:BitmapToImageSourceConverter x:Key="BitmapConverter"/>
+    </UserControl.Resources>
+    
+    <Grid DataContext="{Binding ElementName=PieceJoinerControlUserControl}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="3*"/>
+            <ColumnDefinition Width="2*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="50"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Grid.Column="0">
+            <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Top" ContentTemplate="{StaticResource TemplatePieceCard}" Content="{Binding CurrentPiece}"/>
+            <TextBlock Text="{Binding PreviousCurrentPieceDistance, StringFormat={}{0}}" FontSize="16"/>
+        </StackPanel>
+        
+        <ListBox Grid.Column="1" Grid.Row="0" ItemsSource="{Binding Source={StaticResource collectionViewSourcePieces}}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Columns="3" Rows="3"/>
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="Padding" Value="0"/>
+                    <Setter Property="Margin" Value="5"/>
+                </Style>
+            </ListBox.ItemContainerStyle>
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Vertical">
+                        <Border BorderBrush="Gray" CornerRadius="2" BorderThickness="2">
+                            <Image Source="{Binding PieceImgColor, Converter={StaticResource BitmapConverter}}"/>
+                        </Border>
+                        <TextBlock Text="{Binding PieceID}" VerticalAlignment="Center" HorizontalAlignment="Center"/>                        
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <ProgressBar Grid.Row="1" Grid.Column="0" Value="{Binding PercentageJoiningFinished, Mode=OneWay}"/>
+        
+        <StackPanel Grid.Column="1" Grid.Row="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" Orientation="Horizontal">
+            <Button Content="Previous" Margin="10" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding PreviousPieceCommand}"/>
+            <Button Content="Next >" Margin="10" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding NextPieceCommand}"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

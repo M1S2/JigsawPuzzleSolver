@@ -12,15 +12,11 @@
              d:DesignHeight="300" d:DesignWidth="300">
 
     <UserControl.Resources>
-        <logBox:BitmapToImageSourceConverter x:Key="BitmapConverter"/>
-        <converters:FullPathToFileNameConverter x:Key="FilePathNameConverter"/>
-
         <CollectionViewSource Source="{Binding PieceList, ElementName=PieceViewerControl}" x:Key="collectionViewSourcePieces">
             <CollectionViewSource.GroupDescriptions>
                 <dat:PropertyGroupDescription PropertyName="PieceType"/>
             </CollectionViewSource.GroupDescriptions>
         </CollectionViewSource>
-
     </UserControl.Resources>
 
     <Grid DataContext="{Binding ElementName=PieceViewerControl}">
@@ -35,68 +31,12 @@
         </StackPanel>
         
         <!-- see: http://www.magnuslindhe.com/2014/09/listbox-with-grid-layout-in-wpf/ -->
-        <ListBox Grid.Row="1" ItemsSource="{Binding Source={StaticResource collectionViewSourcePieces}}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+        <ListBox Grid.Row="1" ItemsSource="{Binding Source={StaticResource collectionViewSourcePieces}}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ItemTemplate="{StaticResource TemplatePieceCard}">
             <ListBox.ItemsPanel>
                 <ItemsPanelTemplate>
                     <WrapPanel/>
                 </ItemsPanelTemplate>
             </ListBox.ItemsPanel>
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <Grid Width="250" Background="#4CC8C8C8">
-                        <Grid.Resources>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="FontSize" Value="14" />
-                                <Setter Property="Foreground" Value="Black"/>
-                            </Style>
-                        </Grid.Resources>
-                        
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="120"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="50"/>
-                            <RowDefinition Height="200"/>
-                            <RowDefinition Height="30"/>
-                            <RowDefinition Height="30"/>
-                            <RowDefinition Height="30"/>
-                            <RowDefinition Height="30"/>
-                            <RowDefinition Height="30"/>
-                            <RowDefinition Height="30"/>
-                        </Grid.RowDefinitions>
-                        <Grid Grid.Row="0" Grid.ColumnSpan="2" Margin="3" Background="Red">
-                            <TextBlock Text="{Binding PieceID}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="25" Foreground="White"/>
-                        </Grid>
-                        <Grid Grid.Row="1" Grid.ColumnSpan="2" Margin="3">
-                            <Image>
-                                <Image.Style>
-                                    <Style>
-                                        <Setter Property="Image.Source" Value="{Binding PieceImgColor, Converter={StaticResource BitmapConverter}}"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding ElementName=imgTypeToggleSwitch, Path=IsChecked}" Value="True">
-                                                <Setter Property="Image.Source" Value="{Binding PieceImgBw, Converter={StaticResource BitmapConverter}}"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Image.Style>
-                            </Image>
-                        </Grid>
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="ID:" VerticalAlignment="Center"/>
-                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding PieceID}" VerticalAlignment="Center"/>
-                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Type: " VerticalAlignment="Center"/>
-                        <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding PieceType}" VerticalAlignment="Center"/>
-                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Source File: " VerticalAlignment="Center"/>
-                        <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding PieceSourceFileName, Converter={StaticResource FilePathNameConverter}}" ToolTip="{Binding PieceSourceFileName}" VerticalAlignment="Center"/>
-                        <TextBlock Grid.Row="5" Grid.Column="0" Text="Solution Rotation: " VerticalAlignment="Center"/>
-                        <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding SolutionRotation, StringFormat={}{0} °}" VerticalAlignment="Center"/>
-                        <TextBlock Grid.Row="6" Grid.Column="0" Text="Solution Location: " VerticalAlignment="Center"/>
-                        <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding SolutionLocation, StringFormat={}{0}}" VerticalAlignment="Center"/>
-                        <TextBlock Grid.Row="7" Grid.Column="0" Text="Solution ID: " VerticalAlignment="Center"/>
-                        <TextBlock Grid.Row="7" Grid.Column="1" Text="{Binding SolutionID}" VerticalAlignment="Center"/>
-                    </Grid>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
             <ListBox.ItemContainerStyle>
                 <Style TargetType="ListBoxItem">
                     <Setter Property="Padding" Value="0"/>

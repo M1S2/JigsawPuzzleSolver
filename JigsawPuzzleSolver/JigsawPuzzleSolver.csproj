@@ -95,6 +95,9 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     <Compile Include="GUI Elements\Converters\PuzzleStateToProgressBarStateConverter.cs" />
     <Compile Include="GUI Elements\Converters\FullPathToFileNameConverter.cs" />
     <Compile Include="GUI Elements\Converters\DivisionConverter.cs" />
+    <Compile Include="GUI Elements\PieceJoinerControl.xaml.cs">
+      <DependentUpon>PieceJoinerControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="GUI Elements\PieceViewer.xaml.cs">
       <DependentUpon>PieceViewer.xaml</DependentUpon>
     </Compile>
@@ -113,6 +116,10 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     <Compile Include="Forest.cs" />
     <Compile Include="Structures\MatchScore.cs" />
     <Compile Include="Utils.cs" />
+    <Page Include="GUI Elements\PieceJoinerControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="GUI Elements\PieceViewer.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
