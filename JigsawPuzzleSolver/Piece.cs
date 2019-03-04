@@ -64,6 +64,17 @@ namespace JigsawPuzzleSolver
             private set { _pieceSourceFileName = value;  OnPropertyChanged(); }
         }
 
+        private Point _pieceSourceFileLocation;
+        /// <summary>
+        /// Location of the piece in the source file in pixel.
+        /// </summary>
+        [DataMember]
+        public Point PieceSourceFileLocation
+        {
+            get { return _pieceSourceFileLocation; }
+            private set { _pieceSourceFileLocation = value; OnPropertyChanged(); }
+        }
+
         private PieceTypes _pieceType;
         /// <summary>
         /// Type of the Piece (CORNER, BORDER, INNER)
@@ -141,25 +152,39 @@ namespace JigsawPuzzleSolver
             set { _solutionID = value; OnPropertyChanged(); }
         }
 
+        private Size _pieceSize;
+        /// <summary>
+        /// Size of the piece in pixel
+        /// </summary>
+        [DataMember]
+        public Size PieceSize
+        {
+            get { return _pieceSize; }
+            set { _pieceSize = value; OnPropertyChanged(); }
+        }
+
         [DataMember]
         public Edge[] Edges = new Edge[4];
-
+        
         private VectorOfPoint corners = new VectorOfPoint();
         private IProgress<LogBox.LogEvent> _logHandle;
         private CancellationToken _cancelToken;
 
         //##############################################################################################################################################################################################
 
-        public Piece(Image<Rgb, byte> color, Image<Gray, byte> bw, string pieceSourceFileName, IProgress<LogBox.LogEvent> logHandle, CancellationToken cancelToken)
+        public Piece(Image<Rgba, byte> color, Image<Gray, byte> bw, string pieceSourceFileName, Point pieceSourceFileLocation, IProgress<LogBox.LogEvent> logHandle, CancellationToken cancelToken)
         {
             _logHandle = logHandle;
             _cancelToken = cancelToken;
             PieceID = "Piece#" + NextPieceID.ToString();
             NextPieceID++;
+
             PieceImgColor = new Bitmap(color.Bitmap);
             PieceImgBw = new Bitmap(bw.Bitmap);
             PieceSourceFileName = pieceSourceFileName;
-            
+            PieceSourceFileLocation = pieceSourceFileLocation;
+            PieceSize = PieceImgColor.Size;
+
             _logHandle.Report(new LogBox.LogEventImage(PieceID + " Color", color.Bitmap));
             if (PuzzleSolverParameters.SolverShowDebugResults) { _logHandle.Report(new LogBox.LogEventImage(PieceID + " Bw", bw.Bitmap)); }
 

@@ -14,6 +14,7 @@ namespace JigsawPuzzleSolver
     /// <typeparam name="TKey">Key type</typeparam>
     /// <typeparam name="TValue">Value type</typeparam>
     /// see: https://stackoverflow.com/questions/5663395/net-observabledictionary/26676294
+    [Serializable]
     public class ObservableDictionary<TKey, TValue> : Dictionary<TKey, TValue>, INotifyCollectionChanged, INotifyPropertyChanged
     {
         public ObservableDictionary() : base() { }

@@ -124,6 +124,7 @@ namespace JigsawPuzzleSolver
         public MainWindow()
         {
             InitializeComponent();
+            this.Closing += MainWindow_Closing;
 
             PuzzleSavingState = PuzzleSavingStates.NEW_UNSAVED;
 
@@ -151,8 +152,8 @@ namespace JigsawPuzzleSolver
             }*/
 
 //#warning Only for faster testing !!!
-            PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", logHandle);
-            //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", logHandle);
+            //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", logHandle);
+            PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", logHandle);
 
             PuzzleSavingState = PuzzleSavingStates.NEW_UNSAVED;
         }
@@ -219,6 +220,24 @@ namespace JigsawPuzzleSolver
             {
                 logHandle.Report(new LogBox.LogEventError("Error while loading: " + ex.Message));
             }
+        }
+
+        //**********************************************************************************************************************************************************************************************
+
+        private void MainWindow_Closing(object sender, CancelEventArgs e)
+        {
+            bool closeWindow = true;
+
+            if(PuzzleSavingState == PuzzleSavingStates.SAVING)
+            {
+                closeWindow = (MessageBox.Show("The Puzzle is currently saving. Do you want to close anyway?\nThe File will probably be corrupted!!!", "Puzzle currently saving", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes);
+            }
+            else if(PuzzleSavingState == PuzzleSavingStates.NEW_UNSAVED && PuzzleHandle != null && PuzzleHandle?.CurrentSolverState != PuzzleSolverState.UNSOLVED && PuzzleHandle?.CurrentSolverState != PuzzleSolverState.ERROR)
+            {
+                closeWindow = (MessageBox.Show("The Puzzle wasn't saved yet. Do you want to close anyway?", "Puzzle not saved yet", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes);
+            }
+
+            e.Cancel = !closeWindow;
         }
 
     }

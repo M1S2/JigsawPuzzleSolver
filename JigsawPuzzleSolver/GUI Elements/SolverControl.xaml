@@ -14,14 +14,14 @@
                 <StackPanel Orientation="Horizontal">
                     <Button HorizontalAlignment="Left" VerticalAlignment="Top" Height="35" Width="120" Margin="10,10,0,0" Command="{Binding StartSolvingCommand}">
                         <StackPanel Orientation="Horizontal">
-                            <Image Height="20" Source="/JigsawPuzzleSolver;component/Resources/Run_16x.png"/>
-                            <TextBlock Text="Start Solving" Margin="5,0,0,0"/>
+                            <Path Margin="6,3,3,3" VerticalAlignment="Center" HorizontalAlignment="Center" Fill="ForestGreen" Stroke="ForestGreen" StrokeThickness="2" Data="M 0 16 L 0 0 L 10 8 Z"/>
+                            <TextBlock Text="Start Solving" Margin="5,0,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
                     <Button HorizontalAlignment="Left" VerticalAlignment="Top" Height="35" Width="120" Margin="10,10,0,0" Command="{Binding StopSolvingCommand}">
                         <StackPanel Orientation="Horizontal">
-                            <Image Height="20" Source="/JigsawPuzzleSolver;component/Resources/Stop_16x.png"/>
-                            <TextBlock Text="Stop Solving" Margin="5,0,0,0"/>
+                            <Path Margin="6,3,3,3" VerticalAlignment="Center" HorizontalAlignment="Center" Fill="#FF8E210B" Stroke="#FF8E210B" StrokeThickness="2" Data="M 0 16 L 0 0 L 16 0 L 16 16 Z"/>
+                            <TextBlock Text="Stop Solving" Margin="5,0,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
                 </StackPanel>

@@ -192,6 +192,16 @@ namespace JigsawPuzzleSolver
 
         //**********************************************************************************************************************************************************************************************
 
+        private int _numberJoinedPieces;
+        [DataMember]
+        public int NumberJoinedPieces
+        {
+            get { return _numberJoinedPieces; }
+            set { _numberJoinedPieces = value; OnPropertyChanged(); }
+        }
+
+        //**********************************************************************************************************************************************************************************************
+
         /// <summary>
         /// Don't use this property. They are only for serializing and deserializing an Emgu Matrix.
         /// </summary>
@@ -318,8 +328,8 @@ namespace JigsawPuzzleSolver
                 //For each input image
                 for (int i = 0; i < imageFilesInfo.Count; i++)
                 {
-                    Image<Rgb, byte> sourceImg = CvInvoke.Imread(imageFilesInfo[i].FullName).ToImage<Rgb, byte>();
-                    CvInvoke.CvtColor(sourceImg, sourceImg, ColorConversion.Bgr2Rgb);               // Images are read in BGR model (not RGB)
+                    Image<Rgba, byte> sourceImg = CvInvoke.Imread(imageFilesInfo[i].FullName).ToImage<Rgba, byte>();
+                    CvInvoke.CvtColor(sourceImg, sourceImg, ColorConversion.Bgr2Rgba);               // Images are read in BGR model (not RGB)
                     if (PuzzleSolverParameters.PuzzleApplyMedianBlurFilter) { CvInvoke.MedianBlur(sourceImg, sourceImg, 5); }
 
                     Image<Hsv, byte> hsvSourceImg = sourceImg.Clone().Convert<Hsv, byte>();
@@ -342,7 +352,7 @@ namespace JigsawPuzzleSolver
                     CvBlobs blobs = new CvBlobs();
                     blobDetector.Detect(mask, blobs);
 
-                    Image<Rgb, byte> sourceImgPiecesMarked = sourceImg.Copy();
+                    Image<Rgba, byte> sourceImgPiecesMarked = sourceImg.Copy();
 
                     foreach (CvBlob blob in blobs.Values.Where(b => b.BoundingBox.Width >= PuzzleSolverParameters.PuzzleMinPieceSize && b.BoundingBox.Height >= PuzzleSolverParameters.PuzzleMinPieceSize))
                     {
@@ -350,7 +360,7 @@ namespace JigsawPuzzleSolver
 
                         Rectangle roi = blob.BoundingBox;
 
-                        Image<Rgb, byte> pieceSourceImg = new Image<Rgb, byte>(sourceImg.Size);
+                        Image<Rgba, byte> pieceSourceImg = new Image<Rgba, byte>(sourceImg.Size);
                         Image<Gray, byte> pieceMask = new Image<Gray, byte>(mask.Size);
 
                         try
@@ -367,23 +377,23 @@ namespace JigsawPuzzleSolver
                         }
 
                         // Mask out background of piece
-                        Image<Rgb, byte> pieceSourceImageForeground = new Image<Rgb, byte>(pieceSourceImg.Size);
+                        Image<Rgba, byte> pieceSourceImageForeground = new Image<Rgba, byte>(pieceSourceImg.Size);
                         CvInvoke.BitwiseOr(pieceSourceImg, pieceSourceImg, pieceSourceImageForeground, pieceMask);
 
                         Image<Gray, byte> pieceMaskInverted = pieceMask.Copy(pieceMask);
                         pieceMaskInverted._Not();
-                        Image<Rgb, byte> background = new Image<Rgb, byte>(pieceSourceImg.Size);
-                        background.SetValue(new Rgb(255, 255, 255));
-                        Image<Rgb, byte> pieceSourceImageBackground = new Image<Rgb, byte>(pieceSourceImg.Size);
+                        Image<Rgba, byte> background = new Image<Rgba, byte>(pieceSourceImg.Size);
+                        background.SetValue(new Rgba(255, 255, 255, 0));
+                        Image<Rgba, byte> pieceSourceImageBackground = new Image<Rgba, byte>(pieceSourceImg.Size);
                         CvInvoke.BitwiseOr(background, background, pieceSourceImageBackground, pieceMaskInverted);
 
-                        Image<Rgb, byte> pieceSourceImgMasked = new Image<Rgb, byte>(pieceSourceImg.Size);
+                        Image<Rgba, byte> pieceSourceImgMasked = new Image<Rgba, byte>(pieceSourceImg.Size);
                         CvInvoke.BitwiseOr(pieceSourceImageForeground, pieceSourceImageBackground, pieceSourceImgMasked);
 
-                        Piece p = new Piece(pieceSourceImgMasked, pieceMask, imageFilesInfo[i].FullName, _logHandle, _cancelToken);
+                        Piece p = new Piece(pieceSourceImgMasked, pieceMask, imageFilesInfo[i].FullName, roi.Location, _logHandle, _cancelToken);
                         Pieces.Add(p);
 
-                        sourceImgPiecesMarked.Draw(roi, new Rgb(255, 0, 0), 2);
+                        sourceImgPiecesMarked.Draw(roi, new Rgba(255, 0, 0, 1), 2);
                         int baseLine = 0;
                         Size textSize = CvInvoke.GetTextSize(p.PieceID.Replace("Piece", ""), FontFace.HersheyDuplex, 3, 2, ref baseLine);
                         CvInvoke.PutText(sourceImgPiecesMarked, p.PieceID.Replace("Piece", ""), Point.Add(roi.Location, new Size(0, textSize.Height + 10)), FontFace.HersheyDuplex, 3, new MCvScalar(255, 0, 0), 2);
@@ -499,9 +509,9 @@ namespace JigsawPuzzleSolver
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -740,7 +750,7 @@ namespace JigsawPuzzleSolver
                     g.DrawString(Pieces[piece_number].PieceID + Environment.NewLine + Path.GetFileName(Pieces[piece_number].PieceSourceFileName), new Font("Arial", 40), new SolidBrush(Color.Blue), pieceRect, stringFormat);
                 }
             }
-
+            
             return outImg;
         }
 

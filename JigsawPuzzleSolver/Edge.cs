@@ -263,9 +263,9 @@ namespace JigsawPuzzleSolver
 
                 return distEndpointContoursDiff + matchResult;
             }
-            catch (OperationCanceledException ex)
+            catch (OperationCanceledException)
             {
-                throw ex;
+                throw;
             }
         }
 

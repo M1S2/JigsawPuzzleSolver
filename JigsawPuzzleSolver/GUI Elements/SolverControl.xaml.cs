@@ -116,10 +116,10 @@ namespace JigsawPuzzleSolver.GUI_Elements
         void SolverControl_Loaded(object sender, RoutedEventArgs e)
         {
             Window window = Window.GetWindow(this);
-            if (window != null) { window.Closing += window_Closing; }
+            if (window != null) { window.Closed += window_Closed; ; }
         }
 
-        async void window_Closing(object sender, CancelEventArgs e)
+        async void window_Closed(object sender, EventArgs e)
         {
             if (cancelTokenSource != null)
             {
@@ -127,7 +127,7 @@ namespace JigsawPuzzleSolver.GUI_Elements
                 if(workerTask != null && !workerTask.IsCompleted)
                 {
                     ((Window)sender).Hide();
-                    e.Cancel = true;
+                    //e.Cancel = true;
                     try
                     {
                         await workerTask;

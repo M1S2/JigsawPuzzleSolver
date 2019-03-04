@@ -43,9 +43,9 @@ namespace JigsawPuzzleSolver
                 DataContractSerializer serializer = new DataContractSerializer(typeof(SaveableObject<Tchild>), knownTypes);
                 serializer.WriteObject(writer, serializableObject);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
             finally
             {
@@ -84,9 +84,9 @@ namespace JigsawPuzzleSolver
                 DataContractSerializer serializer = new DataContractSerializer(typeof(SaveableObject<Tchild>), knownTypes);
                 objectOut = (Tchild)serializer.ReadObject(reader);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
             finally
             {

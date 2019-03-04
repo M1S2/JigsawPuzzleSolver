@@ -15,6 +15,7 @@ using System.Windows.Shapes;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Collections.ObjectModel;
+using System.Drawing;
 
 namespace JigsawPuzzleSolver.GUI_Elements
 {
@@ -23,6 +24,7 @@ namespace JigsawPuzzleSolver.GUI_Elements
     /// </summary>
     public partial class PieceJoinerControl : UserControl, INotifyPropertyChanged
     {
+        #region INotifyPropertyChanged implementation
         /// <summary>
         /// Raised when a property on this object has a new value.
         /// </summary>
@@ -37,6 +39,7 @@ namespace JigsawPuzzleSolver.GUI_Elements
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+        #endregion
 
         //##############################################################################################################################################################################################
 
@@ -51,6 +54,8 @@ namespace JigsawPuzzleSolver.GUI_Elements
         {
             PieceJoinerControl c = sender as PieceJoinerControl;
             c.PuzzleHandle.PropertyChanged += c.PuzzleHandle_PropertyChanged;
+            c.RecalculatePieceJoiningOrder();
+            c.OnPropertyChanged("PercentageJoiningFinished");
         }
 
         private void PuzzleHandle_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -64,6 +69,7 @@ namespace JigsawPuzzleSolver.GUI_Elements
             switch(e.PropertyName)
             {
                 case "Solutions": RecalculatePieceJoiningOrder(); break;
+                case "NumberJoinedPieces": OnPropertyChanged("PercentageJoiningFinished"); break;
                 case "CurrentSolutionNumber":
                 case "CurrentSolutionPieceIndex":
                     OnPropertyChanged("CurrentPiece");
@@ -80,35 +86,42 @@ namespace JigsawPuzzleSolver.GUI_Elements
 
         public int NumberSolutions
         {
-            get { return PuzzleHandle.Solutions.Count; }
+            get { return ((PuzzleHandle == null || PuzzleHandle.Solutions == null) ? 0 : PuzzleHandle.Solutions.Count); }
         }
-
-        private int _numberJoinedPieces;
-        public int NumberJoinedPieces
-        {
-            get { return _numberJoinedPieces; }
-            set { _numberJoinedPieces = value; OnPropertyChanged(); OnPropertyChanged("PercentageJoiningFinished"); }
-        }
-
-        private Dictionary<int, List<Piece>> OrderedPieces { get; set; }
-
+        
         private Piece _currentPiece;
         public Piece CurrentPiece
         {
             get { return _currentPiece; }
-            set { PreviousPiece = _currentPiece; _currentPiece = value;  OnPropertyChanged(); OnPropertyChanged("PreviousCurrentPieceDistance"); GetSurroundingPieces(); }
+            set { PreviousPiece = _currentPiece; _currentPiece = value;  OnPropertyChanged(); OnPropertyChanged("PreviousToCurrentPieceDistance"); OnPropertyChanged("CurrentPieceSourceImage"); GetSurroundingPieces(); }
+        }
+        
+        public Bitmap CurrentPieceSourceImage
+        {
+            get
+            {
+                Bitmap srcImg = (Bitmap)PuzzleHandle?.InputImages.Where(p => p.Description == System.IO.Path.GetFileName(CurrentPiece.PieceSourceFileName))?.First().Img.Clone();
+                if(srcImg != null)
+                {
+                    using (Graphics srcGraphics = Graphics.FromImage(srcImg))
+                    {
+                        srcGraphics.DrawRectangle(new System.Drawing.Pen(System.Drawing.Color.Lime, 10), new System.Drawing.Rectangle(CurrentPiece.PieceSourceFileLocation, CurrentPiece.PieceSize));
+                    }
+                }
+                return srcImg;
+            }
         }
 
         private Piece _previousPiece;
         public Piece PreviousPiece
         {
             get { return _previousPiece; }
-            private set { _previousPiece = value; }
+            private set { _previousPiece = value; OnPropertyChanged(); OnPropertyChanged("PreviousToCurrentPieceDistance"); }
         }
 
         public double PercentageJoiningFinished
         {
-            get { return (PuzzleHandle == null ? 0 : ((NumberJoinedPieces / (double)(PuzzleHandle.Pieces.Count - 1)) * 100)); }
+            get { return ((PuzzleHandle == null || PuzzleHandle.Pieces == null) ? 0 : ((PuzzleHandle.NumberJoinedPieces / (double)(PuzzleHandle?.Pieces.Count - 1)) * 100)); }
         }
         
         private ObservableCollection<Piece> _surroundingPieces;
@@ -121,7 +134,7 @@ namespace JigsawPuzzleSolver.GUI_Elements
             private set { _surroundingPieces = value; OnPropertyChanged(); }
         }
 
-        public System.Drawing.Point PreviousCurrentPieceDistance
+        public System.Drawing.Point PreviousToCurrentPieceDistance
         {
             get
             {
@@ -129,6 +142,10 @@ namespace JigsawPuzzleSolver.GUI_Elements
                 else { return System.Drawing.Point.Subtract(CurrentPiece.SolutionLocation, new System.Drawing.Size(PreviousPiece.SolutionLocation)); }
             }
         }
+
+        //**********************************************************************************************************************************************************************************************
+
+        private Dictionary<int, List<Piece>> OrderedPieces { get; set; }
 
         //##############################################################################################################################################################################################
 
@@ -166,22 +183,25 @@ namespace JigsawPuzzleSolver.GUI_Elements
         /// </summary>
         private void RecalculatePieceJoiningOrder()
         {
-            List<Piece> orderedSolutionPieces = new List<Piece>();
-            int numSolution = NumberSolutions - 1;
-            for(int i =0; i< PuzzleHandle.Solutions[numSolution].Rows; i++)
-            {
-                for (int j = 0; j < PuzzleHandle.Solutions[numSolution].Cols; j++)
-                {
-                    int pieceNumber = PuzzleHandle.Solutions[numSolution][i, j];
-                    if(pieceNumber == -1) { continue; }
-                    orderedSolutionPieces.Add(PuzzleHandle.Pieces[pieceNumber]);
-                }
-            }
+            OrderedPieces = new Dictionary<int, List<Piece>>();
 
-            if(OrderedPieces == null) { OrderedPieces = new Dictionary<int, List<Piece>>(); }
-            if (OrderedPieces.ContainsKey(numSolution)) { OrderedPieces[numSolution] = orderedSolutionPieces; }
-            else { OrderedPieces.Add(numSolution, orderedSolutionPieces); }
-            CurrentPiece = OrderedPieces[PuzzleHandle.CurrentSolutionNumber][PuzzleHandle.CurrentSolutionPieceIndex];
+            for (int numSolution = 0; numSolution < NumberSolutions; numSolution++)
+            {
+                List<Piece> orderedSolutionPieces = new List<Piece>();
+                for (int i = 0; i < PuzzleHandle.Solutions[numSolution].Rows; i++)
+                {
+                    for (int j = 0; j < PuzzleHandle.Solutions[numSolution].Cols; j++)
+                    {
+                        int pieceNumber = PuzzleHandle.Solutions[numSolution][i, j];
+                        if (pieceNumber == -1) { continue; }
+                        orderedSolutionPieces.Add(PuzzleHandle.Pieces[pieceNumber]);
+                    }
+                }
+
+                if (OrderedPieces.ContainsKey(numSolution)) { OrderedPieces[numSolution] = orderedSolutionPieces; }
+                else { OrderedPieces.Add(numSolution, orderedSolutionPieces); }
+                CurrentPiece = OrderedPieces[PuzzleHandle.CurrentSolutionNumber][PuzzleHandle.CurrentSolutionPieceIndex];
+            }
         }
 
         //**********************************************************************************************************************************************************************************************
@@ -214,6 +234,7 @@ namespace JigsawPuzzleSolver.GUI_Elements
 
         private void JoinPreviousPiece()
         {
+            bool isPreviousSolution = false;
             if (PuzzleHandle.CurrentSolutionPieceIndex > 0)
             {
                 PuzzleHandle.CurrentSolutionPieceIndex--;
@@ -222,13 +243,16 @@ namespace JigsawPuzzleSolver.GUI_Elements
             {
                 PuzzleHandle.CurrentSolutionNumber--;
                 PuzzleHandle.CurrentSolutionPieceIndex = NumberPiecesInSolution - 1;
+                isPreviousSolution = true;
             }
             CurrentPiece = OrderedPieces[PuzzleHandle.CurrentSolutionNumber][PuzzleHandle.CurrentSolutionPieceIndex];
-            NumberJoinedPieces--;
+            if (isPreviousSolution) { PreviousPiece = null; }
+            PuzzleHandle.NumberJoinedPieces--;
         }
 
         private void JoinNextPiece()
         {
+            bool isNextSolution = false;
             if (PuzzleHandle.CurrentSolutionPieceIndex < NumberPiecesInSolution - 1)
             {
                 PuzzleHandle.CurrentSolutionPieceIndex++;
@@ -237,13 +261,12 @@ namespace JigsawPuzzleSolver.GUI_Elements
             {
                 PuzzleHandle.CurrentSolutionPieceIndex = 0;
                 PuzzleHandle.CurrentSolutionNumber++;
-            }
-            else
-            {
-                // All pieces joined
+                isNextSolution = true;
             }
             CurrentPiece = OrderedPieces[PuzzleHandle.CurrentSolutionNumber][PuzzleHandle.CurrentSolutionPieceIndex];
-            NumberJoinedPieces++;
+            if (isNextSolution) { PreviousPiece = null; }
+            PuzzleHandle.NumberJoinedPieces++;
         }
+
     }
 }
