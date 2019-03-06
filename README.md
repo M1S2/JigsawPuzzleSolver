@@ -3,7 +3,7 @@
 |
 | ---------| -----------------------------------------|
 | Project: | JigsawPuzzleSolver                       |
-| Version: | %version%                                |
+| Version: | v2.0                                |
 
 ## Purpose
 Solving jigsaw puzzles by comparing the edges of the puzzle pieces against each other and joining them.
