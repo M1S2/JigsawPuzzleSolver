@@ -4,6 +4,9 @@ Project: JigsawPuzzleSolver
 
 ## [%version%] - %date%
 
+
+## [v2.0] - 06.03.2019 20:06
+
 - PieceViewer added. Showing details for each piece.
 - Saving and loading puzzle possible
 - Show input images
