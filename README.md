@@ -13,7 +13,8 @@ The solver only uses the shapes of the edges to compare them. No color matching 
 1. Scan all puzzle pieces that should be joined. There can be multiple pieces per input image. The single pieces are extracted from the input image by segmentation. Scan the rear side of the pieces to get better edges.
 2. "Open a new puzzle" by clicking the button on the GUI. Select the folder that contains all scanned images. Subfolders are ignored.
 3. "Start solving" by clicking the button on the GUI. You can stop the solving during each step.
-4. When the solver is finished, you can see the result(s) in the second tab.
+4. When the solver is finished, you can see the result(s) in the "Solver Result" tab.
+5. Use the "Join Pieces" Tab to join the pieces.
 
 ## Solver Steps
 1. **Initialize Pieces:**

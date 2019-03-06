@@ -498,7 +498,7 @@ namespace JigsawPuzzleSolver
                         }
                     }
                 }
-                
+
                 matches.Sort(new MatchScoreComparer(ScoreOrders.LOWEST_FIRST)); // Sort the matches to get the best scores first. The puzzle is solved by the order of the MatchScores
 
                 if (PuzzleSolverParameters.SolverShowDebugResults)

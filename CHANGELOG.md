@@ -4,6 +4,11 @@ Project: JigsawPuzzleSolver
 
 ## [%version%] - %date%
 
+- PieceViewer added. Showing details for each piece.
+- Saving and loading puzzle possible
+- Show input images
+- Show solver progress in taskbar
+- PieceJoinerControl added. Use this to reassemble the puzzle.
 
 ## [v1.0] - 18.01.2019 22:46
 
