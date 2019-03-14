@@ -23,13 +23,18 @@ using Emgu.CV;
 using Emgu.CV.Structure;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Util;
+using MahApps.Metro;
+using MahApps.Metro.Controls;
+using MahApps.Metro.Controls.Dialogs;
+using JigsawPuzzleSolver.GUI_Elements;
+using JigsawPuzzleSolver.WindowTheme;
 
 namespace JigsawPuzzleSolver
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window, INotifyPropertyChanged
+    public partial class MainWindow : MetroWindow, INotifyPropertyChanged
     {
         /// <summary>
         /// Raised when a property on this object has a new value.
@@ -143,16 +148,16 @@ namespace JigsawPuzzleSolver
 
         private void OpenNewPuzzle()
         {
-            System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
+            /*System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
             folderBrowserDialog1.Description = "Select a folder containing all scanned puzzle piece images.";
             if(PuzzleHandle != null) { folderBrowserDialog1.SelectedPath = PuzzleHandle.PuzzlePiecesFolderPath; }
             if(folderBrowserDialog1.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 PuzzleHandle = new Puzzle(folderBrowserDialog1.SelectedPath, logHandle);
-            }
+            }*/
 
-//#warning Only for faster testing !!!
-            //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", logHandle);
+#warning Only for faster testing !!!
+            PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", logHandle);
             //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", logHandle);
 
             PuzzleSavingState = PuzzleSavingStates.NEW_UNSAVED;
@@ -224,20 +229,27 @@ namespace JigsawPuzzleSolver
 
         //**********************************************************************************************************************************************************************************************
 
-        private void MainWindow_Closing(object sender, CancelEventArgs e)
+
+        //see: https://github.com/MahApps/MahApps.Metro/issues/1022
+        private bool ShouldClose = false;
+        private async void MainWindow_Closing(object sender, CancelEventArgs e)
         {
-            bool closeWindow = true;
-
-            if(PuzzleSavingState == PuzzleSavingStates.SAVING)
+            if (ShouldClose == false)
             {
-                closeWindow = (MessageBox.Show("The Puzzle is currently saving. Do you want to close anyway?\nThe File will probably be corrupted!!!", "Puzzle currently saving", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes);
-            }
-            else if(PuzzleSavingState == PuzzleSavingStates.NEW_UNSAVED && PuzzleHandle != null && PuzzleHandle?.CurrentSolverState != PuzzleSolverState.UNSOLVED && PuzzleHandle?.CurrentSolverState != PuzzleSolverState.ERROR)
-            {
-                closeWindow = (MessageBox.Show("The Puzzle wasn't saved yet. Do you want to close anyway?", "Puzzle not saved yet", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes);
-            }
+                e.Cancel = true; //stop the window from closing.
 
-            e.Cancel = !closeWindow;
+                if (PuzzleSavingState == PuzzleSavingStates.SAVING)
+                {
+                    ShouldClose = (await this.ShowMessageAsync("Puzzle currently saving", "The Puzzle is currently saving. Do you want to close anyway?\nThe File will probably be corrupted!!!", MessageDialogStyle.AffirmativeAndNegative, new MetroDialogSettings() { AffirmativeButtonText = "Close", NegativeButtonText = "Cancel", DialogResultOnCancel = MessageDialogResult.Canceled }) == MessageDialogResult.Affirmative);
+                }
+                else if (PuzzleSavingState == PuzzleSavingStates.NEW_UNSAVED && PuzzleHandle != null && PuzzleHandle?.CurrentSolverState != PuzzleSolverState.UNSOLVED && PuzzleHandle?.CurrentSolverState != PuzzleSolverState.ERROR)
+                {
+                    ShouldClose = (await this.ShowMessageAsync("Puzzle not saved yet", "The Puzzle wasn't saved yet. Do you want to close anyway?", MessageDialogStyle.AffirmativeAndNegative, new MetroDialogSettings() { AffirmativeButtonText = "Close", NegativeButtonText = "Cancel", DialogResultOnCancel = MessageDialogResult.Canceled }) == MessageDialogResult.Affirmative);
+                }
+                else { ShouldClose = true; }
+
+                if(ShouldClose) { Application.Current.Shutdown(); }
+            }
         }
 
     }

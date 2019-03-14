@@ -54,10 +54,10 @@
                                         <Expander IsExpanded="True">
                                             <Expander.Header>
                                                 <StackPanel Orientation="Horizontal" Background="Transparent" HorizontalAlignment="{Binding HorizontalAlignment, RelativeSource={RelativeSource AncestorType=ContentPresenter}, Mode=OneWayToSource}">
-                                                    <TextBlock Text="{Binding Name}" Foreground="Black" FontWeight="Bold" FontSize="25" VerticalAlignment="Center" />
-                                                    <TextBlock Text=" (" Foreground="Red" FontSize="20" VerticalAlignment="Center" />
-                                                    <TextBlock Text="{Binding ItemCount}" Foreground="Red" FontSize="20" VerticalAlignment="Center" />
-                                                    <TextBlock Text=")" Foreground="Red" FontSize="20" VerticalAlignment="Center" />
+                                                    <TextBlock Text="{Binding Name}" Foreground="{DynamicResource IdealForegroundColorBrush}" FontWeight="Bold" FontSize="25" VerticalAlignment="Center" />
+                                                    <TextBlock Text=" (" Foreground="{DynamicResource IdealForegroundColorBrush}" FontSize="20" VerticalAlignment="Center" />
+                                                    <TextBlock Text="{Binding ItemCount}" Foreground="{DynamicResource IdealForegroundColorBrush}" FontSize="20" VerticalAlignment="Center" />
+                                                    <TextBlock Text=")" Foreground="{DynamicResource IdealForegroundColorBrush}" FontSize="20" VerticalAlignment="Center" />
                                                 </StackPanel>
                                             </Expander.Header>
                                             <ItemsPresenter Margin="25,0,0,0"/>

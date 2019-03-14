@@ -7,76 +7,96 @@
              StartupUri="MainWindow.xaml">
 
     <Application.Resources>
-        <logBox:BitmapToImageSourceConverter x:Key="BitmapConverter"/>
-        <converters:FullPathToFileNameConverter x:Key="FilePathNameConverter"/>
-        <converters:AbsConverter x:Key="AbsConverter"/>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- MahApps.Metro resource dictionaries. Make sure that all file names are Case Sensitive! -->
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
+                <!-- Accent and AppTheme setting -->
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Themes/Light.Emerald.xaml" />
+            </ResourceDictionary.MergedDictionaries>
 
-        <!-- Path Disabled Style -->
-        <Style TargetType="Path">
-            <Setter Property="Opacity" Value="1"/>
-            <Style.Triggers>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Opacity" Value="0.25"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
+            <logBox:BitmapToImageSourceConverter x:Key="BitmapConverter"/>
+            <converters:FullPathToFileNameConverter x:Key="FilePathNameConverter"/>
+            <converters:AbsConverter x:Key="AbsConverter"/>
 
-        <DataTemplate x:Key="TemplatePieceCard">
-            <Border Width="250" CornerRadius="10" BorderBrush="Gray" BorderThickness="1" Background="#4CC8C8C8">
-                <Grid>
-                    <Grid.Resources>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="FontSize" Value="14" />
-                            <Setter Property="Foreground" Value="Black"/>
-                            <Setter Property="Margin" Value="10,0,0,0"/>
-                        </Style>
-                    </Grid.Resources>
+            <!-- Path Disabled Style -->
+            <Style TargetType="Path">
+                <Setter Property="Opacity" Value="1"/>
+                <Style.Triggers>
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Opacity" Value="0.25"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
 
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="120"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="50"/>
-                        <RowDefinition Height="200"/>
-                        <RowDefinition Height="30"/>
-                        <RowDefinition Height="30"/>
-                        <RowDefinition Height="30"/>
-                        <RowDefinition Height="30"/>
-                        <RowDefinition Height="30"/>
-                        <RowDefinition Height="30"/>
-                    </Grid.RowDefinitions>
-                    <Border Grid.Row="0" Grid.ColumnSpan="2" Margin="3" Background="Red" CornerRadius="10">
-                        <TextBlock Text="{Binding PieceID}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="25" Foreground="White"/>
-                    </Border>
-                    <Grid Grid.Row="1" Grid.ColumnSpan="2" Margin="3">
-                        <Image>
-                            <Image.Style>
-                                <Style>
-                                    <Setter Property="Image.Source" Value="{Binding PieceImgColor, Converter={StaticResource BitmapConverter}}"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding ElementName=imgTypeToggleSwitch, Path=IsChecked}" Value="True">
-                                            <Setter Property="Image.Source" Value="{Binding PieceImgBw, Converter={StaticResource BitmapConverter}}"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Image.Style>
-                        </Image>
+            <!-- Style to gray out disabled images -->
+            <Style TargetType="{x:Type Image}">
+                <Setter Property="Opacity" Value="1"/>
+                <Style.Triggers>
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Opacity" Value="0.25"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <DataTemplate x:Key="TemplatePieceCard">
+                <Border Width="250" CornerRadius="10" BorderBrush="Gray" BorderThickness="1" Background="#4CC8C8C8">
+                    <Grid>
+                        <Grid.Resources>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontSize" Value="14" />
+                                <Setter Property="Foreground" Value="Black"/>
+                                <Setter Property="Margin" Value="10,0,0,0"/>
+                            </Style>
+                        </Grid.Resources>
+
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="120"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="50"/>
+                            <RowDefinition Height="200"/>
+                            <RowDefinition Height="30"/>
+                            <RowDefinition Height="30"/>
+                            <RowDefinition Height="30"/>
+                            <RowDefinition Height="30"/>
+                            <RowDefinition Height="30"/>
+                            <RowDefinition Height="30"/>
+                        </Grid.RowDefinitions>
+                        <Border Grid.Row="0" Grid.ColumnSpan="2" Margin="3" Background="{DynamicResource AccentColorBrush}" CornerRadius="10">
+                            <TextBlock Text="{Binding PieceID}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="25" Foreground="White"/>
+                        </Border>
+                        <Grid Grid.Row="1" Grid.ColumnSpan="2" Margin="3">
+                            <Image>
+                                <Image.Style>
+                                    <Style>
+                                        <Setter Property="Image.Source" Value="{Binding PieceImgColor, Converter={StaticResource BitmapConverter}}"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ElementName=imgTypeToggleSwitch, Path=IsChecked}" Value="True">
+                                                <Setter Property="Image.Source" Value="{Binding PieceImgBw, Converter={StaticResource BitmapConverter}}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Image.Style>
+                            </Image>
+                        </Grid>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="ID:" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding PieceID}" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Type: " VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding PieceType}" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Source File: " VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding PieceSourceFileName, Converter={StaticResource FilePathNameConverter}}" ToolTip="{Binding PieceSourceFileName}" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="5" Grid.Column="0" Text="Solution Rotation: " VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding SolutionRotation, StringFormat={}{0} °}" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="6" Grid.Column="0" Text="Solution Location: " VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding SolutionLocation, StringFormat={}{0}}" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="7" Grid.Column="0" Text="Solution ID: " VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="7" Grid.Column="1" Text="{Binding SolutionID}" VerticalAlignment="Center"/>
                     </Grid>
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="ID:" VerticalAlignment="Center"/>
-                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding PieceID}" VerticalAlignment="Center"/>
-                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Type: " VerticalAlignment="Center"/>
-                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding PieceType}" VerticalAlignment="Center"/>
-                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Source File: " VerticalAlignment="Center"/>
-                    <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding PieceSourceFileName, Converter={StaticResource FilePathNameConverter}}" ToolTip="{Binding PieceSourceFileName}" VerticalAlignment="Center"/>
-                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Solution Rotation: " VerticalAlignment="Center"/>
-                    <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding SolutionRotation, StringFormat={}{0} °}" VerticalAlignment="Center"/>
-                    <TextBlock Grid.Row="6" Grid.Column="0" Text="Solution Location: " VerticalAlignment="Center"/>
-                    <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding SolutionLocation, StringFormat={}{0}}" VerticalAlignment="Center"/>
-                    <TextBlock Grid.Row="7" Grid.Column="0" Text="Solution ID: " VerticalAlignment="Center"/>
-                    <TextBlock Grid.Row="7" Grid.Column="1" Text="{Binding SolutionID}" VerticalAlignment="Center"/>
-                </Grid>
-            </Border>
-        </DataTemplate>
+                </Border>
+            </DataTemplate>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -1,4 +1,4 @@
-﻿<Window
+﻿<MetroControls:MetroWindow
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -8,71 +8,70 @@
         xmlns:ImgGallery="clr-namespace:ImageGallery;assembly=ImageGallery"
         xmlns:guiElements="clr-namespace:JigsawPuzzleSolver.GUI_Elements"
         xmlns:converters="clr-namespace:JigsawPuzzleSolver.GUI_Elements.Converters"
+        xmlns:MetroControls="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        xmlns:windowTheme="clr-namespace:JigsawPuzzleSolver.WindowTheme"
         x:Class="JigsawPuzzleSolver.MainWindow"
         mc:Ignorable="d"
         Title="Puzzle Solver" Height="900" Width="1200"
-        DataContext="{Binding RelativeSource={RelativeSource Self}}"
-        Icon="Resources/PuzzlePiece.png">
+        DataContext="{Binding RelativeSource={RelativeSource Self}}">
 
-    <Window.Resources>
+    <MetroControls:MetroWindow.Resources>
         <converters:PuzzleSavingStateToIconConverter x:Key="SavingStateConverter"/>
         <converters:DivisionConverter x:Key="DivConverter"/>
         <converters:PuzzleStateToProgressBarStateConverter x:Key="ProgressBarStateConverter"/>
+        <converters:IconPackToGeometryDrawingConverter x:Key="IconPackGeometryDrawingConverter"/>
+    </MetroControls:MetroWindow.Resources>
 
-        <!-- Style to gray out disabled images -->
-        <Style TargetType="{x:Type Image}">
-            <Style.Triggers>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Opacity" Value="0.25"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-    </Window.Resources>
+    <!-- !!!!!!!!!!!!!!!!!!!!! use: https://social.msdn.microsoft.com/Forums/vstudio/en-US/bb7e2ae5-2046-4fb7-a27d-119197be8683/wpf-and-icons-best-practices?forum=wpf -->
+    <MetroControls:MetroWindow.Icon>
+        <DrawingImage Drawing="{Binding Source={x:Static iconPacks:PackIconModernKind.PuzzleRound}, Converter={StaticResource IconPackGeometryDrawingConverter}}"/>
+    </MetroControls:MetroWindow.Icon>
+    
+    <!--<MetroControls:MetroWindow.IconTemplate>
+        <DataTemplate>
+            <iconPacks:PackIconMaterial Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Margin="2" Padding="4" Foreground="{DynamicResource IdealForegroundColorBrush}" Kind="Puzzle" />
+        </DataTemplate>
+    </MetroControls:MetroWindow.IconTemplate>-->
 
+    <MetroControls:MetroWindow.LeftWindowCommands>
+        <MetroControls:WindowCommands>
+            <Separator/>
+            <Button Command="{Binding OpenNewPuzzleCommand}">
+                <iconPacks:PackIconModern Width="22" Height="22" Kind="PageAdd" ToolTip="Open new Puzzle" />
+            </Button>
+            <Button Command="{Binding LoadPuzzleCommand}">
+                <iconPacks:PackIconModern Width="22" Height="22" Kind="FolderOpen" ToolTip="Load Puzzle" />
+            </Button>
+            <Button Command="{Binding SavePuzzleCommand}">
+                <iconPacks:PackIconModern Width="22" Height="22" Kind="Save" ToolTip="Save Puzzle" />
+            </Button>
+        </MetroControls:WindowCommands>
+    </MetroControls:MetroWindow.LeftWindowCommands>
+    
+    <MetroControls:MetroWindow.RightWindowCommands>
+        <MetroControls:WindowCommands>
+            <windowTheme:WindowThemeUserControl/>
+
+            <Button Command="{Binding InfoCommand}" ToolTip="About this application">
+                <iconPacks:PackIconModern Width="22" Height="22" Kind="InformationCircle" />
+            </Button>
+        </MetroControls:WindowCommands>
+    </MetroControls:MetroWindow.RightWindowCommands>
+    
     <!--see: https://entwickler.de/online/windowsdeveloper/wpf-status-taskbar-579796650.html-->
-    <Window.TaskbarItemInfo>
+    <MetroControls:MetroWindow.TaskbarItemInfo>
         <TaskbarItemInfo ProgressState="{Binding PuzzleHandle.CurrentSolverState, Converter={StaticResource ProgressBarStateConverter}}" ProgressValue="{Binding PuzzleHandle.CurrentSolverStepPercentageFinished, Converter={StaticResource DivConverter}, ConverterParameter=100}" />
-    </Window.TaskbarItemInfo>
+    </MetroControls:MetroWindow.TaskbarItemInfo>
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="35"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="200"/>
             <RowDefinition Height="35"/>
         </Grid.RowDefinitions>
-        
-        <ToolBar Grid.Row="0">
-            <Button Command="{Binding OpenNewPuzzleCommand}">
-                <StackPanel Orientation="Horizontal">
-                    <Image Height="16" Source="Resources/NewFile_16x.png"/>
-                    <TextBlock Text="Open new Puzzle" Margin="5,0,0,0"/>
-                </StackPanel>
-            </Button>
-            <Separator/>
-            <Button Command="{Binding SavePuzzleCommand}">
-                <StackPanel Orientation="Horizontal">
-                    <Image Height="16" Source="Resources/Save_16x.png"/>
-                    <TextBlock Text="Save Puzzle" Margin="5,0,0,0"/>
-                </StackPanel>
-            </Button>
-            <Separator/>
-            <Button Command="{Binding LoadPuzzleCommand}">
-                <StackPanel Orientation="Horizontal">
-                    <Image Height="16" Source="Resources/OpenFolder_16x.png"/>
-                    <TextBlock Text="Load Puzzle" Margin="5,0,0,0"/>
-                </StackPanel>
-            </Button>
-            <Separator/>
-            <Button Command="{Binding InfoCommand}">
-                <StackPanel Orientation="Horizontal">
-                    <Image Height="16" Source="Resources/Info.png"/>
-                    <TextBlock Text="About" Margin="5,0,0,0"/>
-                </StackPanel>
-            </Button>
-        </ToolBar>
 
-        <TabControl Grid.Row="1">
+        <MetroControls:MetroAnimatedTabControl Grid.Row="0" MetroControls:TabControlHelper.Underlined="SelectedTabItem">
             <TabItem Header="Solver Progress">
                 <guiElements:SolverControl PuzzleHandle="{Binding PuzzleHandle, Mode=OneWay}" PuzzleSavingState="{Binding PuzzleSavingState, Mode=OneWay}" ScrollLogEntries="{Binding AutoScrollToLastLogEntry, ElementName=logBox1, Mode=TwoWay}"/>
             </TabItem>
@@ -92,14 +91,13 @@
             <TabItem Header="Join Pieces">
                 <guiElements:PieceJoinerControl Margin="10" PuzzleHandle="{Binding PuzzleHandle, Mode=OneWay}"/>
             </TabItem>
-            
-        </TabControl>
+        </MetroControls:MetroAnimatedTabControl>
 
-        <GridSplitter ResizeDirection="Rows" Grid.Row="2" Height="5" Margin="0,5,0,5" ShowsPreview="False" HorizontalAlignment="Stretch" VerticalAlignment="Top" Background="#FFB2B2B2" />
+        <GridSplitter ResizeDirection="Rows" Grid.Row="1" Height="5" Margin="0,5,0,5" ShowsPreview="False" HorizontalAlignment="Stretch" VerticalAlignment="Top" Background="#FFB2B2B2"/>
 
-        <LogBox:LogBoxControl x:Name="logBox1" Margin="5,15,5,5" Grid.Row="2"/>
+        <LogBox:LogBoxControl Grid.Row="1" x:Name="logBox1" Margin="5,15,5,5"/>
 
-        <Grid Grid.Row="4">
+        <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="35"/>
                 <ColumnDefinition Width="*"/>
@@ -122,4 +120,4 @@
             <TextBlock Grid.Column="2" Text="{Binding PuzzleHandle.CurrentSolverState}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="10"/>
         </Grid>
     </Grid>
-</Window>
+</MetroControls:MetroWindow>

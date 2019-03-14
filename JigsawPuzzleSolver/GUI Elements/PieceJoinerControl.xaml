@@ -6,6 +6,8 @@
              xmlns:local="clr-namespace:JigsawPuzzleSolver.GUI_Elements"
              xmlns:logBox="clr-namespace:LogBox;assembly=LogBox"
              xmlns:converters="clr-namespace:JigsawPuzzleSolver.GUI_Elements.Converters"
+             xmlns:MetroControls="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
              mc:Ignorable="d" 
              Name="PieceJoinerControlUserControl"
              d:DesignHeight="300" d:DesignWidth="700">
@@ -86,7 +88,7 @@
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ListBoxItem}}, Converter={StaticResource IsMiddlePieceConverter}}" Value="True">
                                             <Setter Property="BorderThickness" Value="3"/>
-                                            <Setter Property="BorderBrush" Value="Lime"/>
+                                            <Setter Property="BorderBrush" Value="{DynamicResource AccentColorBrush}"/>
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>    
@@ -102,7 +104,7 @@
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ListBoxItem}}, Converter={StaticResource IsMiddlePieceConverter}}" Value="True">
                                             <Setter Property="BorderThickness" Value="3"/>
-                                            <Setter Property="BorderBrush" Value="Lime"/>
+                                            <Setter Property="BorderBrush" Value="{DynamicResource AccentColorBrush}"/>
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
@@ -119,7 +121,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="200"/>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
             <StackPanel Grid.Column="0" Orientation="Vertical">
@@ -132,21 +134,15 @@
                 </StackPanel>
             </StackPanel>
 
-            <ProgressBar Grid.Column="1" Margin="5,10" Value="{Binding PercentageJoiningFinished, Mode=OneWay}"/>
-            <TextBlock Grid.Column="1" Text="{Binding PercentageJoiningFinished, Mode=OneWay, StringFormat={}{0:N2}%}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="16" />
+            <MetroControls:MetroProgressBar Grid.Column="1" Margin="5,10" Value="{Binding PercentageJoiningFinished, Mode=OneWay}" BorderBrush="{DynamicResource AccentColorBrush}" BorderThickness="1" Foreground="{DynamicResource AccentColorBrush}"/>
+            <TextBlock Grid.Column="1" Text="{Binding PercentageJoiningFinished, Mode=OneWay, StringFormat={}{0:N2}%}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="16"/>
 
             <StackPanel Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal">
-                <Button Margin="5" Height="35" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding PreviousPieceCommand}" ToolTip="Previous Piece">
-                    <StackPanel Orientation="Horizontal">
-                        <Path Margin="6,3,3,3" VerticalAlignment="Center" HorizontalAlignment="Center" Fill="Transparent" Stroke="Gray" StrokeThickness="2" Data="M 0 10 L 10 0 L 10 20 Z"/>
-                        <TextBlock Margin="0,0,5,0" Text="Previous" VerticalAlignment="Center"/>
-                    </StackPanel>
+                <Button Margin="5" Height="35" Width="35" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding PreviousPieceCommand}" ToolTip="Previous Piece" Style="{DynamicResource MahApps.Metro.Styles.MetroCircleButtonStyle}">
+                    <iconPacks:PackIconIonicons Width="22" Height="22" Kind="ArrowRoundBackMD"/>
                 </Button>
-                <Button Margin="5" Height="35" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding NextPieceCommand}" ToolTip="Next Piece">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Margin="5,0,0,0" Text="Next" VerticalAlignment="Center"/>
-                        <Path Margin="6,3,3,3" VerticalAlignment="Center" HorizontalAlignment="Center" Fill="Transparent" Stroke="Gray" StrokeThickness="2" Data="M 0 20 L 0 0 L 10 10 Z"/>
-                    </StackPanel>
+                <Button Margin="5" Height="35" Width="35" HorizontalAlignment="Right" VerticalAlignment="Bottom" Command="{Binding NextPieceCommand}" ToolTip="Next Piece" Style="{DynamicResource MahApps.Metro.Styles.MetroCircleButtonStyle}">
+                    <iconPacks:PackIconIonicons Width="22" Height="22" Kind="ArrowRoundForwardMD"/>
                 </Button>
             </StackPanel>
         </Grid>
