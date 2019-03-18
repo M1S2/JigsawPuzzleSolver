@@ -6,34 +6,41 @@ using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Media.Imaging;
 using System.IO;
-using System.Drawing;
-using Emgu.CV;
-using Emgu.CV.Structure;
+using System.Windows.Media;
+using MahApps.Metro.IconPacks;
 
 namespace JigsawPuzzleSolver.GUI_Elements.Converters
 {
     /// <summary>
-    /// Convert PuzzleSavingState enum values to icon filenames that can be used to display icons in an image control
+    /// Convert PuzzleSavingState enum values to GeometryDrawing representation of the SavingState icon
     /// </summary>
-    [ValueConversion(typeof(PuzzleSavingStates), typeof(string))]
+    [ValueConversion(typeof(PuzzleSavingStates), typeof(GeometryDrawing))]
     public class PuzzleSavingStateToIconConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
+            string iconDataStr = null;
+            Brush foregroundBrush = App.Current.TryFindResource("IdealForegroundColorBrush") as Brush;
+
             switch ((PuzzleSavingStates)value)
             {
+                case PuzzleSavingStates.PUZZLE_NULL: return null;
                 case PuzzleSavingStates.NEW_UNSAVED:
-                    return null;
+                    iconDataStr = (new PackIconModern() { Kind = PackIconModernKind.PageAdd }).Data; break;
                 case PuzzleSavingStates.SAVED:
-                    return "/JigsawPuzzleSolver;component/Resources/Save_16x.png";
+                    iconDataStr = (new PackIconModern() { Kind = PackIconModernKind.Save }).Data; break;
                 case PuzzleSavingStates.LOADED:
-                    return "/JigsawPuzzleSolver;component/Resources/OpenFolder_16x.png";
+                    iconDataStr = (new PackIconModern() { Kind = PackIconModernKind.FolderOpen }).Data; break;
                 case PuzzleSavingStates.SAVING:
                 case PuzzleSavingStates.LOADING:
-                    return "/JigsawPuzzleSolver;component/Resources/Hourglass_16x.png";
+                    iconDataStr = (new PackIconModern() { Kind = PackIconModernKind.Hourglass }).Data; break;
                 default:
                     return null;
             }
+
+            Geometry iconGeometry = Geometry.Parse(iconDataStr);
+            GeometryDrawing iconGeometryDrawing = new GeometryDrawing(foregroundBrush, new Pen(foregroundBrush, 1), iconGeometry);
+            return iconGeometryDrawing;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)

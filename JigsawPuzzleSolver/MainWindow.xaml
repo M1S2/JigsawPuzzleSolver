@@ -13,8 +13,20 @@
         xmlns:windowTheme="clr-namespace:JigsawPuzzleSolver.WindowTheme"
         x:Class="JigsawPuzzleSolver.MainWindow"
         mc:Ignorable="d"
-        Title="Puzzle Solver" Height="900" Width="1200"
-        DataContext="{Binding RelativeSource={RelativeSource Self}}">
+        Title="Puzzle Solver" 
+        Height="900" 
+        Width="1200"
+        DataContext="{Binding RelativeSource={RelativeSource Self}}"
+        ResizeMode="CanResizeWithGrip"
+        Icon="jigsaw.ico">
+
+    <!--<MetroControls:MetroWindow.IconTemplate>
+        <DataTemplate>
+            <Grid Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Margin="3" Background="Transparent" RenderOptions.EdgeMode="Aliased" RenderOptions.BitmapScalingMode="HighQuality">
+                <Image Source="jigsaw.ico"/>
+            </Grid>
+        </DataTemplate>
+    </MetroControls:MetroWindow.IconTemplate>-->
 
     <MetroControls:MetroWindow.Resources>
         <converters:PuzzleSavingStateToIconConverter x:Key="SavingStateConverter"/>
@@ -22,17 +34,6 @@
         <converters:PuzzleStateToProgressBarStateConverter x:Key="ProgressBarStateConverter"/>
         <converters:IconPackToGeometryDrawingConverter x:Key="IconPackGeometryDrawingConverter"/>
     </MetroControls:MetroWindow.Resources>
-
-    <!-- !!!!!!!!!!!!!!!!!!!!! use: https://social.msdn.microsoft.com/Forums/vstudio/en-US/bb7e2ae5-2046-4fb7-a27d-119197be8683/wpf-and-icons-best-practices?forum=wpf -->
-    <MetroControls:MetroWindow.Icon>
-        <DrawingImage Drawing="{Binding Source={x:Static iconPacks:PackIconModernKind.PuzzleRound}, Converter={StaticResource IconPackGeometryDrawingConverter}}"/>
-    </MetroControls:MetroWindow.Icon>
-    
-    <!--<MetroControls:MetroWindow.IconTemplate>
-        <DataTemplate>
-            <iconPacks:PackIconMaterial Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Margin="2" Padding="4" Foreground="{DynamicResource IdealForegroundColorBrush}" Kind="Puzzle" />
-        </DataTemplate>
-    </MetroControls:MetroWindow.IconTemplate>-->
 
     <MetroControls:MetroWindow.LeftWindowCommands>
         <MetroControls:WindowCommands>
@@ -68,27 +69,81 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="200"/>
-            <RowDefinition Height="35"/>
+            <RowDefinition Height="30"/>
         </Grid.RowDefinitions>
 
         <MetroControls:MetroAnimatedTabControl Grid.Row="0" MetroControls:TabControlHelper.Underlined="SelectedTabItem">
-            <TabItem Header="Solver Progress">
+            <TabItem>
+                <TabItem.Header>
+                    <DockPanel LastChildFill="True">
+                        <!-- see: https://stackoverflow.com/questions/2911626/dynamically-display-a-control-depending-on-bound-property-using-wpf -->
+                        <ContentControl>
+                            <ContentControl.Style>
+                                <Style TargetType="{x:Type ContentControl}">
+                                    <Setter Property="ContentTemplate">
+                                        <Setter.Value>
+                                            <DataTemplate>
+                                                <iconPacks:PackIconFontAwesome DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,10,0" Width="22" Height="22" Kind="SpinnerSolid" Foreground="{Binding RelativeSource={RelativeSource AncestorType={x:Type ContentControl}, AncestorLevel=2}, Path=Foreground}" />
+                                            </DataTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding PuzzleHandle.IsSolverRunning}" Value="True">
+                                            <Setter Property="ContentTemplate">
+                                                <Setter.Value>
+                                                    <DataTemplate>
+                                                        <MetroControls:ProgressRing DockPanel.Dock="Left" VerticalAlignment="Center" Width="22" Height="22" Margin="0,0,10,0" Foreground="{Binding RelativeSource={RelativeSource AncestorType={x:Type ContentControl}, AncestorLevel=2}, Path=Foreground}"/>
+                                                    </DataTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ContentControl.Style>
+                        </ContentControl>
+                        <TextBlock Text="Solver Progress" VerticalAlignment="Center" Foreground="{Binding RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}, Path=Foreground}" FontSize="{Binding RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}, Path=FontSize}"/>
+                    </DockPanel>
+                </TabItem.Header>
                 <guiElements:SolverControl PuzzleHandle="{Binding PuzzleHandle, Mode=OneWay}" PuzzleSavingState="{Binding PuzzleSavingState, Mode=OneWay}" ScrollLogEntries="{Binding AutoScrollToLastLogEntry, ElementName=logBox1, Mode=TwoWay}"/>
             </TabItem>
 
-            <TabItem Header="Input Image Viewer">
+            <TabItem>
+                <TabItem.Header>
+                    <DockPanel LastChildFill="True">
+                        <iconPacks:PackIconModern DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,10,0" Width="22" Height="22" Kind="Image" Foreground="{Binding RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}, Path=Foreground}" />
+                        <TextBlock Text="Input Image Viewer" VerticalAlignment="Center" Foreground="{Binding RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}, Path=Foreground}" FontSize="{Binding RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}, Path=FontSize}"/>
+                    </DockPanel>
+                </TabItem.Header>
                 <ImgGallery:ImageGalleryControl Margin="10" NextAtEndBeginsNew="True" ImgList="{Binding PuzzleHandle.InputImages, Mode=OneWay}"/>
             </TabItem>
 
-            <TabItem Header="Piece Viewer">
+            <TabItem>
+                <TabItem.Header>
+                    <DockPanel LastChildFill="True">
+                        <iconPacks:PackIconMaterial DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,10,0" Width="22" Height="22" Kind="Puzzle" Foreground="{Binding RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}, Path=Foreground}" />
+                        <TextBlock Text="Piece Viewer" VerticalAlignment="Center" Foreground="{Binding RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}, Path=Foreground}" FontSize="{Binding RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}, Path=FontSize}"/>
+                    </DockPanel>
+                </TabItem.Header>
                 <guiElements:PieceViewer Margin="10" PieceList="{Binding PuzzleHandle.Pieces, Mode=OneWay}"/>
             </TabItem>
 
-            <TabItem Header="Solver Result">
+            <TabItem>
+                <TabItem.Header>
+                    <DockPanel LastChildFill="True">
+                        <iconPacks:PackIconFontAwesome DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,10,0" Width="22" Height="22" Kind="CheckSolid" Foreground="{Binding RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}, Path=Foreground}" />
+                        <TextBlock Text="Solver Result" VerticalAlignment="Center" Foreground="{Binding RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}, Path=Foreground}" FontSize="{Binding RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}, Path=FontSize}"/>
+                    </DockPanel>
+                </TabItem.Header>
                 <ImgGallery:ImageGalleryControl Margin="10" NextAtEndBeginsNew="True" ImgList="{Binding PuzzleHandle.PuzzleSolutionImages, Mode=OneWay}"/>
             </TabItem>
 
-            <TabItem Header="Join Pieces">
+            <TabItem>
+                <TabItem.Header>
+                    <DockPanel LastChildFill="True">
+                        <iconPacks:PackIconModern DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,10,0" Width="22" Height="22" Kind="LayerAdd" Foreground="{Binding RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}, Path=Foreground}" />
+                        <TextBlock Text="Join Pieces" VerticalAlignment="Center" Foreground="{Binding RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}, Path=Foreground}" FontSize="{Binding RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}, Path=FontSize}"/>
+                    </DockPanel>
+                </TabItem.Header>
                 <guiElements:PieceJoinerControl Margin="10" PuzzleHandle="{Binding PuzzleHandle, Mode=OneWay}"/>
             </TabItem>
         </MetroControls:MetroAnimatedTabControl>
@@ -97,17 +152,15 @@
 
         <LogBox:LogBoxControl Grid.Row="1" x:Name="logBox1" Margin="5,15,5,5"/>
 
-        <Grid Grid.Row="2">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="35"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="150"/>
-            </Grid.ColumnDefinitions>
-
-            <Image Grid.Column="0" Height="16" VerticalAlignment="Center" Source="{Binding PuzzleSavingState, Converter={StaticResource SavingStateConverter}}" ToolTip="{Binding PuzzleSavingState}"/>
-            <TextBlock Grid.Column="1" Text="{Binding PuzzleHandle.PuzzleXMLOutputPath}" VerticalAlignment="Center">
-                <TextBlock.Style>
-                    <Style TargetType="{x:Type TextBlock}">
+        <StatusBar Grid.Row="2">
+            <Image VerticalAlignment="Center" Margin="3" ToolTip="{Binding PuzzleSavingState}">
+                <Image.Source>
+                    <DrawingImage Drawing="{Binding PuzzleSavingState, Converter={StaticResource SavingStateConverter}}"/>
+                </Image.Source>
+            </Image>
+            <StatusBarItem Content="{Binding PuzzleHandle.PuzzleXMLOutputPath}" VerticalAlignment="Center">
+                <StatusBarItem.Style>
+                    <Style TargetType="{x:Type StatusBarItem}">
                         <Setter Property="Visibility" Value="Visible"/>
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding PuzzleSavingState}" Value="NEW_UNSAVED">
@@ -115,9 +168,9 @@
                             </DataTrigger>
                         </Style.Triggers>
                     </Style>
-                </TextBlock.Style>
-            </TextBlock>
-            <TextBlock Grid.Column="2" Text="{Binding PuzzleHandle.CurrentSolverState}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="10"/>
-        </Grid>
+                </StatusBarItem.Style>
+            </StatusBarItem>
+            <StatusBarItem Content="{Binding PuzzleHandle.CurrentSolverState, Mode=OneWay}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,20,0"/>
+        </StatusBar>
     </Grid>
 </MetroControls:MetroWindow>

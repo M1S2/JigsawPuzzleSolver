@@ -34,7 +34,7 @@
         <Menu Background="Transparent">
             <MenuItem ItemContainerStyle="{StaticResource AppThemeMenuItemStyle}" ItemsSource="{Binding AppThemes, Mode=OneWay}" Background="Transparent" ToolTip="Themes">
                 <MenuItem.Header>
-                    <iconPacks:PackIconEntypo Width="20" Height="20" Kind="Colours" Foreground="{DynamicResource IdealForegroundColorBrush}"/>
+                    <iconPacks:PackIconFontAwesome Width="18" Height="18" Kind="AdjustSolid" Foreground="{DynamicResource IdealForegroundColorBrush}"/>
                 </MenuItem.Header>
             </MenuItem>
             <MenuItem ItemContainerStyle="{StaticResource AccentColorMenuItemStyle}" ItemsSource="{Binding AccentColors, Mode=OneWay}" Background="Transparent" ToolTip="Accents">

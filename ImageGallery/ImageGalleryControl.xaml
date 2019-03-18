@@ -4,6 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:ImageGallery"
+             xmlns:MetroControls="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
              mc:Ignorable="d" 
              Name="ImageGalleryUserControl"
              d:DesignHeight="450" d:DesignWidth="800">
@@ -11,32 +13,6 @@
     <UserControl.Resources>
         <local:BitmapToImageSourceConverter x:Key="BitmapConverter"/>
         <CollectionViewSource Source="{Binding ImgList, ElementName=ImageGalleryUserControl}" x:Key="collectionViewSourcePieces"/>
-        
-        <Style x:Key="ButtonStyleArrowLeft" TargetType="Button">
-            <Setter Property="OverridesDefaultStyle" Value="True"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Name="border" BorderThickness="1" BorderBrush="{TemplateBinding Background}" CornerRadius="2" Background="{TemplateBinding Background}">
-                            <Path x:Name="arrowShape" VerticalAlignment="Center" HorizontalAlignment="Center" Stroke="Gray" StrokeThickness="2" Fill="Transparent" Data="M 0 19 L 19 0 L 19 38 Z"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="arrowShape" Property="Stroke" Value="LightGray"/>
-                            </Trigger>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="arrowShape" Property="Fill" Value="Gray"/>
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="arrowShape" Property="Fill" Value="#FF285AB3"/>
-                                <Setter TargetName="arrowShape" Property="Stroke" Value="#FF285AB3"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
     </UserControl.Resources>
 
     <Grid DataContext="{Binding ElementName=ImageGalleryUserControl}">
@@ -47,24 +23,19 @@
 
         <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="40"/>
+                <ColumnDefinition Width="50"/>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="40"/>
+                <ColumnDefinition Width="50"/>
             </Grid.ColumnDefinitions>
 
-            <Button Grid.Column="0" Margin="0,5,0,5" Command="{Binding PreviousImgCommand}" Style="{StaticResource ButtonStyleArrowLeft}"/>
+            <Button Grid.Column="0" Height="45" Width="45" Command="{Binding PreviousImgCommand}" ToolTip="Previous Image" Style="{DynamicResource MahApps.Metro.Styles.MetroCircleButtonStyle}">
+                <iconPacks:PackIconMaterial Width="22" Height="22" Kind="ChevronLeft"/>
+            </Button>
             <local:ZoomBorder Grid.Column="1" ClipToBounds="True">
                 <Image Margin="5" Source="{Binding SelectedImage.Img, Converter={StaticResource BitmapConverter}}" />
             </local:ZoomBorder>
-            <Button Grid.Column="2" Margin="0,5,0,5" Command="{Binding NextImgCommand}" Style="{StaticResource ButtonStyleArrowLeft}" RenderTransformOrigin="0.5,0.5">
-                <Button.RenderTransform>
-                    <TransformGroup>
-                        <ScaleTransform ScaleY="1" ScaleX="-1"/>
-                        <SkewTransform AngleY="0" AngleX="0"/>
-                        <RotateTransform Angle="0"/>
-                        <TranslateTransform/>
-                    </TransformGroup>
-                </Button.RenderTransform>
+            <Button Grid.Column="2" Height="45" Width="45" Command="{Binding NextImgCommand}" ToolTip="Next Image" Style="{DynamicResource MahApps.Metro.Styles.MetroCircleButtonStyle}">
+                <iconPacks:PackIconMaterial Width="22" Height="22" Kind="ChevronRight"/>
             </Button>
         </Grid>
 
@@ -78,7 +49,7 @@
                 <DataTemplate>
                     <StackPanel Width="150" Orientation="Vertical">
                         <Image Height="65" Margin="5" Source="{Binding Img, Converter={StaticResource BitmapConverter}}"/>
-                        <TextBlock Foreground="Black" FontSize="14" Text="{Binding Description}" ToolTip="{Binding Description}" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                        <TextBlock FontSize="14" Text="{Binding Description}" ToolTip="{Binding Description}" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,2,0,0"/>
                     </StackPanel>
                 </DataTemplate>
             </ListBox.ItemTemplate>

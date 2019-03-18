@@ -6,36 +6,39 @@ using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Media.Imaging;
 using System.IO;
-using System.Drawing;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Markup;
+using MahApps.Metro.IconPacks;
 
 namespace JigsawPuzzleSolver.GUI_Elements.Converters
 {
     /// <summary>
     /// Convert a point (distance to last piece) to an arrow path control data
     /// </summary>
-    [ValueConversion(typeof(System.Drawing.Point), typeof(bool))]
+    [ValueConversion(typeof(System.Drawing.Point), typeof(GeometryDrawing))]
     public class PreviousPieceDistanceArrowConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             System.Drawing.Point point = (System.Drawing.Point)value;
             string direction = (string)parameter;
-            Geometry path = null;
+            string iconDataStr = null;
+            Brush foregroundBrush = App.Current.TryFindResource("AccentColorBrush") as Brush;
 
-            if (direction == "X" && point.X < 0) { path = Geometry.Parse("M 0 10 L 10 0 L 10 20 Z"); }
-            else if (direction == "X" && point.X > 0) { path = Geometry.Parse("M 0 0 L 10 10 L 0 20 Z"); }
-            else if (direction == "X" && point.X == 0) { path = Geometry.Parse("M 0 10 A 10 10 180 1 0 0 9 Z"); }
-            else if (direction == "Y" && point.Y < 0) { path = Geometry.Parse("M 0 10 L 10 0 L 20 10 Z"); }
-            else if (direction == "Y" && point.Y > 0) { path = Geometry.Parse("M 0 0 L 20 0 L 10 10 Z"); }
-            else if (direction == "Y" && point.Y == 0) { path = Geometry.Parse("M 0 10 A 10 10 180 1 0 0 9 Z"); }
+            if (direction == "X" && point.X < 0) { iconDataStr = (new PackIconFontAwesome() { Kind = PackIconFontAwesomeKind.CaretLeftSolid }).Data; }
+            else if (direction == "X" && point.X > 0) { iconDataStr = (new PackIconFontAwesome() { Kind = PackIconFontAwesomeKind.CaretRightSolid }).Data; }
+            else if (direction == "X" && point.X == 0) { iconDataStr = (new PackIconFontAwesome() { Kind = PackIconFontAwesomeKind.CircleSolid }).Data; }
+            else if (direction == "Y" && point.Y < 0) { iconDataStr = (new PackIconFontAwesome() { Kind = PackIconFontAwesomeKind.CaretUpSolid }).Data; }
+            else if (direction == "Y" && point.Y > 0) { iconDataStr = (new PackIconFontAwesome() { Kind = PackIconFontAwesomeKind.CaretDownSolid }).Data; }
+            else if (direction == "Y" && point.Y == 0) { iconDataStr = (new PackIconFontAwesome() { Kind = PackIconFontAwesomeKind.CircleSolid }).Data; }
 
-            return path;
+            Geometry iconGeometry = Geometry.Parse(iconDataStr);
+            GeometryDrawing iconGeometryDrawing = new GeometryDrawing(foregroundBrush, new Pen(foregroundBrush, 1), iconGeometry);
+            return iconGeometryDrawing;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)

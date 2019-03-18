@@ -126,10 +126,18 @@
 
             <StackPanel Grid.Column="0" Orientation="Vertical">
                 <TextBlock Text="Last Piece Distance" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="20"/>
-                <StackPanel Margin="15,5,0,0" Orientation="Horizontal">
-                    <Path Margin="10,0,10,0" VerticalAlignment="Center" HorizontalAlignment="Center" Fill="Gray" Stroke="Gray" StrokeThickness="2" Data="{Binding PreviousToCurrentPieceDistance, Converter={StaticResource PreviousPieceDistArrowConverter}, ConverterParameter=X}"/>
+                <StackPanel Margin="15,0,0,0" Orientation="Horizontal">
+                    <Image VerticalAlignment="Center" Margin="10,2,10,2" Height="25">
+                        <Image.Source>
+                            <DrawingImage Drawing="{Binding PreviousToCurrentPieceDistance, Converter={StaticResource PreviousPieceDistArrowConverter}, ConverterParameter=X}"/>
+                        </Image.Source>
+                    </Image>
                     <TextBlock Text="{Binding PreviousToCurrentPieceDistance.X, Converter={StaticResource AbsConverter}}" VerticalAlignment="Center" FontSize="16"/>
-                    <Path Margin="20,0,10,0" VerticalAlignment="Center" HorizontalAlignment="Center" Fill="Gray" Stroke="Gray" StrokeThickness="2" Data="{Binding PreviousToCurrentPieceDistance, Converter={StaticResource PreviousPieceDistArrowConverter}, ConverterParameter=Y}"/>
+                    <Image VerticalAlignment="Center" Margin="20,2,10,2" Width="25">
+                        <Image.Source>
+                            <DrawingImage Drawing="{Binding PreviousToCurrentPieceDistance, Converter={StaticResource PreviousPieceDistArrowConverter}, ConverterParameter=Y}"/>
+                        </Image.Source>
+                    </Image>
                     <TextBlock Text="{Binding PreviousToCurrentPieceDistance.Y, Converter={StaticResource AbsConverter}}" VerticalAlignment="Center" FontSize="16"/>
                 </StackPanel>
             </StackPanel>

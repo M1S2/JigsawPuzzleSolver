@@ -11,7 +11,7 @@
 
     <UserControl.Resources>
         <ResourceDictionary>
-            <local:LogTypesToIconFilenameConverter x:Key="IconConverter"/>
+            <local:LogTypesToIconGeometryConverter x:Key="IconConverter"/>
             <local:BitmapToImageSourceConverter x:Key="BitmapConverter"/>
             <BooleanToVisibilityConverter x:Key="BoolVisibilityConverter"/>
 
@@ -31,24 +31,21 @@
             <iconPacks:PackIconModern Width="30" Height="30" Kind="InformationCircle" Foreground="Blue" VerticalAlignment="Center"/>
             <MetroControls:ToggleSwitch Margin="5,0,10,0" ToolTip="Show infos" IsChecked="{Binding ShowInfos}" Style="{StaticResource MahApps.Metro.Styles.ToggleSwitch.Win10}" VerticalAlignment="Center" OnLabel="" OffLabel=""/>
 
-            <iconPacks:PackIconModern Width="30" Height="30" Kind="Warning" Foreground="#FFE4E44C" VerticalAlignment="Center" BorderBrush="#FFCFB336"/>
+            <iconPacks:PackIconModern Width="30" Height="30" Kind="Warning" Foreground="#FFE4E44C" VerticalAlignment="Center" BorderBrush="#FFE4E44C"/>
             <MetroControls:ToggleSwitch Margin="5,0,10,0" ToolTip="Show warnings" IsChecked="{Binding ShowWarnings}" Style="{StaticResource MahApps.Metro.Styles.ToggleSwitch.Win10}" VerticalAlignment="Center" OnLabel="" OffLabel=""/>
 
-            <iconPacks:PackIconModern Width="30" Height="30" Kind="Close" Foreground="Red" VerticalAlignment="Center"/>
+            <iconPacks:PackIconEntypo Width="30" Height="30" Kind="CircleWithCross" Foreground="Red" VerticalAlignment="Center"/>
             <MetroControls:ToggleSwitch Margin="5,0,10,0" ToolTip="Show errors" IsChecked="{Binding ShowErrors}" Style="{StaticResource MahApps.Metro.Styles.ToggleSwitch.Win10}" VerticalAlignment="Center" OnLabel="" OffLabel=""/>
 
             <iconPacks:PackIconModern Width="30" Height="30" Kind="Image" Foreground="Gray" VerticalAlignment="Center"/>
             <MetroControls:ToggleSwitch Margin="5,0,10,0" ToolTip="Show image logs" IsChecked="{Binding ShowImageLogs}" Style="{StaticResource MahApps.Metro.Styles.ToggleSwitch.Win10}" VerticalAlignment="Center" OnLabel="" OffLabel=""/>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Image Source="/JigsawPuzzleSolver;component/Resources/Scrollbar_16x.png" Margin="2,2,2,2"/>
+                <iconPacks:PackIconFontAwesome Width="30" Height="30" Kind="ArrowsAltVSolid" Foreground="Gray" VerticalAlignment="Center" />
                 <MetroControls:ToggleSwitch Margin="5,0,10,0" ToolTip="Auto scroll to last log entry" IsChecked="{Binding AutoScrollToLastLogEntry}" Style="{StaticResource MahApps.Metro.Styles.ToggleSwitch.Win10}" VerticalAlignment="Center" OnLabel="" OffLabel=""/>
 
-                <Button x:Name="btn_clearLog" Margin="5,2,5,2" Click="btn_clearLog_Click" ToolTip="Clear all log entries">
-                    <StackPanel Orientation="Horizontal">
-                        <iconPacks:PackIconModern Width="30" Height="30" Kind="Clean" Foreground="Gray" VerticalAlignment="Center"/>
-                        <Label Content="Clear Log" VerticalAlignment="Center"/>
-                    </StackPanel>
+                <Button x:Name="btn_clearLog" Width="35" Height="35" Margin="2,2,10,2" Click="btn_clearLog_Click" ToolTip="Clear all log entries" Style="{DynamicResource MahApps.Metro.Styles.MetroCircleButtonStyle}">
+                    <iconPacks:PackIconModern Width="20" Height="20" Kind="Clean" Foreground="Gray" VerticalAlignment="Center"/>
                 </Button>
             </StackPanel>
         </DockPanel>
@@ -67,7 +64,11 @@
                         <GridViewColumn Header="" Width="40">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Image Source="{Binding LogType, Converter={StaticResource IconConverter}}" Height="20" Width="20" ToolTip="{Binding LogType}"/>
+                                    <Image Width="20" Margin="2" ToolTip="{Binding LogType}">
+                                        <Image.Source>
+                                            <DrawingImage Drawing="{Binding LogType, Converter={StaticResource IconConverter}}"/>
+                                        </Image.Source>
+                                    </Image>
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>

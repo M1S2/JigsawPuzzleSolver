@@ -66,21 +66,10 @@
                             <RowDefinition Height="30"/>
                         </Grid.RowDefinitions>
                         <Border Grid.Row="0" Grid.ColumnSpan="2" Margin="3" Background="{DynamicResource AccentColorBrush}" CornerRadius="10">
-                            <TextBlock Text="{Binding PieceID}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="25" Foreground="White"/>
+                            <TextBlock Text="{Binding PieceID}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="25" Foreground="{DynamicResource IdealForegroundColorBrush}"/>
                         </Border>
                         <Grid Grid.Row="1" Grid.ColumnSpan="2" Margin="3">
-                            <Image>
-                                <Image.Style>
-                                    <Style>
-                                        <Setter Property="Image.Source" Value="{Binding PieceImgColor, Converter={StaticResource BitmapConverter}}"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding ElementName=imgTypeToggleSwitch, Path=IsChecked}" Value="True">
-                                                <Setter Property="Image.Source" Value="{Binding PieceImgBw, Converter={StaticResource BitmapConverter}}"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Image.Style>
-                            </Image>
+                            <Image Source="{Binding PieceImgColor, Converter={StaticResource BitmapConverter}}"/>
                         </Grid>
                         <TextBlock Grid.Row="2" Grid.Column="0" Text="ID:" VerticalAlignment="Center"/>
                         <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding PieceID}" VerticalAlignment="Center"/>

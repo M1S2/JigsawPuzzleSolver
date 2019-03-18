@@ -20,16 +20,6 @@
     </UserControl.Resources>
 
     <Grid DataContext="{Binding ElementName=PieceViewerControl}">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="30"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-
-        <StackPanel Grid.Row="0" Orientation="Horizontal">
-            <TextBlock Text="Show blackwhite images" VerticalAlignment="Center"/>
-            <logBox:ToggleSwitch x:Name="imgTypeToggleSwitch" Width="50" Height="20" Margin="10,0,0,0" HorizontalAlignment="Left"/> 
-        </StackPanel>
-        
         <!-- see: http://www.magnuslindhe.com/2014/09/listbox-with-grid-layout-in-wpf/ -->
         <ListBox Grid.Row="1" ItemsSource="{Binding Source={StaticResource collectionViewSourcePieces}}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ItemTemplate="{StaticResource TemplatePieceCard}">
             <ListBox.ItemsPanel>

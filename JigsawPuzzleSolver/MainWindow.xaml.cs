@@ -131,7 +131,7 @@ namespace JigsawPuzzleSolver
             InitializeComponent();
             this.Closing += MainWindow_Closing;
 
-            PuzzleSavingState = PuzzleSavingStates.NEW_UNSAVED;
+            PuzzleSavingState = PuzzleSavingStates.PUZZLE_NULL;
 
             PuzzleSolverParameters.SolverShowDebugResults = false;
             PuzzleSolverParameters.PuzzleIsInputBackgroundWhite = false;
