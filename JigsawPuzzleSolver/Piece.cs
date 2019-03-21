@@ -185,8 +185,8 @@ namespace JigsawPuzzleSolver
             PieceSourceFileLocation = pieceSourceFileLocation;
             PieceSize = PieceImgColor.Size;
 
-            _logHandle.Report(new LogBox.LogEventImage(PieceID + " Color", color.Bitmap));
-            if (PuzzleSolverParameters.SolverShowDebugResults) { _logHandle.Report(new LogBox.LogEventImage(PieceID + " Bw", bw.Bitmap)); }
+            _logHandle.Report(new LogBox.LogEventImage(PieceID + " Color", PieceImgColor));
+            if (PuzzleSolverParameters.SolverShowDebugResults) { _logHandle.Report(new LogBox.LogEventImage(PieceID + " Bw", PieceImgBw)); }
 
             process();
         }
@@ -346,7 +346,6 @@ namespace JigsawPuzzleSolver
             _logHandle.Report(new LogBox.LogEventInfo(PieceID + " Finding corners by finding the maximum rectangle within candidate points"));
 
             corners.Clear();
-            Image<Rgb, byte> imgCorners = new Image<Rgb, byte>(PieceImgColor);
 
             // Find all dominant corner points using the GFTTDetector (this uses the Harris corner detector)
             GFTTDetector detector = new GFTTDetector(PuzzleSolverParameters.PieceFindCornersGFTTMaxCorners, PuzzleSolverParameters.PieceFindCornersGFTTQualityLevel, PuzzleSolverParameters.PieceFindCornersGFTTMinDist, PuzzleSolverParameters.PieceFindCornersGFTTBlockSize, true, 0.04);
@@ -421,13 +420,19 @@ namespace JigsawPuzzleSolver
                 return;
             }
 
-            Features2DToolbox.DrawKeypoints(imgCorners, new VectorOfKeyPoint(keyPoints), imgCorners, new Bgr(0, 0, 255));       // Draw the dominant key points
-            //for (int i = 0; i < 4; i++) { CvInvoke.Circle(imgCorners, Point.Round(corners[i]), 4, new MCvScalar(0, 255, 0), 3); }
-            CvInvoke.Circle(imgCorners, Point.Round(corners[0]), 4, new MCvScalar(0, 255, 0), 3);
-            CvInvoke.Circle(imgCorners, Point.Round(corners[1]), 4, new MCvScalar(0, 200, 0), 3);
-            CvInvoke.Circle(imgCorners, Point.Round(corners[2]), 4, new MCvScalar(0, 150, 0), 3);
-            CvInvoke.Circle(imgCorners, Point.Round(corners[3]), 4, new MCvScalar(0, 100, 0), 3);
-            if (PuzzleSolverParameters.SolverShowDebugResults) { _logHandle.Report(new LogBox.LogEventImage(PieceID + " Corners", imgCorners.Bitmap)); }
+            if (PuzzleSolverParameters.SolverShowDebugResults)
+            {
+                using (Image<Rgb, byte> imgCorners = new Image<Rgb, byte>(PieceImgColor))
+                {
+                    Features2DToolbox.DrawKeypoints(imgCorners, new VectorOfKeyPoint(keyPoints), imgCorners, new Bgr(0, 0, 255));       // Draw the dominant key points
+                                                                                                                                        //for (int i = 0; i < 4; i++) { CvInvoke.Circle(imgCorners, Point.Round(corners[i]), 4, new MCvScalar(0, 255, 0), 3); }
+                    CvInvoke.Circle(imgCorners, Point.Round(corners[0]), 4, new MCvScalar(0, 255, 0), 3);
+                    CvInvoke.Circle(imgCorners, Point.Round(corners[1]), 4, new MCvScalar(0, 200, 0), 3);
+                    CvInvoke.Circle(imgCorners, Point.Round(corners[2]), 4, new MCvScalar(0, 150, 0), 3);
+                    CvInvoke.Circle(imgCorners, Point.Round(corners[3]), 4, new MCvScalar(0, 100, 0), 3);
+                    _logHandle.Report(new LogBox.LogEventImage(PieceID + " Corners", imgCorners.Bitmap));
+                }
+            }
         }
 
         //**********************************************************************************************************************************************************************************************
@@ -482,8 +487,6 @@ namespace JigsawPuzzleSolver
 
             VectorOfPoint contour = contours[indexLargestContour];
 
-            Image<Rgb, byte> edge_img = new Image<Rgb, byte>(PieceImgColor);
-
             VectorOfPoint new_corners = new VectorOfPoint();
             for (int i = 0; i < corners.Size; i++)      //out of all of the found corners, find the closest points in the contour, these will become the endpoints of the edges
             {
@@ -504,15 +507,10 @@ namespace JigsawPuzzleSolver
 
             if (PuzzleSolverParameters.SolverShowDebugResults)
             {
+                Image<Rgb, byte> edge_img = new Image<Rgb, byte>(PieceImgColor);
                 for (int i = 0; i < corners.Size; i++) { CvInvoke.Circle(edge_img, Point.Round(corners[i]), 2, new MCvScalar(255, 0, 0), 1); }
                 _logHandle.Report(new LogBox.LogEventImage(PieceID + " New corners", edge_img.Bitmap));
             }
-
-            ////We need the beginning of the vector to correspond to the begining of an edge.
-            //int indexOfFirstCornerInContour = contour.ToArray().ToList().IndexOf(corners[0]);
-            //Point[] contourArray = contour.ToArray();
-            //contourArray.Rotate(indexOfFirstCornerInContour); //find_first_in(contour, corners));
-            //contour = new VectorOfPoint(contourArray);
 
             List<int> sections = find_all_in(contour, corners);
 

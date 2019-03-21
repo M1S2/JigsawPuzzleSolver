@@ -76,11 +76,13 @@ namespace JigsawPuzzleSolver
             EdgeNumber = edgeNumber;
             contour = edgeContour;
             PieceImgColor = new Bitmap(pieceImgColor);
+            ContourImg = null;
 
             normalized_contour = normalize(contour);    //Normalized contours are used for comparisons
 
             VectorOfPoint contourCopy = new VectorOfPoint(contour.ToArray().Reverse().ToArray());
             reverse_normalized_contour = normalize(contourCopy);   //same as normalized contour, but flipped 180 degrees
+            contourCopy.Dispose();
 
             classify();
         }
@@ -97,8 +99,6 @@ namespace JigsawPuzzleSolver
         {
             EdgeType = EdgeTypes.UNKNOWN;
             if(normalized_contour.Size <= 1) { return; }
-
-            ContourImg = new Bitmap(PieceImgColor);
 
             //See if it is an outer edge comparing the distance between beginning and end with the arc length.
             double contour_length = CvInvoke.ArcLength(normalized_contour, false);
@@ -132,6 +132,7 @@ namespace JigsawPuzzleSolver
 
             if (PuzzleSolverParameters.SolverShowDebugResults)
             {
+                ContourImg = new Bitmap(PieceImgColor);
                 for (int i = 0; i < contour.Size; i++)
                 {
                     Graphics g = Graphics.FromImage(ContourImg);

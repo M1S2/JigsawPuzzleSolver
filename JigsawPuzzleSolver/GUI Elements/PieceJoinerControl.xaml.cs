@@ -93,7 +93,18 @@ namespace JigsawPuzzleSolver.GUI_Elements
         public Piece CurrentPiece
         {
             get { return _currentPiece; }
-            set { PreviousPiece = _currentPiece; _currentPiece = value;  OnPropertyChanged(); OnPropertyChanged("PreviousToCurrentPieceDistance"); OnPropertyChanged("CurrentPieceSourceImage"); GetSurroundingPieces(); }
+            set
+            {
+                if (CurrentPiece != value)
+                {
+                    PreviousPiece = _currentPiece;
+                    _currentPiece = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged("PreviousToCurrentPieceDistance");
+                    OnPropertyChanged("CurrentPieceSourceImage");
+                    GetSurroundingPieces();
+                }
+            }
         }
         
         public Bitmap CurrentPieceSourceImage

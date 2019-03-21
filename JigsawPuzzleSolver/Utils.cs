@@ -41,6 +41,27 @@ namespace JigsawPuzzleSolver
             return CvInvoke.Norm(new VectorOfPointF(new PointF[1] { p1 }));
         }
 
+        //**********************************************************************************************************************************************************************************************
+
+        /// <summary>
+        /// Add two doubles interlocked
+        /// </summary>
+        /// <param name="location1">First double</param>
+        /// <param name="value">Second double</param>
+        /// <returns>Addition of both doubles</returns>
+        /// see: https://stackoverflow.com/questions/1400465/why-is-there-no-overload-of-interlocked-add-that-accepts-doubles-as-parameters
+        public static double AddInterlockedDouble(ref double location1, double value)
+        {
+            double newCurrentValue = location1; // non-volatile read, so may be stale
+            while (true)
+            {
+                double currentValue = newCurrentValue;
+                double newValue = currentValue + value;
+                newCurrentValue = System.Threading.Interlocked.CompareExchange(ref location1, newValue, currentValue);
+                if (newCurrentValue == currentValue) { return newValue; }
+            }
+        }
+
         #endregion
 
         //**********************************************************************************************************************************************************************************************
@@ -449,6 +470,23 @@ namespace JigsawPuzzleSolver
                 newRow++;
             }
             return newMatrix;
+        }
+
+        //**********************************************************************************************************************************************************************************************
+
+        /// <summary>
+        /// Limit the Image size to maximum width and heigth values. If one of the dimensions is greater than the max dimension, the image is resized.
+        /// </summary>
+        /// <typeparam name="TColor">image color type</typeparam>
+        /// <typeparam name="TDepth">image depth type</typeparam>
+        /// <param name="img">Image to resize</param>
+        /// <param name="maxWidth">Maximum allowed width</param>
+        /// <param name="maxHeight">Maximum allowed height</param>
+        /// <returns>Resized image</returns>
+        public static Image<TColor, TDepth> LimitImageSize<TColor, TDepth>(this Image<TColor, TDepth> img, int maxWidth, int maxHeight) where TColor : struct, IColor where TDepth : new()
+        {
+            if (img.Width > maxWidth || img.Height > maxHeight) { return img.Resize(maxWidth, maxHeight, Inter.Area, true); }
+            else { return img; }
         }
 
         #endregion

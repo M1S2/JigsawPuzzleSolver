@@ -157,8 +157,10 @@ namespace JigsawPuzzleSolver
             }*/
 
 #warning Only for faster testing !!!
-            PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", logHandle);
-            //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", logHandle);
+            //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", logHandle);
+            PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", logHandle);
+            //PuzzleHandle = new Puzzle(@"..\..\..\Scans\ToyStoryBack", logHandle);
+            //PuzzleHandle = new Puzzle(@"..\..\..\Scans\horsesNumbered", logHandle);
 
             PuzzleSavingState = PuzzleSavingStates.NEW_UNSAVED;
         }
@@ -241,6 +243,10 @@ namespace JigsawPuzzleSolver
                 if (PuzzleSavingState == PuzzleSavingStates.SAVING)
                 {
                     ShouldClose = (await this.ShowMessageAsync("Puzzle currently saving", "The Puzzle is currently saving. Do you want to close anyway?\nThe File will probably be corrupted!!!", MessageDialogStyle.AffirmativeAndNegative, new MetroDialogSettings() { AffirmativeButtonText = "Close", NegativeButtonText = "Cancel", DialogResultOnCancel = MessageDialogResult.Canceled }) == MessageDialogResult.Affirmative);
+                }
+                else if (PuzzleHandle != null && PuzzleHandle.IsSolverRunning)
+                {
+                    ShouldClose = (await this.ShowMessageAsync("Puzzle solver running", "The Puzzle solver is currently running. Do you want to close anyway?", MessageDialogStyle.AffirmativeAndNegative, new MetroDialogSettings() { AffirmativeButtonText = "Close", NegativeButtonText = "Cancel", DialogResultOnCancel = MessageDialogResult.Canceled }) == MessageDialogResult.Affirmative);
                 }
                 else if (PuzzleSavingState == PuzzleSavingStates.NEW_UNSAVED && PuzzleHandle != null && PuzzleHandle?.CurrentSolverState != PuzzleSolverState.UNSOLVED && PuzzleHandle?.CurrentSolverState != PuzzleSolverState.ERROR)
                 {

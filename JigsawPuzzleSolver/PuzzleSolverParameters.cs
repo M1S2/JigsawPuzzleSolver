@@ -40,7 +40,7 @@ namespace JigsawPuzzleSolver
             PieceFindCornersGFTTBlockSize = 2; //6;
             PieceFindCornersMaxAngleDiff = 5;
             PieceFindCornersMaxCornerDistRatio = 1.5;
-            EdgeCompareWindowSizePercent = 0.01; //0.15;
+            EdgeCompareWindowSizePercent = 0.003; //0.002; //0.01; //0.15;
             EdgeCompareEndpointDiffIgnoreThreshold = 15;
         }
     }
