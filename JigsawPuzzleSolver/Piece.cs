@@ -97,6 +97,17 @@ namespace JigsawPuzzleSolver
             set { _pieceID = value; OnPropertyChanged(); }
         }
 
+        private int _pieceIndex;
+        /// <summary>
+        /// Index of the extracted Piece.
+        /// </summary>
+        [DataMember]
+        public int PieceIndex
+        {
+            get { return _pieceIndex; }
+            set { _pieceIndex = value; OnPropertyChanged(); }
+        }
+
         private Bitmap _pieceImgColor;
         /// <summary>
         /// Color image of the extracted piece
@@ -177,6 +188,7 @@ namespace JigsawPuzzleSolver
             _logHandle = logHandle;
             _cancelToken = cancelToken;
             PieceID = "Piece#" + NextPieceID.ToString();
+            PieceIndex = NextPieceID;
             NextPieceID++;
 
             PieceImgColor = new Bitmap(color.Bitmap);

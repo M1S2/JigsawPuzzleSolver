@@ -47,6 +47,9 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     <Reference Include="AssemblyInfoHelper_WPF">
       <HintPath>..\AssemblyInfoProject\bin\AssemblyInfoHelper_WPF.dll</HintPath>
     </Reference>
+    <Reference Include="CircularProgressBarControl">
+      <HintPath>..\CircularProgressBar\bin\Debug\CircularProgressBarControl.dll</HintPath>
+    </Reference>
     <Reference Include="ControlzEx, Version=4.0.0.0, Culture=neutral, PublicKeyToken=69f1c32f803d307e, processorArchitecture=MSIL">
       <HintPath>..\packages\ControlzEx.4.0.0-alpha0232\lib\net45\ControlzEx.dll</HintPath>
       <Private>True</Private>
@@ -96,6 +99,9 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
+    <Reference Include="TextBlockPathEllipsis">
+      <HintPath>..\TextBlockPathEllipsis\bin\Debug\TextBlockPathEllipsis.dll</HintPath>
+    </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -116,6 +122,7 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     <Compile Include="Enumerations\PieceTypes.cs" />
     <Compile Include="Enumerations\PuzzleSolverState.cs" />
     <Compile Include="GUI Elements\Converters\IconPackToGeometryDrawingConverter.cs" />
+    <Compile Include="GUI Elements\Converters\PuzzleStateToIconConverter.cs" />
     <Compile Include="WindowTheme\AppThemeData.cs" />
     <Compile Include="GUI Elements\Converters\AbsConverter.cs" />
     <Compile Include="GUI Elements\Converters\FullPathToFileNameConverter.cs" />

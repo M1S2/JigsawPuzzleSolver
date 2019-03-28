@@ -167,6 +167,5 @@ namespace JigsawPuzzleSolver.GUI_Elements
             CommandManager.InvalidateRequerySuggested();
             ScrollLogEntries = true;
         }
-        
     }
 }

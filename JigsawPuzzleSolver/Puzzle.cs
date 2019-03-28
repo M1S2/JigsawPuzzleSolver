@@ -265,7 +265,6 @@ namespace JigsawPuzzleSolver
             Solutions.CollectionChanged += Solutions_CollectionChanged;
             SolutionsRotations = new ObservableCollection<Matrix<int>>();
             SolutionsRotations.CollectionChanged += SolutionsRotations_CollectionChanged;
-            Pieces = new ObservableCollection<Piece>();
 
             InputImages = new ObservableCollection<ImageGallery.ImageDescribed>();
             BindingOperations.EnableCollectionSynchronization(InputImages, _inputImgListLock);
@@ -375,16 +374,14 @@ namespace JigsawPuzzleSolver
                             CvBlobs blobs = new CvBlobs();
                             blobDetector.Detect(mask, blobs);
 
-                            //Image<Rgba, byte> sourceImgPiecesMarked = sourceImg.Copy();
-
                             foreach (CvBlob blob in blobs.Values.Where(b => b.BoundingBox.Width >= PuzzleSolverParameters.PuzzleMinPieceSize && b.BoundingBox.Height >= PuzzleSolverParameters.PuzzleMinPieceSize))
                             {
                                 if (_cancelToken.IsCancellationRequested) { _cancelToken.ThrowIfCancellationRequested(); }
 
                                 Rectangle roi = blob.BoundingBox;
 
-                                Image<Rgba, byte> pieceSourceImg; // = new Image<Rgba, byte>(sourceImg.Size);
-                                Image<Gray, byte> pieceMask; // = new Image<Gray, byte>(mask.Size);
+                                Image<Rgba, byte> pieceSourceImg;
+                                Image<Gray, byte> pieceMask;
 
                                 try
                                 {
@@ -444,6 +441,8 @@ namespace JigsawPuzzleSolver
                         }
                     }
                 });
+
+                Pieces.Sort(p => ((Piece)p).PieceIndex, null);
             }
             catch (OperationCanceledException)
             {
@@ -624,8 +623,6 @@ namespace JigsawPuzzleSolver
                         SolutionsRotations.Add(solution_rotations);
 
                         Bitmap solutionImg = GenerateSolutionImage2(solution, setNo);
-
-                        //System.Windows.Application.Current.Dispatcher.Invoke(() => { 
                         PuzzleSolutionImages.Add(new ImageGallery.ImageDescribed("Solution #" + setNo.ToString(), solutionImg));
 
                         _logHandle.Report(new LogBox.LogEventImage("Solution #" + setNo.ToString(), solutionImg));
@@ -650,103 +647,103 @@ namespace JigsawPuzzleSolver
 
         #region Generate Solution Image
 
-        private Bitmap GenerateSolutionImage(Matrix<int> solutionLocations, int solutionID)
-        { 
-            if (!Solved) { return null; }
+        //private Bitmap GenerateSolutionImage(Matrix<int> solutionLocations, int solutionID)
+        //{ 
+        //    if (!Solved) { return null; }
 
-            int border = 10;
-            float out_image_width = 0, out_image_height = 0;
+        //    int border = 10;
+        //    float out_image_width = 0, out_image_height = 0;
 
-            for (int i = 0; i < solutionLocations.Size.Width; i++)           // Calculate output image size
-            {
-                for (int j = 0; j < solutionLocations.Size.Height; j++)
-                {
-                    int piece_number = solutionLocations[j, i];
-                    if (piece_number == -1) { continue; }
+        //    for (int i = 0; i < solutionLocations.Size.Width; i++)           // Calculate output image size
+        //    {
+        //        for (int j = 0; j < solutionLocations.Size.Height; j++)
+        //        {
+        //            int piece_number = solutionLocations[j, i];
+        //            if (piece_number == -1) { continue; }
 
-                    float piece_size_x = (float)Utils.Distance(Pieces[piece_number].GetCorner(0), Pieces[piece_number].GetCorner(3));
-                    float piece_size_y = (float)Utils.Distance(Pieces[piece_number].GetCorner(0), Pieces[piece_number].GetCorner(1));
+        //            float piece_size_x = (float)Utils.Distance(Pieces[piece_number].GetCorner(0), Pieces[piece_number].GetCorner(3));
+        //            float piece_size_y = (float)Utils.Distance(Pieces[piece_number].GetCorner(0), Pieces[piece_number].GetCorner(1));
 
-                    out_image_width += piece_size_x;
-                    out_image_height += piece_size_y;
-                }
-            }
-            out_image_width = (out_image_width / solutionLocations.Size.Height) * 1.5f + border;
-            out_image_height = (out_image_height / solutionLocations.Size.Width) * 1.5f + border;
+        //            out_image_width += piece_size_x;
+        //            out_image_height += piece_size_y;
+        //        }
+        //    }
+        //    out_image_width = (out_image_width / solutionLocations.Size.Height) * 1.5f + border;
+        //    out_image_height = (out_image_height / solutionLocations.Size.Width) * 1.5f + border;
             
-            // Use get affine to map points...
-            Image<Rgb, byte> final_out_image = new Image<Rgb, byte>((int)out_image_width, (int)out_image_height);
+        //    // Use get affine to map points...
+        //    Image<Rgb, byte> final_out_image = new Image<Rgb, byte>((int)out_image_width, (int)out_image_height);
             
-            PointF[,] points = new PointF[solutionLocations.Size.Width + 1, solutionLocations.Size.Height +1];
-            bool failed = false;
+        //    PointF[,] points = new PointF[solutionLocations.Size.Width + 1, solutionLocations.Size.Height +1];
+        //    bool failed = false;
             
-            for (int i = 0; i < solutionLocations.Size.Width; i++)
-            {
-                for (int j = 0; j < solutionLocations.Size.Height; j++)
-                {
-                    int piece_number = solutionLocations[j, i];
+        //    for (int i = 0; i < solutionLocations.Size.Width; i++)
+        //    {
+        //        for (int j = 0; j < solutionLocations.Size.Height; j++)
+        //        {
+        //            int piece_number = solutionLocations[j, i];
 
-                    if (piece_number == -1)
-                    {
-                        failed = true;
-                        break;
-                    }
-                    float piece_size_x = (float)Utils.Distance(Pieces[piece_number].GetCorner(0), Pieces[piece_number].GetCorner(3));
-                    float piece_size_y = (float)Utils.Distance(Pieces[piece_number].GetCorner(0), Pieces[piece_number].GetCorner(1));
-                    VectorOfPointF src = new VectorOfPointF();
-                    VectorOfPointF dst = new VectorOfPointF();
+        //            if (piece_number == -1)
+        //            {
+        //                failed = true;
+        //                break;
+        //            }
+        //            float piece_size_x = (float)Utils.Distance(Pieces[piece_number].GetCorner(0), Pieces[piece_number].GetCorner(3));
+        //            float piece_size_y = (float)Utils.Distance(Pieces[piece_number].GetCorner(0), Pieces[piece_number].GetCorner(1));
+        //            VectorOfPointF src = new VectorOfPointF();
+        //            VectorOfPointF dst = new VectorOfPointF();
 
-                    if (i == 0 && j == 0)
-                    {
-                        points[i, j] = new PointF(border, border);
-                    }
-                    if (i == 0)
-                    {
-                        points[i, j + 1] = new PointF(border, points[i, j].Y + border + piece_size_y); //new PointF(points[i, j].X + border + x_dist, border);
-                    }
-                    if (j == 0)
-                    {
-                        points[i + 1, j] = new PointF(points[i, j].X + border + piece_size_x, border); //new PointF(border, points[i, j].Y + border + y_dist);
-                    }
+        //            if (i == 0 && j == 0)
+        //            {
+        //                points[i, j] = new PointF(border, border);
+        //            }
+        //            if (i == 0)
+        //            {
+        //                points[i, j + 1] = new PointF(border, points[i, j].Y + border + piece_size_y); //new PointF(points[i, j].X + border + x_dist, border);
+        //            }
+        //            if (j == 0)
+        //            {
+        //                points[i + 1, j] = new PointF(points[i, j].X + border + piece_size_x, border); //new PointF(border, points[i, j].Y + border + y_dist);
+        //            }
 
-                    dst.Push(points[i, j]);
-                    //dst.Push(points[i + 1, j]);
-                    //dst.Push(points[i, j + 1]);
-                    dst.Push(points[i, j + 1]);
-                    dst.Push(points[i + 1, j]);
-                    src.Push(Pieces[piece_number].GetCorner(0));
-                    src.Push(Pieces[piece_number].GetCorner(1));
-                    src.Push(Pieces[piece_number].GetCorner(3));
+        //            dst.Push(points[i, j]);
+        //            //dst.Push(points[i + 1, j]);
+        //            //dst.Push(points[i, j + 1]);
+        //            dst.Push(points[i, j + 1]);
+        //            dst.Push(points[i + 1, j]);
+        //            src.Push(Pieces[piece_number].GetCorner(0));
+        //            src.Push(Pieces[piece_number].GetCorner(1));
+        //            src.Push(Pieces[piece_number].GetCorner(3));
 
-                    //true means use affine transform
-                    Mat a_trans_mat = CvInvoke.EstimateRigidTransform(src, dst, true);
+        //            //true means use affine transform
+        //            Mat a_trans_mat = CvInvoke.EstimateRigidTransform(src, dst, true);
 
-                    Matrix<double> A = new Matrix<double>(a_trans_mat.Rows, a_trans_mat.Cols);
-                    a_trans_mat.CopyTo(A);
+        //            Matrix<double> A = new Matrix<double>(a_trans_mat.Rows, a_trans_mat.Cols);
+        //            a_trans_mat.CopyTo(A);
                     
-                    PointF l_r_c = Pieces[piece_number].GetCorner(2);       //Lower right corner of each piece
+        //            PointF l_r_c = Pieces[piece_number].GetCorner(2);       //Lower right corner of each piece
 
-                    //Doing my own matrix multiplication
-                    points[i + 1, j + 1] = new PointF((float)(A[0, 0] * l_r_c.X + A[0, 1] * l_r_c.Y + A[0, 2]), (float)(A[1, 0] * l_r_c.X + A[1, 1] * l_r_c.Y + A[1, 2]));
+        //            //Doing my own matrix multiplication
+        //            points[i + 1, j + 1] = new PointF((float)(A[0, 0] * l_r_c.X + A[0, 1] * l_r_c.Y + A[0, 2]), (float)(A[1, 0] * l_r_c.X + A[1, 1] * l_r_c.Y + A[1, 2]));
 
-                    Mat layer = new Mat();
-                    Mat layer_mask = new Mat();
+        //            Mat layer = new Mat();
+        //            Mat layer_mask = new Mat();
 
-                    CvInvoke.WarpAffine(new Image<Rgb, byte>(Pieces[piece_number].PieceImgColor), layer, a_trans_mat, new Size((int)out_image_width, (int)out_image_height), Inter.Linear, Warp.Default, BorderType.Transparent);
-                    CvInvoke.WarpAffine(new Image<Gray, byte>(Pieces[piece_number].PieceImgBw), layer_mask, a_trans_mat, new Size((int)out_image_width, (int)out_image_height), Inter.Nearest, Warp.Default, BorderType.Transparent);
+        //            CvInvoke.WarpAffine(new Image<Rgb, byte>(Pieces[piece_number].PieceImgColor), layer, a_trans_mat, new Size((int)out_image_width, (int)out_image_height), Inter.Linear, Warp.Default, BorderType.Transparent);
+        //            CvInvoke.WarpAffine(new Image<Gray, byte>(Pieces[piece_number].PieceImgBw), layer_mask, a_trans_mat, new Size((int)out_image_width, (int)out_image_height), Inter.Nearest, Warp.Default, BorderType.Transparent);
 
-                    layer.CopyTo(final_out_image, layer_mask);
-                }
+        //            layer.CopyTo(final_out_image, layer_mask);
+        //        }
 
-                if (failed)
-                {
-                    _logHandle.Report(new LogBox.LogEventError("Failed to generate solution " + solutionID + " image. Only partial image generated."));
-                    break;
-                }
-            }
+        //        if (failed)
+        //        {
+        //            _logHandle.Report(new LogBox.LogEventError("Failed to generate solution " + solutionID + " image. Only partial image generated."));
+        //            break;
+        //        }
+        //    }
 
-            return final_out_image.Clone().Bitmap;
-        }
+        //    return final_out_image.Clone().Bitmap;
+        //}
 
         //**********************************************************************************************************************************************************************************************
 
@@ -775,6 +772,8 @@ namespace JigsawPuzzleSolver
             Bitmap outImg = new Bitmap(out_image_width, out_image_height);
             Graphics g = Graphics.FromImage(outImg);
             g.Clear(Color.White);
+            Pen redPen = new Pen(Color.Red, 4);
+            StringFormat stringFormat = new StringFormat() { Alignment = StringAlignment.Near, LineAlignment = StringAlignment.Near };
 
             for (int i = 0; i < solutionLocations.Size.Width; i++)
             {
@@ -785,11 +784,11 @@ namespace JigsawPuzzleSolver
 
                     g.DrawImage(Pieces[piece_number].PieceImgColor, i * max_piece_width, j * max_piece_height + 150);
                     Rectangle pieceRect = new Rectangle(i * max_piece_width, j * max_piece_height, max_piece_width, max_piece_height);
-                    g.DrawRectangle(new Pen(Color.Red, 4), pieceRect);
-                    StringFormat stringFormat = new StringFormat() { Alignment = StringAlignment.Near, LineAlignment = StringAlignment.Near };
+                    g.DrawRectangle(redPen, pieceRect);
                     g.DrawString(Pieces[piece_number].PieceID + Environment.NewLine + Path.GetFileName(Pieces[piece_number].PieceSourceFileName), new Font("Arial", 40), new SolidBrush(Color.Blue), pieceRect, stringFormat);
                 }
             }
+            redPen.Dispose();
             
             return outImg;
         }

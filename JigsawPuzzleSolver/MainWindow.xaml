@@ -15,18 +15,10 @@
         mc:Ignorable="d"
         Title="Puzzle Solver" 
         Height="900" 
-        Width="1200"
+        Width="1300"
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
         ResizeMode="CanResizeWithGrip"
         Icon="jigsaw.ico">
-
-    <!--<MetroControls:MetroWindow.IconTemplate>
-        <DataTemplate>
-            <Grid Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Margin="3" Background="Transparent" RenderOptions.EdgeMode="Aliased" RenderOptions.BitmapScalingMode="HighQuality">
-                <Image Source="jigsaw.ico"/>
-            </Grid>
-        </DataTemplate>
-    </MetroControls:MetroWindow.IconTemplate>-->
 
     <MetroControls:MetroWindow.Resources>
         <converters:PuzzleSavingStateToIconConverter x:Key="SavingStateConverter"/>

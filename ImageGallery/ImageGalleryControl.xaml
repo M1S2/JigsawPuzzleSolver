@@ -34,6 +34,23 @@
             <local:ZoomBorder Grid.Column="1" ClipToBounds="True">
                 <Image Margin="5" Source="{Binding SelectedImage.Img, Converter={StaticResource BitmapConverter}}" />
             </local:ZoomBorder>
+
+            <TextBlock Grid.Column="1" Text="No images available" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="30" Foreground="{DynamicResource GrayBrush3}">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Visibility" Value="Hidden"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Path=ImgList.Count, ElementName=ImageGalleryUserControl}" Value="0">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Path=ImgList, ElementName=ImageGalleryUserControl}" Value="{x:Null}">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+
             <Button Grid.Column="2" Height="45" Width="45" Command="{Binding NextImgCommand}" ToolTip="Next Image" Style="{DynamicResource MahApps.Metro.Styles.MetroCircleButtonStyle}">
                 <iconPacks:PackIconMaterial Width="22" Height="22" Kind="ChevronRight"/>
             </Button>

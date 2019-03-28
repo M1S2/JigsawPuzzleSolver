@@ -45,18 +45,18 @@
                 <RowDefinition Height="30"/>
             </Grid.RowDefinitions>
 
-            <Border Grid.Row="0" Margin="5,5,5,0" BorderBrush="Gray" CornerRadius="10" BorderThickness="1">
+            <Border Grid.Row="0" Margin="5,5,5,0" BorderBrush="Gray" CornerRadius="2" BorderThickness="1">
                 <Image Margin="5" Source="{Binding CurrentPieceSourceImage, Converter={StaticResource BitmapConverter}}"/>
             </Border>
-            <Border Grid.Row="1" Margin="5,0,5,5" BorderBrush="Gray" BorderThickness="1" CornerRadius="10" HorizontalAlignment="Stretch">
+            <Border Grid.Row="1" Margin="5,0,5,5" BorderBrush="Gray" BorderThickness="1" CornerRadius="2" HorizontalAlignment="Stretch">
                 <TextBlock Text="{Binding CurrentPiece.PieceSourceFileName, Converter={StaticResource FilePathNameConverter}}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="14"/>
             </Border>
         </Grid>
 
-        <ListBox Grid.Row="1" Grid.Column="2" Margin="5" ItemsSource="{Binding Source={StaticResource collectionViewSourcePieces}}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+        <ListBox Grid.Row="1" Grid.Column="2" Margin="0" ItemsSource="{Binding Source={StaticResource collectionViewSourcePieces}}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled">
             <ListBox.Resources>
                 <Style TargetType="Border">
-                    <Setter Property="CornerRadius" Value="10"/>
+                    <Setter Property="CornerRadius" Value="2"/>
                 </Style>
             </ListBox.Resources>
             <ListBox.ItemsPanel>
@@ -80,7 +80,7 @@
                             <RowDefinition Height="25"/>
                         </Grid.RowDefinitions>
 
-                        <Border Grid.Row="0" CornerRadius="5" HorizontalAlignment="Stretch">
+                        <Border Grid.Row="0" CornerRadius="2" HorizontalAlignment="Stretch">
                             <Border.Style>
                                 <Style TargetType="Border">
                                     <Setter Property="BorderThickness" Value="1"/>
@@ -96,7 +96,7 @@
                             
                             <Image Source="{Binding PieceImgColor, Converter={StaticResource BitmapConverter}}"/>
                         </Border>
-                        <Border Grid.Row="1" CornerRadius="5" HorizontalAlignment="Stretch">
+                        <Border Grid.Row="1" CornerRadius="2" HorizontalAlignment="Stretch">
                             <Border.Style>
                                 <Style TargetType="Border">
                                     <Setter Property="BorderThickness" Value="1"/>

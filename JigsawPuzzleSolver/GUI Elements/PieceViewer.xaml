@@ -21,7 +21,7 @@
 
     <Grid DataContext="{Binding ElementName=PieceViewerControl}">
         <!-- see: http://www.magnuslindhe.com/2014/09/listbox-with-grid-layout-in-wpf/ -->
-        <ListBox Grid.Row="1" ItemsSource="{Binding Source={StaticResource collectionViewSourcePieces}}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ItemTemplate="{StaticResource TemplatePieceCard}">
+        <ListBox Grid.Row="1" ItemsSource="{Binding Source={StaticResource collectionViewSourcePieces}}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ItemTemplate="{StaticResource TemplatePieceCard}" ScrollViewer.CanContentScroll="False">
             <ListBox.ItemsPanel>
                 <ItemsPanelTemplate>
                     <WrapPanel/>
@@ -29,8 +29,16 @@
             </ListBox.ItemsPanel>
             <ListBox.ItemContainerStyle>
                 <Style TargetType="ListBoxItem">
-                    <Setter Property="Padding" Value="0"/>
+                    <Setter Property="Padding" Value="2"/>
                     <Setter Property="Margin" Value="5"/>
+                    <Style.Triggers>
+                        <Trigger Property="IsSelected" Value="True" >
+                            <Setter Property="Background" Value="Transparent"/>
+                        </Trigger>
+                    </Style.Triggers>
+                    <Style.Resources>
+                        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="Transparent"/>
+                    </Style.Resources>
                 </Style>
             </ListBox.ItemContainerStyle>
             <!--GroupHeader Style (see: https://www.wpf-tutorial.com/listview-control/listview-grouping/)-->
@@ -60,5 +68,22 @@
                 </GroupStyle>
             </ListBox.GroupStyle>
         </ListBox>
+
+        <TextBlock Text="No pieces available" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="30" Foreground="{DynamicResource GrayBrush3}">
+            <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                    <Setter Property="Visibility" Value="Hidden"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Path=PieceList.Count, ElementName=PieceViewerControl}" Value="0">
+                            <Setter Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=PieceList, ElementName=PieceViewerControl}" Value="{x:Null}">
+                            <Setter Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+        </TextBlock>
+
     </Grid>
 </UserControl>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -322,6 +323,27 @@ namespace JigsawPuzzleSolver
                 }
             }
             return outputArray;
+        }
+
+        //**********************************************************************************************************************************************************************************************
+
+        /// <summary>
+        /// Sorts the elements of an ObservableCollection without creating a new object.
+        /// </summary>
+        /// <typeparam name="TSource">The element type of the collection.</typeparam>
+        /// <typeparam name="TKey">The type that should be used for sorting.</typeparam>
+        /// <param name="source">The collection that should be sorted.</param>
+        /// <param name="keySelector">A function that selects the sort key.</param>
+        /// <param name="comparer">A comparer for a user defined sort. Use null to use the default compare.</param>
+        /// see: https://dotnet-snippets.de/snippet/observablecollectiont-sortieren/3853
+        public static void Sort<TSource, TKey>(this ObservableCollection<TSource> source, Func<TSource, TKey> keySelector, IComparer<TKey> comparer)
+        {
+            TSource[] sortedList;
+            if (comparer == null) { sortedList = source.OrderBy(keySelector).ToArray(); }
+            else { sortedList = source.OrderBy(keySelector, comparer).ToArray(); }
+
+            source.Clear();
+            foreach (var item in sortedList) { source.Add(item); }
         }
 
         #endregion

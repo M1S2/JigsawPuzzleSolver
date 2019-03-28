@@ -111,7 +111,9 @@ namespace JigsawPuzzleSolver.GUI_Elements
         {
             get
             {
-                Bitmap srcImg = (Bitmap)PuzzleHandle?.InputImages.Where(p => p.Description == System.IO.Path.GetFileName(CurrentPiece.PieceSourceFileName))?.First().Img.Clone();
+                if(PuzzleHandle == null || PuzzleHandle.InputImages == null || PuzzleHandle.InputImages.Count == 0 || CurrentPiece == null) { return null; }
+
+                Bitmap srcImg = (Bitmap)PuzzleHandle?.InputImages.Where(p => p.Description == System.IO.Path.GetFileName(CurrentPiece?.PieceSourceFileName))?.First().Img.Clone();
                 if(srcImg != null)
                 {
                     using (Graphics srcGraphics = Graphics.FromImage(srcImg))
@@ -195,6 +197,11 @@ namespace JigsawPuzzleSolver.GUI_Elements
         private void RecalculatePieceJoiningOrder()
         {
             OrderedPieces = new Dictionary<int, List<Piece>>();
+            if(NumberSolutions == 0)
+            {
+                CurrentPiece = null;
+                return;
+            }
 
             for (int numSolution = 0; numSolution < NumberSolutions; numSolution++)
             {
@@ -211,8 +218,8 @@ namespace JigsawPuzzleSolver.GUI_Elements
 
                 if (OrderedPieces.ContainsKey(numSolution)) { OrderedPieces[numSolution] = orderedSolutionPieces; }
                 else { OrderedPieces.Add(numSolution, orderedSolutionPieces); }
-                CurrentPiece = OrderedPieces[PuzzleHandle.CurrentSolutionNumber][PuzzleHandle.CurrentSolutionPieceIndex];
             }
+            CurrentPiece = OrderedPieces[PuzzleHandle.CurrentSolutionNumber][PuzzleHandle.CurrentSolutionPieceIndex];
         }
 
         //**********************************************************************************************************************************************************************************************
@@ -220,7 +227,7 @@ namespace JigsawPuzzleSolver.GUI_Elements
         private void GetSurroundingPieces()
         {
             ObservableCollection<Piece> surroundingPieces = new ObservableCollection<Piece>();
-            if(CurrentPiece == null) { return; }
+            if(CurrentPiece == null) { SurroundingPieces = null; return; }
 
             for (int y = CurrentPiece.SolutionLocation.Y - 1; y <= (CurrentPiece.SolutionLocation.Y + 1); y++)
             {

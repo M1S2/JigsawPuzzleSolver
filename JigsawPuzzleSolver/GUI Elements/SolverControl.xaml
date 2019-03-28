@@ -5,10 +5,27 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:JigsawPuzzleSolver.GUI_Elements"
              xmlns:MetroControls="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:converters="clr-namespace:JigsawPuzzleSolver.GUI_Elements.Converters"
+             xmlns:circularProgress="clr-namespace:CircularProgressBarControl;assembly=CircularProgressBarControl"
+             xmlns:pathTextBlock="clr-namespace:TextBlockPathEllipsis;assembly=TextBlockPathEllipsis"
              mc:Ignorable="d" 
              Name="SolverControlUserControl"
-             d:DesignHeight="300" d:DesignWidth="552">
-    
+             d:DesignHeight="400" d:DesignWidth="552">
+
+    <UserControl.Resources>
+        <Style x:Key="TileStyle" TargetType="MetroControls:Tile">
+            <Setter Property="Background" Value="{DynamicResource GrayBrush5}"/>
+            <Setter Property="FontSize" Value="60"/>
+            <Setter Property="TitleFontSize" Value="20"/>
+            <Setter Property="Width" Value="Auto"/>
+            <Setter Property="Height" Value="Auto"/>
+            <Setter Property="Margin" Value="5"/>
+        </Style>
+
+        <converters:PuzzleStateToIconConverter x:Key="PuzzleStateIconConverter"/>
+    </UserControl.Resources>
+
     <Grid DataContext="{Binding ElementName=SolverControlUserControl}">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Orientation="Vertical">
@@ -21,44 +38,70 @@
                     </Button>
                 </StackPanel>
 
-                <Grid Margin="10">
+                <Grid Margin="5">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="30"/>
-                        <RowDefinition Height="30"/>
-                        <RowDefinition Height="30"/>
-                        <RowDefinition Height="30"/>
-                        <RowDefinition Height="30"/>
-                        <RowDefinition Height="30"/>
-                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="150"/>
+                        <RowDefinition Height="150"/>
+                        <RowDefinition Height="150"/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="150"/>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Overall progress: " VerticalAlignment="Center"/>
-                    <MetroControls:MetroProgressBar Grid.Row="0" Grid.Column="1" Margin="2" Value="{Binding PuzzleHandle.PercentageOfFinishedSolverSteps, Mode=OneWay}" BorderBrush="{DynamicResource AccentColorBrush}" BorderThickness="1" Foreground="{DynamicResource AccentColorBrush}"/>
-                    <TextBlock Grid.Row="0" Grid.Column="2" VerticalAlignment="Center">
-                        <TextBlock.Text>
-                            <MultiBinding StringFormat="{}{0} / {1} steps finished">
-                                <Binding Path="PuzzleHandle.NumberOfFinishedSolverSteps" Mode="OneWay" />
-                                <Binding Path="PuzzleHandle.NumberOfSolverSteps" Mode="OneWay" />
-                            </MultiBinding>
-                        </TextBlock.Text>
-                    </TextBlock>
-                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Current solver state: " VerticalAlignment="Center"/>
-                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding PuzzleHandle.CurrentSolverState, Mode=OneWay}" VerticalAlignment="Center"/>
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Current state progress: " VerticalAlignment="Center"/>
-                    <MetroControls:MetroProgressBar Grid.Row="2" Grid.Column="1" Margin="2" Value="{Binding PuzzleHandle.CurrentSolverStepPercentageFinished, Mode=OneWay}" BorderBrush="{DynamicResource AccentColorBrush}" BorderThickness="1" Foreground="{DynamicResource AccentColorBrush}"/>
-                    <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding PuzzleHandle.CurrentSolverStepPercentageFinished, StringFormat='{}{0:N2} %', Mode=OneWay}" VerticalAlignment="Center"/>
-                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Elapsed time: " VerticalAlignment="Center"/>
-                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding PuzzleHandle.SolverElapsedTime, StringFormat='hh\\:mm\\:ss\\.ff', Mode=OneWay}" VerticalAlignment="Center"/>
-                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Number pieces found: " VerticalAlignment="Center"/>
-                    <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding PuzzleHandle.NumberPuzzlePieces, Mode=OneWay}" VerticalAlignment="Center"/>
-                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Puzzle pieces folder: " VerticalAlignment="Center"/>
-                    <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding PuzzleHandle.PuzzlePiecesFolderPath}" VerticalAlignment="Center"/>
+                    <MetroControls:Tile Grid.Row="0" Grid.Column="0" Title="Overall Progress" Style="{StaticResource TileStyle}">
+                        <MetroControls:Tile.Content>
+                            <Grid>
+                                <circularProgress:CircularProgressBar Margin="5" Radius="55" Stroke="{DynamicResource IdealForegroundColorBrush}" ShowValue="False" StrokeThickness="1" Background="{DynamicResource AccentBaseColorBrush}" Thickness="15" Value="{Binding PuzzleHandle.PercentageOfFinishedSolverSteps, Mode=OneWay}"/>
+                                <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="30">
+                                    <TextBlock.Text>
+                                        <MultiBinding StringFormat="{}{0} / {1}">
+                                            <Binding Path="PuzzleHandle.NumberOfFinishedSolverSteps" />
+                                            <Binding Path="PuzzleHandle.NumberOfSolverSteps" />
+                                        </MultiBinding>
+                                    </TextBlock.Text>
+                                </TextBlock>
+                            </Grid>
+                        </MetroControls:Tile.Content>
+                    </MetroControls:Tile>
 
+                    <MetroControls:Tile Grid.Row="0" Grid.Column="1" Title="{Binding PuzzleHandle.CurrentSolverState, Mode=OneWay, StringFormat={}Current Step ({0})}" Style="{StaticResource TileStyle}">
+                        <Image VerticalAlignment="Center" Width="60" Height="60" Margin="3" ToolTip="{Binding PuzzleHandle.CurrentSolverState}">
+                            <Image.Source>
+                                <DrawingImage Drawing="{Binding PuzzleHandle.CurrentSolverState, Mode=OneWay, Converter={StaticResource PuzzleStateIconConverter}}"/>
+                            </Image.Source>
+                        </Image>
+                        <!--<TextBlock Text="{Binding PuzzleHandle.CurrentSolverState, Mode=OneWay}" VerticalAlignment="Center"/>-->
+                    </MetroControls:Tile>
+
+                    <MetroControls:Tile Grid.Row="0" Grid.Column="2" Title="Step Progress" Style="{StaticResource TileStyle}">
+                        <MetroControls:Tile.Content>
+                            <circularProgress:CircularProgressBar Margin="5" Radius="55" Stroke="{DynamicResource IdealForegroundColorBrush}" StrokeThickness="1" Background="{DynamicResource AccentBaseColorBrush}" Thickness="15" Value="{Binding PuzzleHandle.CurrentSolverStepPercentageFinished, Mode=OneWay}"/>
+                        </MetroControls:Tile.Content>
+                    </MetroControls:Tile>
+
+                    <MetroControls:Tile Grid.Row="1" Grid.Column="0" Title="Number Pieces" Style="{StaticResource TileStyle}">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="Puzzle" Width="60" Height="60" Margin="0,0,40,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding PuzzleHandle.NumberPuzzlePieces, Mode=OneWay}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </MetroControls:Tile>
+
+                    <MetroControls:Tile Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Title="Elapsed Time" Style="{StaticResource TileStyle}">
+                        <MetroControls:Tile.Content>
+                            <StackPanel Orientation="Horizontal">
+                                <iconPacks:PackIconEntypo Kind="Stopwatch" Width="60" Height="60" Margin="0,0,40,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding PuzzleHandle.SolverElapsedTime, StringFormat='hh\\:mm\\:ss\\.ff', Mode=OneWay}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </MetroControls:Tile.Content>
+                    </MetroControls:Tile>
+
+                    <MetroControls:Tile Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Title="Pieces Folder" FontSize="30" Style="{StaticResource TileStyle}" HorizontalContentAlignment="Stretch">
+                        <Grid Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=Grid}}">
+                            <pathTextBlock:TextBlockPathEllipsisControl Margin="10" Path="{Binding PuzzleHandle.PuzzlePiecesFolderPath}"/>
+                        </Grid>
+                    </MetroControls:Tile>
                 </Grid>
             </StackPanel>
         </ScrollViewer>

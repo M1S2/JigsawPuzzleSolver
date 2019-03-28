@@ -26,7 +26,7 @@ namespace JigsawPuzzleSolver.GUI_Elements.Converters
             {
                 case PuzzleSavingStates.PUZZLE_NULL: return null;
                 case PuzzleSavingStates.NEW_UNSAVED:
-                    iconDataStr = (new PackIconModern() { Kind = PackIconModernKind.PageAdd }).Data; break;
+                    iconDataStr = (new PackIconModern() { Kind = PackIconModernKind.Page }).Data; break;
                 case PuzzleSavingStates.SAVED:
                     iconDataStr = (new PackIconModern() { Kind = PackIconModernKind.Save }).Data; break;
                 case PuzzleSavingStates.LOADED:
