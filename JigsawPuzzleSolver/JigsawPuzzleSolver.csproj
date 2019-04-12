@@ -123,6 +123,7 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     <Compile Include="Enumerations\PuzzleSolverState.cs" />
     <Compile Include="GUI Elements\Converters\IconPackToGeometryDrawingConverter.cs" />
     <Compile Include="GUI Elements\Converters\PuzzleStateToIconConverter.cs" />
+    <Compile Include="Settings.cs" />
     <Compile Include="WindowTheme\AppThemeData.cs" />
     <Compile Include="GUI Elements\Converters\AbsConverter.cs" />
     <Compile Include="GUI Elements\Converters\FullPathToFileNameConverter.cs" />

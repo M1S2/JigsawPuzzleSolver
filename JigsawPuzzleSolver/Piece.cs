@@ -198,7 +198,7 @@ namespace JigsawPuzzleSolver
             PieceSize = PieceImgColor.Size;
 
             _logHandle.Report(new LogBox.LogEventImage(PieceID + " Color", PieceImgColor));
-            if (PuzzleSolverParameters.SolverShowDebugResults) { _logHandle.Report(new LogBox.LogEventImage(PieceID + " Bw", PieceImgBw)); }
+            if (PuzzleSolverParameters.Instance.SolverShowDebugResults) { _logHandle.Report(new LogBox.LogEventImage(PieceID + " Bw", PieceImgBw)); }
 
             process();
         }
@@ -276,7 +276,7 @@ namespace JigsawPuzzleSolver
 
             string id = PieceID;
 
-            double minDistance = PuzzleSolverParameters.PuzzleMinPieceSize;    //How close can 2 corners be?
+            double minDistance = PuzzleSolverParameters.Instance.PuzzleMinPieceSize;    //How close can 2 corners be?
             int blockSize = 5; //25;                     //How big of an area to look for the corner in.
             bool useHarrisDetector = true;
             double k = 0.04;
@@ -329,7 +329,7 @@ namespace JigsawPuzzleSolver
             // Calculate the refined corner locations
             //CvInvoke.CornerSubPix(bw_clone, corners, winSize, zeroZone, criteria);
 
-            if (PuzzleSolverParameters.SolverShowDebugResults)
+            if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
             {
                 Graphics g = Graphics.FromImage(PieceImgColor);
                 for (int i = 0; i < corners.Size; i++)
@@ -360,7 +360,7 @@ namespace JigsawPuzzleSolver
             corners.Clear();
 
             // Find all dominant corner points using the GFTTDetector (this uses the Harris corner detector)
-            GFTTDetector detector = new GFTTDetector(PuzzleSolverParameters.PieceFindCornersGFTTMaxCorners, PuzzleSolverParameters.PieceFindCornersGFTTQualityLevel, PuzzleSolverParameters.PieceFindCornersGFTTMinDist, PuzzleSolverParameters.PieceFindCornersGFTTBlockSize, true, 0.04);
+            GFTTDetector detector = new GFTTDetector(PuzzleSolverParameters.Instance.PieceFindCornersGFTTMaxCorners, PuzzleSolverParameters.Instance.PieceFindCornersGFTTQualityLevel, PuzzleSolverParameters.Instance.PieceFindCornersGFTTMinDist, PuzzleSolverParameters.Instance.PieceFindCornersGFTTBlockSize, true, 0.04);
             MKeyPoint[] keyPoints = detector.Detect(new Image<Gray, byte>(PieceImgBw));
             List<Point> possibleCorners = keyPoints.Select(k => Point.Round(k.Point)).ToList();
 
@@ -370,25 +370,25 @@ namespace JigsawPuzzleSolver
                 List<Point> possibleCornersSortedUpperLeft = new List<Point>(possibleCorners);
                 possibleCornersSortedUpperLeft.Sort(new DistanceToPointComparer(new Point(0, 0), DistanceOrders.NEAREST_FIRST));
                 double minCornerDistUpperLeft = Utils.Distance(possibleCornersSortedUpperLeft[0], new PointF(0, 0));
-                possibleCornersSortedUpperLeft = possibleCornersSortedUpperLeft.Where(c => Utils.Distance(c, new PointF(0, 0)) < minCornerDistUpperLeft * PuzzleSolverParameters.PieceFindCornersMaxCornerDistRatio).ToList();
+                possibleCornersSortedUpperLeft = possibleCornersSortedUpperLeft.Where(c => Utils.Distance(c, new PointF(0, 0)) < minCornerDistUpperLeft * PuzzleSolverParameters.Instance.PieceFindCornersMaxCornerDistRatio).ToList();
 
                 // Sort the dominant corners by the distance to upper right corner of the bounding rectangle (ImageWidth, 0) and keep only the corners that are near enough to this point
                 List<Point> possibleCornersSortedUpperRight = new List<Point>(possibleCorners);
                 possibleCornersSortedUpperRight.Sort(new DistanceToPointComparer(new Point(PieceImgBw.Width, 0), DistanceOrders.NEAREST_FIRST));
                 double minCornerDistUpperRight = Utils.Distance(possibleCornersSortedUpperRight[0], new PointF(PieceImgBw.Width, 0));
-                possibleCornersSortedUpperRight = possibleCornersSortedUpperRight.Where(c => Utils.Distance(c, new PointF(PieceImgBw.Width, 0)) < minCornerDistUpperRight * PuzzleSolverParameters.PieceFindCornersMaxCornerDistRatio).ToList();
+                possibleCornersSortedUpperRight = possibleCornersSortedUpperRight.Where(c => Utils.Distance(c, new PointF(PieceImgBw.Width, 0)) < minCornerDistUpperRight * PuzzleSolverParameters.Instance.PieceFindCornersMaxCornerDistRatio).ToList();
 
                 // Sort the dominant corners by the distance to lower right corner of the bounding rectangle (ImageWidth, ImageHeight) and keep only the corners that are near enough to this point
                 List<Point> possibleCornersSortedLowerRight = new List<Point>(possibleCorners);
                 possibleCornersSortedLowerRight.Sort(new DistanceToPointComparer(new Point(PieceImgBw.Width, PieceImgBw.Height), DistanceOrders.NEAREST_FIRST));
                 double minCornerDistLowerRight = Utils.Distance(possibleCornersSortedLowerRight[0], new PointF(PieceImgBw.Width, PieceImgBw.Height));
-                possibleCornersSortedLowerRight = possibleCornersSortedLowerRight.Where(c => Utils.Distance(c, new PointF(PieceImgBw.Width, PieceImgBw.Height)) < minCornerDistLowerRight * PuzzleSolverParameters.PieceFindCornersMaxCornerDistRatio).ToList();
+                possibleCornersSortedLowerRight = possibleCornersSortedLowerRight.Where(c => Utils.Distance(c, new PointF(PieceImgBw.Width, PieceImgBw.Height)) < minCornerDistLowerRight * PuzzleSolverParameters.Instance.PieceFindCornersMaxCornerDistRatio).ToList();
 
                 // Sort the dominant corners by the distance to lower left corner of the bounding rectangle (0, ImageHeight) and keep only the corners that are near enough to this point
                 List<Point> possibleCornersSortedLowerLeft = new List<Point>(possibleCorners);
                 possibleCornersSortedLowerLeft.Sort(new DistanceToPointComparer(new Point(0, PieceImgBw.Height), DistanceOrders.NEAREST_FIRST));
                 double minCornerDistLowerLeft = Utils.Distance(possibleCornersSortedLowerLeft[0], new PointF(0, PieceImgBw.Height));
-                possibleCornersSortedLowerLeft = possibleCornersSortedLowerLeft.Where(c => Utils.Distance(c, new PointF(0, PieceImgBw.Height)) < minCornerDistLowerLeft * PuzzleSolverParameters.PieceFindCornersMaxCornerDistRatio).ToList();
+                possibleCornersSortedLowerLeft = possibleCornersSortedLowerLeft.Where(c => Utils.Distance(c, new PointF(0, PieceImgBw.Height)) < minCornerDistLowerLeft * PuzzleSolverParameters.Instance.PieceFindCornersMaxCornerDistRatio).ToList();
 
                 // Combine all possibleCorners from the four lists and discard all combination with too bad angle differences
                 List<FindCornerRectangleScore> scores = new List<FindCornerRectangleScore>();
@@ -411,7 +411,7 @@ namespace JigsawPuzzleSolver
                                     possibleCornersSortedUpperRight[indexUpperRight]
                                 };
                                 double angleDiff = RectangleDifferenceAngle(tmpCorners);
-                                if (angleDiff > PuzzleSolverParameters.PieceFindCornersMaxAngleDiff) { continue; }
+                                if (angleDiff > PuzzleSolverParameters.Instance.PieceFindCornersMaxAngleDiff) { continue; }
 
                                 double area = CvInvoke.ContourArea(new VectorOfPoint(tmpCorners));
                                 FindCornerRectangleScore score = new FindCornerRectangleScore() { AngleDiff = angleDiff, RectangleArea = area, PossibleCorners = tmpCorners };
@@ -426,22 +426,20 @@ namespace JigsawPuzzleSolver
                 if (scores.Count > 0) { corners.Push(scores[0].PossibleCorners); }
             }
 
-            if (corners.Size != 4)
-            {
-                _logHandle.Report(new LogBox.LogEventError(PieceID + " Failed to find correct number of corners. " + corners.Size + " found."));
-                return;
-            }
+            if (corners.Size != 4) { _logHandle.Report(new LogBox.LogEventError(PieceID + " Failed to find correct number of corners. " + corners.Size + " found.")); }
 
-            if (PuzzleSolverParameters.SolverShowDebugResults)
+            if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
             {
                 using (Image<Rgb, byte> imgCorners = new Image<Rgb, byte>(PieceImgColor))
                 {
                     Features2DToolbox.DrawKeypoints(imgCorners, new VectorOfKeyPoint(keyPoints), imgCorners, new Bgr(0, 0, 255));       // Draw the dominant key points
-                                                                                                                                        //for (int i = 0; i < 4; i++) { CvInvoke.Circle(imgCorners, Point.Round(corners[i]), 4, new MCvScalar(0, 255, 0), 3); }
-                    CvInvoke.Circle(imgCorners, Point.Round(corners[0]), 4, new MCvScalar(0, 255, 0), 3);
-                    CvInvoke.Circle(imgCorners, Point.Round(corners[1]), 4, new MCvScalar(0, 200, 0), 3);
-                    CvInvoke.Circle(imgCorners, Point.Round(corners[2]), 4, new MCvScalar(0, 150, 0), 3);
-                    CvInvoke.Circle(imgCorners, Point.Round(corners[3]), 4, new MCvScalar(0, 100, 0), 3);
+
+                    for (int i = 0; i < corners.Size; i++) { CvInvoke.Circle(imgCorners, Point.Round(corners[i]), 4, new MCvScalar(0, Math.Max(255 - i * 50, 50), 0), 3); }
+
+                    //CvInvoke.Circle(imgCorners, Point.Round(corners[0]), 4, new MCvScalar(0, 255, 0), 3);
+                    //CvInvoke.Circle(imgCorners, Point.Round(corners[1]), 4, new MCvScalar(0, 200, 0), 3);
+                    //CvInvoke.Circle(imgCorners, Point.Round(corners[2]), 4, new MCvScalar(0, 150, 0), 3);
+                    //CvInvoke.Circle(imgCorners, Point.Round(corners[3]), 4, new MCvScalar(0, 100, 0), 3);
                     _logHandle.Report(new LogBox.LogEventImage(PieceID + " Corners", imgCorners.Bitmap));
                 }
             }
@@ -517,7 +515,7 @@ namespace JigsawPuzzleSolver
             }
             corners = new_corners;
 
-            if (PuzzleSolverParameters.SolverShowDebugResults)
+            if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
             {
                 Image<Rgb, byte> edge_img = new Image<Rgb, byte>(PieceImgColor);
                 for (int i = 0; i < corners.Size; i++) { CvInvoke.Circle(edge_img, Point.Round(corners[i]), 2, new MCvScalar(255, 0, 0), 1); }
@@ -570,7 +568,7 @@ namespace JigsawPuzzleSolver
                 _logHandle.Report(new LogBox.LogEventError(PieceID + " Found too many edges for this piece. " + count.ToString() + " found."));
             }
 
-            if (PuzzleSolverParameters.SolverShowDebugResults) { _logHandle.Report(new LogBox.LogEventImage(PieceID + " Type " + PieceType.ToString(), PieceImgColor)); }
+            if (PuzzleSolverParameters.Instance.SolverShowDebugResults) { _logHandle.Report(new LogBox.LogEventImage(PieceID + " Type " + PieceType.ToString(), PieceImgColor)); }
         }
 
         //##############################################################################################################################################################################################

@@ -25,5 +25,12 @@ The solver only uses the shapes of the edges to compare them. No color matching 
 2. **Compare edges:** Compare all piece edges against each other. Build a list with all match scores and sort it ascending by the scores (best/lowest scores first). Remove all scores above a specific value. 
 3. **Solve puzzle:** Join all pieces beginning with the best matching edges. Edges are joined until no good match is left or until all pieces are joined.
 
+## Settings
+Use the settings menu to adapt the solver to your puzzle. Many parameters can be changed either to improve solver quality or speed. Refer to the tooltips of the controls for further informations.
+
+## Algorithms
+The algorithms for extracting and matching pieces are taken from https://github.com/jzeimen/PuzzleSolver and adapted.
+Thanks for this great project. 
+
 ## Window Icon
 WindowIcon made by Freepik from www.flaticon.com/free-icon/jigsaw_993686

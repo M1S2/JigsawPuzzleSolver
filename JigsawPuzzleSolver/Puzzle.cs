@@ -303,7 +303,7 @@ namespace JigsawPuzzleSolver
             using (Image<Hsv, byte> hsvSourceImg = inputImg.Convert<Hsv, byte>())
             {
                 Image<Gray, byte> maskInverted;
-                if (PuzzleSolverParameters.PuzzleIsInputBackgroundWhite)
+                if (PuzzleSolverParameters.Instance.PuzzleIsInputBackgroundWhite)
                 {
 #warning White color values must be adjusted with real scanned image
                     maskInverted = hsvSourceImg.InRange(new Hsv(0, 0, 220), new Hsv(180, 20, 255));    // white background is defined as the inner region of the top of the HSV color cylinder (hue=0...180, sat=0...20, val=220...255)
@@ -357,24 +357,24 @@ namespace JigsawPuzzleSolver
                 //For each input image
                 ParallelOptions parallelOptions = new ParallelOptions();
                 parallelOptions.CancellationToken = _cancelToken;
-                parallelOptions.MaxDegreeOfParallelism = Environment.ProcessorCount;
+                parallelOptions.MaxDegreeOfParallelism = (PuzzleSolverParameters.Instance.UseParallelLoops ? Environment.ProcessorCount : 1);
                 Parallel.For(0, imageFilesInfo.Count, parallelOptions, (i) =>
                 {
                     using (Image<Rgba, byte> sourceImg = CvInvoke.Imread(imageFilesInfo[i].FullName).ToImage<Rgba, byte>(true)) //.LimitImageSize(2000, 2000))
                     {
                         CvInvoke.CvtColor(sourceImg, sourceImg, ColorConversion.Bgr2Rgba);               // Images are read in BGR model (not RGB)
-                        if (PuzzleSolverParameters.PuzzleApplyMedianBlurFilter) { CvInvoke.MedianBlur(sourceImg, sourceImg, 5); }
+                        if (PuzzleSolverParameters.Instance.PuzzleApplyMedianBlurFilter) { CvInvoke.MedianBlur(sourceImg, sourceImg, 5); }
 
                         using (Image<Gray, byte> mask = inputImgHsvSegmentation(sourceImg))
                         {
                             _logHandle.Report(new LogBox.LogEventImage("Extracting Pieces from source image " + i.ToString(), sourceImg.Bitmap));
-                            if (PuzzleSolverParameters.SolverShowDebugResults) { _logHandle.Report(new LogBox.LogEventImage("Mask " + i.ToString(), mask.Bitmap)); }
+                            if (PuzzleSolverParameters.Instance.SolverShowDebugResults) { _logHandle.Report(new LogBox.LogEventImage("Mask " + i.ToString(), mask.Bitmap)); }
 
                             CvBlobDetector blobDetector = new CvBlobDetector();                 // Find all blobs in the mask image, extract them and add them to the list of pieces
                             CvBlobs blobs = new CvBlobs();
                             blobDetector.Detect(mask, blobs);
 
-                            foreach (CvBlob blob in blobs.Values.Where(b => b.BoundingBox.Width >= PuzzleSolverParameters.PuzzleMinPieceSize && b.BoundingBox.Height >= PuzzleSolverParameters.PuzzleMinPieceSize))
+                            foreach (CvBlob blob in blobs.Values.Where(b => b.BoundingBox.Width >= PuzzleSolverParameters.Instance.PuzzleMinPieceSize && b.BoundingBox.Height >= PuzzleSolverParameters.Instance.PuzzleMinPieceSize))
                             {
                                 if (_cancelToken.IsCancellationRequested) { _cancelToken.ThrowIfCancellationRequested(); }
 
@@ -506,7 +506,7 @@ namespace JigsawPuzzleSolver
 
                 ParallelOptions parallelOptions = new ParallelOptions();
                 parallelOptions.CancellationToken = _cancelToken;
-                parallelOptions.MaxDegreeOfParallelism = Environment.ProcessorCount;
+                parallelOptions.MaxDegreeOfParallelism = (PuzzleSolverParameters.Instance.UseParallelLoops ? Environment.ProcessorCount : 1);
                 Parallel.For(0, no_edges, parallelOptions, (i) =>
                 {
                     Parallel.For(i, no_edges, parallelOptions, (j) =>
@@ -522,12 +522,13 @@ namespace JigsawPuzzleSolver
                         matchScore.PieceIndex2 = j / 4;
                         matchScore.EdgeIndex1 = i % 4;
                         matchScore.EdgeIndex2 = j % 4;
+
                         Edge edge1 = Pieces[matchScore.PieceIndex1].Edges[matchScore.EdgeIndex1];
                         Edge edge2 = Pieces[matchScore.PieceIndex2].Edges[matchScore.EdgeIndex2];
                         if (edge1 == null || edge2 == null) { matchScore.score = 400000000; }
                         else { matchScore.score = edge1.Compare(edge2); }
 
-                        if (matchScore.score <= PuzzleSolverParameters.PuzzleSolverKeepMatchesThreshold)  // Keep only the best matches (all scores above or equal 100000000 mean that the edges won't match)
+                        if (matchScore.score <= PuzzleSolverParameters.Instance.PuzzleSolverKeepMatchesThreshold)  // Keep only the best matches (all scores above or equal 100000000 mean that the edges won't match)
                         {
                             matchesDict.TryAdd(matchesDict.Count, matchScore);
                         }
@@ -538,7 +539,7 @@ namespace JigsawPuzzleSolver
 
                 matches.Sort(new MatchScoreComparer(ScoreOrders.LOWEST_FIRST)); // Sort the matches to get the best scores first. The puzzle is solved by the order of the MatchScores
 
-                if (PuzzleSolverParameters.SolverShowDebugResults)
+                if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
                 {
                     foreach (MatchScore matchScore in matches)
                     {
@@ -558,6 +559,7 @@ namespace JigsawPuzzleSolver
         {
             await Task.Run(() =>
             {
+                _logHandle.Report(new LogBox.LogEventInfo("Puzzle solving started."));
                 extract_pieces_HSV_segmentation();
             }, _cancelToken);
         }

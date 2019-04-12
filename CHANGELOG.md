@@ -4,6 +4,9 @@ Project: JigsawPuzzleSolver
 
 ## [%version%] - %date%
 
+- Application look changed to Metro style (by using MahApps.Metro)
+- Speed improvements
+- Settings menu added
 
 ## [v2.0] - 06.03.2019 20:06
 

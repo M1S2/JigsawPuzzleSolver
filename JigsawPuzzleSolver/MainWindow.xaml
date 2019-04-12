@@ -21,23 +21,30 @@
         Icon="jigsaw.ico">
 
     <MetroControls:MetroWindow.Resources>
-        <converters:PuzzleSavingStateToIconConverter x:Key="SavingStateConverter"/>
-        <converters:DivisionConverter x:Key="DivConverter"/>
-        <converters:PuzzleStateToProgressBarStateConverter x:Key="ProgressBarStateConverter"/>
-        <converters:IconPackToGeometryDrawingConverter x:Key="IconPackGeometryDrawingConverter"/>
+        <ResourceDictionary>
+            <converters:PuzzleSavingStateToIconConverter x:Key="SavingStateConverter"/>
+            <converters:DivisionConverter x:Key="DivConverter"/>
+            <converters:PuzzleStateToProgressBarStateConverter x:Key="ProgressBarStateConverter"/>
+            <converters:IconPackToGeometryDrawingConverter x:Key="IconPackGeometryDrawingConverter"/>
+            <converters:PuzzleStateToIconConverter x:Key="PuzzleStateIconConverter"/>
+
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.ToggleSwitch.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </MetroControls:MetroWindow.Resources>
 
     <MetroControls:MetroWindow.LeftWindowCommands>
         <MetroControls:WindowCommands>
             <Separator/>
-            <Button Command="{Binding OpenNewPuzzleCommand}">
-                <iconPacks:PackIconModern Width="22" Height="22" Kind="PageAdd" ToolTip="Open new Puzzle" />
+            <Button Command="{Binding OpenNewPuzzleCommand}" ToolTip="Open new Puzzle">
+                <iconPacks:PackIconModern Width="22" Height="22" Kind="PageAdd"/>
             </Button>
-            <Button Command="{Binding LoadPuzzleCommand}">
-                <iconPacks:PackIconModern Width="22" Height="22" Kind="FolderOpen" ToolTip="Load Puzzle" />
+            <Button Command="{Binding LoadPuzzleCommand}" ToolTip="Load Puzzle">
+                <iconPacks:PackIconModern Width="22" Height="22" Kind="FolderOpen"/>
             </Button>
-            <Button Command="{Binding SavePuzzleCommand}">
-                <iconPacks:PackIconModern Width="22" Height="22" Kind="Save" ToolTip="Save Puzzle" />
+            <Button Command="{Binding SavePuzzleCommand}" ToolTip="Save Puzzle">
+                <iconPacks:PackIconModern Width="22" Height="22" Kind="Save"/>
             </Button>
         </MetroControls:WindowCommands>
     </MetroControls:MetroWindow.LeftWindowCommands>
@@ -46,8 +53,11 @@
         <MetroControls:WindowCommands>
             <windowTheme:WindowThemeUserControl/>
 
+            <Button Command="{Binding OpenSettingsFlyoutCommand}" ToolTip="Open settings">
+                <iconPacks:PackIconMaterial Width="22" Height="22" Kind="Settings" Foreground="{DynamicResource IdealForegroundColorBrush}"/>
+            </Button>
             <Button Command="{Binding InfoCommand}" ToolTip="About this application">
-                <iconPacks:PackIconModern Width="22" Height="22" Kind="InformationCircle" />
+                <iconPacks:PackIconModern Width="22" Height="22" Kind="InformationCircle" Foreground="{DynamicResource IdealForegroundColorBrush}"/>
             </Button>
         </MetroControls:WindowCommands>
     </MetroControls:MetroWindow.RightWindowCommands>
@@ -56,6 +66,109 @@
     <MetroControls:MetroWindow.TaskbarItemInfo>
         <TaskbarItemInfo ProgressState="{Binding PuzzleHandle.CurrentSolverState, Converter={StaticResource ProgressBarStateConverter}}" ProgressValue="{Binding PuzzleHandle.CurrentSolverStepPercentageFinished, Converter={StaticResource DivConverter}, ConverterParameter=100}" />
     </MetroControls:MetroWindow.TaskbarItemInfo>
+
+    <MetroControls:MetroWindow.Flyouts>
+        <MetroControls:FlyoutsControl>
+            <MetroControls:Flyout AreAnimationsEnabled="True" Header="Settings" Position="Right" Width="450" Margin="0,30,0,0" IsPinned="False" Theme="Inverse">
+                <Grid>
+                    <Grid.Resources>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="FontSize" Value="16"/>
+                            <Setter Property="Margin" Value="15,0,0,0"/>
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                        </Style>
+                        <Style TargetType="MetroControls:NumericUpDown">
+                            <Setter Property="FontSize" Value="14"/>
+                            <Setter Property="Margin" Value="0,2,5,2"/>
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                        </Style>
+                    </Grid.Resources>
+                    
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="130"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="35"/>
+                        <RowDefinition Height="35"/>
+                        <RowDefinition Height="35"/>
+                        <RowDefinition Height="35"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="45"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Show debug results"/>
+                    <MetroControls:ToggleSwitch Grid.Row="0" Grid.Column="1" OnLabel="Show" OffLabel="Hide" VerticalAlignment="Center" Style="{StaticResource MahApps.Metro.Styles.ToggleSwitch.Win10}" IsChecked="{Binding Source={x:Static local:PuzzleSolverParameters.Instance}, Path=SolverShowDebugResults, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ToolTip="Enable this option to show debug informations in the log output.&#10;Not neccessary during normal operation."/>
+                    
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Compress puzzle output file"/>
+                    <MetroControls:ToggleSwitch Grid.Row="1" Grid.Column="1" OnLabel="Compress" OffLabel="Normal" VerticalAlignment="Center" Style="{StaticResource MahApps.Metro.Styles.ToggleSwitch.Win10}" IsChecked="{Binding Source={x:Static local:PuzzleSolverParameters.Instance}, Path=CompressPuzzleOutputFile, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ToolTip="Enable this option to compress the output XML file that is created while saving the puzzle.&#10;The settings must correspond to the file when loading."/>
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Median blur filter"/>
+                    <MetroControls:ToggleSwitch Grid.Row="2" Grid.Column="1" OnLabel="On" OffLabel="Off" VerticalAlignment="Center" Style="{StaticResource MahApps.Metro.Styles.ToggleSwitch.Win10}" IsChecked="{Binding Source={x:Static local:PuzzleSolverParameters.Instance}, Path=PuzzleApplyMedianBlurFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ToolTip="Enable this option to apply a median blur filter to the input images.&#10;The median filter reduces noise and persist edges."/>
+
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Puzzle background"/>
+                    <MetroControls:ToggleSwitch Grid.Row="3" Grid.Column="1" OnLabel="White" OffLabel="Black" VerticalAlignment="Center" Style="{StaticResource MahApps.Metro.Styles.ToggleSwitch.Win10}" IsChecked="{Binding Source={x:Static local:PuzzleSolverParameters.Instance}, Path=PuzzleIsInputBackgroundWhite, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ToolTip="Is the background of the input images white or black."/>
+
+                    <Expander Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Header="Advanced settings">
+                        <Grid Margin="10,0,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="130"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="35"/>
+                                <RowDefinition Height="35"/>
+                                <RowDefinition Height="35"/>
+                                <RowDefinition Height="35"/>
+                                <RowDefinition Height="35"/>
+                                <RowDefinition Height="35"/>
+                                <RowDefinition Height="35"/>
+                                <RowDefinition Height="35"/>
+                                <RowDefinition Height="35"/>
+                                <RowDefinition Height="35"/>
+                                <RowDefinition Height="35"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Min. piece size (pixel)"/>
+                            <MetroControls:NumericUpDown Grid.Row="0" Grid.Column="1" Value="{Binding Source={x:Static local:PuzzleSolverParameters.Instance}, Path=PuzzleMinPieceSize, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ToolTip="Minimum puzzle piece size in pixels.&#10;If the width or height of a possible piece is lower than this setting, the piece is discarded."/>
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Threshold keep matches"/>
+                            <MetroControls:NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding Source={x:Static local:PuzzleSolverParameters.Instance}, Path=PuzzleSolverKeepMatchesThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Interval="0.1" ToolTip="Only the best matching piece pairs should be kept.&#10;This parameter is used to discard too bad pairs.&#10;The higher this value is the more pairs are kept."/>
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="GFTT max corners"/>
+                            <MetroControls:NumericUpDown Grid.Row="2" Grid.Column="1" Value="{Binding Source={x:Static local:PuzzleSolverParameters.Instance}, Path=PieceFindCornersGFTTMaxCorners, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ToolTip="Maximum number of features that should be detected by the GFTT detector (Good Features To Track).&#10;Reduce this setting for speed improvements."/>
+
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="GFTT quality level"/>
+                            <MetroControls:NumericUpDown Grid.Row="3" Grid.Column="1" Value="{Binding Source={x:Static local:PuzzleSolverParameters.Instance}, Path=PieceFindCornersGFTTQualityLevel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Interval="0.01" ToolTip="Minimal accepted quality of image corners of the GFTT detector (Good Features To Track)."/>
+
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="GFTT min dist"/>
+                            <MetroControls:NumericUpDown Grid.Row="4" Grid.Column="1" Value="{Binding Source={x:Static local:PuzzleSolverParameters.Instance}, Path=PieceFindCornersGFTTMinDist, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ToolTip="Minimum euclidian distance between returned corners of the GFTT detector (Good Features To Track).&#10;The higher this setting the less points are returned."/>
+
+                            <TextBlock Grid.Row="5" Grid.Column="0" Text="GFTT block size"/>
+                            <MetroControls:NumericUpDown Grid.Row="5" Grid.Column="1" Value="{Binding Source={x:Static local:PuzzleSolverParameters.Instance}, Path=PieceFindCornersGFTTBlockSize, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ToolTip="Size of the averaging block of the GFTT detector (Good Features To Track)."/>
+
+                            <TextBlock Grid.Row="6" Grid.Column="0" Text="Max angle diff"/>
+                            <MetroControls:NumericUpDown Grid.Row="6" Grid.Column="1" Value="{Binding Source={x:Static local:PuzzleSolverParameters.Instance}, Path=PieceFindCornersMaxAngleDiff, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Interval="0.1" ToolTip="This setting is used to find the corners of the pieces.&#10;Only corners with angles near 90 degree are kept.&#10;The higher this setting the more the squares can be twisted."/>
+
+                            <TextBlock Grid.Row="7" Grid.Column="0" Text="Max corner dist ratio"/>
+                            <MetroControls:NumericUpDown Grid.Row="7" Grid.Column="1" Value="{Binding Source={x:Static local:PuzzleSolverParameters.Instance}, Path=PieceFindCornersMaxCornerDistRatio, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Interval="0.1" ToolTip="This setting limits the contour points that are used to find the corners of the piece.&#10;The piece is split in four squares (Top-Left, Top-Right, Bottom-Left, Bottom-Right) and points that are too far from the corners are discarded.&#10;The higher this setting the more points are kept."/>
+
+                            <TextBlock Grid.Row="8" Grid.Column="0" Text="Edge compare window size %"/>
+                            <MetroControls:NumericUpDown Grid.Row="8" Grid.Column="1" Value="{Binding Source={x:Static local:PuzzleSolverParameters.Instance}, Path=EdgeCompareWindowSizePercent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Interval="0.001" ToolTip="Not all points are taken into account to speed up the calculation.&#10;Therefore a window is defined by the percentage of total points in the longer contour."/>
+
+                            <TextBlock Grid.Row="9" Grid.Column="0" Text="Edge compare endpoint diff ignore"/>
+                            <MetroControls:NumericUpDown Grid.Row="9" Grid.Column="1" Value="{Binding Source={x:Static local:PuzzleSolverParameters.Instance}, Path=EdgeCompareEndpointDiffIgnoreThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ToolTip="Edges whose endpoints are close enough to each other are regarded as optimal."/>
+
+                            <TextBlock Grid.Row="10" Grid.Column="0" Text="Parallel processing"/>
+                            <MetroControls:ToggleSwitch Grid.Row="10" Grid.Column="1" OnLabel="Parallel" OffLabel="Sequential" VerticalAlignment="Center" Style="{StaticResource MahApps.Metro.Styles.ToggleSwitch.Win10}" IsChecked="{Binding Source={x:Static local:PuzzleSolverParameters.Instance}, Path=UseParallelLoops, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ToolTip="Enable this option to use multiple threads for processing.&#10;If the option is disabled only one thread is used."/>
+                        </Grid>
+                    </Expander>
+
+                    <Button Grid.Row="5" Grid.Column="1" Margin="0,10,10,0" Command="{Binding Source={x:Static local:PuzzleSolverParameters.DefaultSettingsCommand}}" Content="Default Settings" ToolTip="Reset all settings to default values" Style="{DynamicResource AccentedSquareButtonStyle}" MetroControls:ControlsHelper.ContentCharacterCasing="Normal"/>
+                </Grid>
+            </MetroControls:Flyout>
+        </MetroControls:FlyoutsControl>
+    </MetroControls:MetroWindow.Flyouts>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -162,7 +275,16 @@
                     </Style>
                 </StatusBarItem.Style>
             </StatusBarItem>
-            <StatusBarItem Content="{Binding PuzzleHandle.CurrentSolverState, Mode=OneWay}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,20,0"/>
+            <StatusBarItem HorizontalAlignment="Right">
+                <StackPanel Orientation="Horizontal">
+                    <Image VerticalAlignment="Center" Margin="3" ToolTip="{Binding PuzzleHandle.CurrentSolverState}">
+                        <Image.Source>
+                            <DrawingImage Drawing="{Binding PuzzleHandle.CurrentSolverState, Mode=OneWay, Converter={StaticResource PuzzleStateIconConverter}}"/>
+                        </Image.Source>
+                    </Image>
+                    <StatusBarItem Content="{Binding PuzzleHandle.CurrentSolverState, Mode=OneWay}" VerticalAlignment="Center" Margin="0,0,20,0"/>
+                </StackPanel>
+            </StatusBarItem>
         </StatusBar>
     </Grid>
 </MetroControls:MetroWindow>

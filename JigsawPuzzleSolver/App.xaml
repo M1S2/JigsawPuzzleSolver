@@ -22,7 +22,7 @@
             <converters:FullPathToFileNameConverter x:Key="FilePathNameConverter"/>
             <converters:AbsConverter x:Key="AbsConverter"/>
 
-            <!-- Path Disabled Style -->
+            <!-- ##### Path Disabled Style ################################################################################################ -->
             <Style TargetType="Path">
                 <Setter Property="Opacity" Value="1"/>
                 <Style.Triggers>
@@ -32,7 +32,7 @@
                 </Style.Triggers>
             </Style>
 
-            <!-- Style to gray out disabled images -->
+            <!-- ##### Image Disabled Style ################################################################################################ -->
             <Style TargetType="{x:Type Image}">
                 <Setter Property="Opacity" Value="1"/>
                 <Style.Triggers>
@@ -42,6 +42,7 @@
                 </Style.Triggers>
             </Style>
 
+            <!-- ##### PieceCard Template ################################################################################################ -->
             <DataTemplate x:Key="TemplatePieceCard">
                 <Border Width="250" CornerRadius="2" BorderThickness="3" Background="{DynamicResource GrayBrush8}">
                     <Border.Style>
@@ -57,7 +58,7 @@
                             </Style.Triggers>
                         </Style>
                     </Border.Style>
-                    
+
                     <Grid Width="230">
                         <Grid.Resources>
                             <Style TargetType="TextBlock">
@@ -102,6 +103,7 @@
                     </Grid>
                 </Border>
             </DataTemplate>
+            
         </ResourceDictionary>
     </Application.Resources>
 </Application>

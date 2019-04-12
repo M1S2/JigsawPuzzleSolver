@@ -77,9 +77,6 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ToggleSwitch.xaml.cs">
-      <DependentUpon>ToggleSwitch.xaml</DependentUpon>
-    </Compile>
     <Compile Include="ZoomBorder.xaml.cs">
       <DependentUpon>ZoomBorder.xaml</DependentUpon>
     </Compile>
@@ -129,10 +126,6 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="LogBox.xaml">
-      <Generator>XamlIntelliSenseFileGenerator</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="ToggleSwitch.xaml">
       <Generator>XamlIntelliSenseFileGenerator</Generator>
       <SubType>Designer</SubType>
     </Page>
