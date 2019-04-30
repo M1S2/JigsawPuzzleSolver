@@ -254,8 +254,10 @@ namespace JigsawPuzzleSolver
         {
             //find_corners_GFTT();
 
-            find_corners_MaximumRectangle();
-            
+            //find_corners_MaximumRectangle();
+
+            find_corners_PolarCoordinates();
+
             extract_edges();
             classify();
         }
@@ -265,6 +267,104 @@ namespace JigsawPuzzleSolver
         //**********************************************************************************************************************************************************************************************
 
         #region find_corners functions
+
+        /// <summary>
+        /// Get the piece corners by finding peaks in the polar representation of the contour points
+        /// </summary>
+        /// see: http://www.martijn-onderwater.nl/2016/10/13/puzzlemaker-extracting-the-four-sides-of-a-jigsaw-piece-from-the-boundary/
+        /// see: https://web.stanford.edu/class/cs231a/prev_projects_2016/computer-vision-solve__1_.pdf
+        private void find_corners_PolarCoordinates()
+        {
+            VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint();
+            CvInvoke.FindContours(new Image<Gray, byte>(PieceImgBw), contours, null, RetrType.List, ChainApproxMethod.ChainApproxSimple);
+            if (contours.Size == 0) { return; }
+            VectorOfPoint contour = contours[0];
+
+            if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
+            {
+                using (Image<Rgb, byte> polarContourImg = new Image<Rgb, byte>(PieceImgColor))
+                {
+                    for (int i = 0; i < contour.Size; i++) { CvInvoke.Circle(polarContourImg, Point.Round(contour[i]), 2, new MCvScalar(255 * ((double)i / contour.Size), 0, 255 - 255 * ((double)i / contour.Size)), 1); }
+                    _logHandle.Report(new LogBox.LogEventImage(PieceID + " Polar Contour", polarContourImg.Bitmap));
+                }
+            }
+
+            Size pieceMiddle = new Size(PieceImgBw.Width / 2, PieceImgBw.Height / 2);
+            
+            List<PolarCoordinate> polarContour = new List<PolarCoordinate>();
+            for (int i = 0; i < contour.Size; i++)
+            {
+                polarContour.Add(PolarCoordinate.CartesianToPolar(Point.Subtract(contour[i], pieceMiddle)));        // Shift the origin to the middle of the piece to get the full 360 degree range for angles instead of only using 90 degree
+            }
+
+            //List<PointF> polarContourPoints = polarContour.Select(p => new PointF((float)p.Angle, (float)p.Radius)).ToList();
+            //polarContourPoints = DouglasPeuckerLineApprox.DouglasPeuckerReduction(polarContourPoints, 1);
+            //polarContour = polarContourPoints.Select(p => new PolarCoordinate(p.X, p.Y)).ToList();
+
+            //double minAngle = polarContour.Select(p => p.Angle).Min();
+            //int locMinAngle = polarContour.Select(p => p.Angle).ToList().IndexOf(minAngle);
+            //PolarCoordinate[] polarContourArr = polarContour.ToArray();
+            //polarContourArr.Rotate(-locMinAngle);
+            //polarContour = polarContourArr.ToList();
+
+
+            //List<double> smoothedValues = SmoothingFilter.SmoothData(polarContour.Select(p => p.Radius).ToList(), 7, 0.4);
+            //List<PolarCoordinate> polarContourSmoothed = new List<PolarCoordinate>();
+            //for (int i = 0; i < polarContour.Count; i++) { polarContourSmoothed.Add(new PolarCoordinate(polarContour[i].Angle, smoothedValues[i])); }
+            //polarContour = polarContourSmoothed;
+
+            List<int> peakPosOut = DifferencePeakFinder.FindPeaksCyclic(polarContour.Select(p => p.Radius).ToList(), 5, 0, 1);
+            List<PolarCoordinate> cornerCandidatesPolar = polarContour.Where(p => peakPosOut[polarContour.IndexOf(p)] == 1).ToList();
+            cornerCandidatesPolar = cornerCandidatesPolar.OrderBy(p => p.Angle).ToList();
+            
+            //Rotate perfect square to find corners with minimum difference to it
+            double minSum = double.MaxValue;
+            int minAngle = 0;
+            for (int i = 0; i < 360; i++)
+            {
+                double angleDiffSum = 0;
+                for (int a = 0; a < 360; a += 90)
+                {
+                    List<PolarCoordinate> rangePolarPoints = cornerCandidatesPolar.Where(p => Utils.IsAngleInRange(p.Angle, i + a - 45, i + a + 45)).ToList();
+                    List<double> rangeDiffs = rangePolarPoints.Select(p => Math.Abs(Utils.GetPositiveAngle(i + a) - p.Angle)).ToList();
+                    double angleDiff = rangeDiffs.Count <= 0 ? double.MaxValue : rangeDiffs.Sum();
+                    angleDiffSum += angleDiff;
+                }
+                if(angleDiffSum < minSum)
+                {
+                    minSum = angleDiffSum;
+                    minAngle = i;
+                }
+            }
+            
+            List<PolarCoordinate> cornersPolar = new List<PolarCoordinate>();
+            corners.Clear();
+            for (int a = 270; a >= 0; a -= 90)
+            {
+                PolarCoordinate polarCorner = cornerCandidatesPolar.OrderBy(p => Utils.AngleDiff(p.Angle, Utils.GetPositiveAngle(minAngle + a), true)).First();     // Get the corner candiate that has the minimum distance to the current ideal square point position
+                corners.Push(Point.Add(Point.Round(PolarCoordinate.PolarToCartesian(polarCorner)), pieceMiddle));
+                cornersPolar.Add(polarCorner);
+            }
+
+            if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
+            {                
+                int maxRadius = (int)polarContour.Select(p => p.Radius).Max();
+                using (Mat polarImg = new Mat(maxRadius, 360, DepthType.Cv8U, 3))
+                {
+                    for (int i = 0; i < polarContour.Count - 1; i++) { CvInvoke.Line(polarImg, new Point((int)polarContour[i].Angle, maxRadius - (int)polarContour[i].Radius), new Point((int)polarContour[i + 1].Angle, maxRadius - (int)polarContour[i + 1].Radius), new MCvScalar(255, 0, 0), 1, LineType.EightConnected); }
+                    for (int i = 0; i < cornerCandidatesPolar.Count; i++) { CvInvoke.Circle(polarImg, new Point((int)cornerCandidatesPolar[i].Angle, maxRadius - (int)cornerCandidatesPolar[i].Radius), 3, new MCvScalar(0, 0, 255), -1); }
+                    for (int i = 0; i < cornersPolar.Count; i++) { CvInvoke.Circle(polarImg, new Point((int)cornersPolar[i].Angle, maxRadius - (int)cornersPolar[i].Radius), 2, new MCvScalar(0, 255, 0), -1); }
+                    _logHandle.Report(new LogBox.LogEventImage(PieceID + " Polar", polarImg.ToImage<Rgb, byte>().Bitmap));
+                    polarImg.Dispose();
+
+                    Image<Rgb, byte> corner_img = new Image<Rgb, byte>(PieceImgColor);
+                    for (int i = 0; i < corners.Size; i++) { CvInvoke.Circle(corner_img, Point.Round(corners[i]), 7, new MCvScalar(255, 0, 0), -1); }
+                    _logHandle.Report(new LogBox.LogEventImage(PieceID + " Found Corners (" + corners.Size.ToString() + ")", corner_img.Bitmap));
+                }
+            }
+        }
+
+        //**********************************************************************************************************************************************************************************************
 
         /// <summary>
         /// Find the 4 strongest corners.
@@ -435,11 +535,6 @@ namespace JigsawPuzzleSolver
                     Features2DToolbox.DrawKeypoints(imgCorners, new VectorOfKeyPoint(keyPoints), imgCorners, new Bgr(0, 0, 255));       // Draw the dominant key points
 
                     for (int i = 0; i < corners.Size; i++) { CvInvoke.Circle(imgCorners, Point.Round(corners[i]), 4, new MCvScalar(0, Math.Max(255 - i * 50, 50), 0), 3); }
-
-                    //CvInvoke.Circle(imgCorners, Point.Round(corners[0]), 4, new MCvScalar(0, 255, 0), 3);
-                    //CvInvoke.Circle(imgCorners, Point.Round(corners[1]), 4, new MCvScalar(0, 200, 0), 3);
-                    //CvInvoke.Circle(imgCorners, Point.Round(corners[2]), 4, new MCvScalar(0, 150, 0), 3);
-                    //CvInvoke.Circle(imgCorners, Point.Round(corners[3]), 4, new MCvScalar(0, 100, 0), 3);
                     _logHandle.Report(new LogBox.LogEventImage(PieceID + " Corners", imgCorners.Bitmap));
                 }
             }
@@ -496,31 +591,6 @@ namespace JigsawPuzzleSolver
             }
 
             VectorOfPoint contour = contours[indexLargestContour];
-
-            VectorOfPoint new_corners = new VectorOfPoint();
-            for (int i = 0; i < corners.Size; i++)      //out of all of the found corners, find the closest points in the contour, these will become the endpoints of the edges
-            {
-                double best = 10000000000;
-                Point closest_point = contour[0];
-                for (int j = 0; j < contour.Size; j++)
-                {
-                    double d = Utils.Distance(corners[i], contour[j]);
-                    if (d < best)
-                    {
-                        best = d;
-                        closest_point = contour[j];
-                    }
-                }
-                new_corners.Push(closest_point);
-            }
-            corners = new_corners;
-
-            if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
-            {
-                Image<Rgb, byte> edge_img = new Image<Rgb, byte>(PieceImgColor);
-                for (int i = 0; i < corners.Size; i++) { CvInvoke.Circle(edge_img, Point.Round(corners[i]), 2, new MCvScalar(255, 0, 0), 1); }
-                _logHandle.Report(new LogBox.LogEventImage(PieceID + " New corners", edge_img.Bitmap));
-            }
 
             List<int> sections = find_all_in(contour, corners);
 

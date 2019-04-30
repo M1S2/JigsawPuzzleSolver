@@ -229,6 +229,7 @@ namespace JigsawPuzzleSolver
                 double total_length = CvInvoke.ArcLength(normalized_contour, false) + CvInvoke.ArcLength(edge2.reverse_normalized_contour, false);
 
                 int windowSizePoints = (int)(Math.Max(normalized_contour.Size, edge2.reverse_normalized_contour.Size) * PuzzleSolverParameters.Instance.EdgeCompareWindowSizePercent);
+                if(windowSizePoints < 1) { windowSizePoints = 1; }
 
                 double distEndpointsContour1 = Utils.Distance(normalized_contour[0], normalized_contour[normalized_contour.Size - 1]);
                 double distEndpointsContour2 = Utils.Distance(edge2.reverse_normalized_contour[0], edge2.reverse_normalized_contour[edge2.reverse_normalized_contour.Size - 1]);

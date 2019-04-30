@@ -63,6 +63,95 @@ namespace JigsawPuzzleSolver
             }
         }
 
+        //**********************************************************************************************************************************************************************************************
+
+        /// <summary>
+        /// Calculate the first order derivate of the given points
+        /// </summary>
+        /// <param name="y">Points to calculate derivate from</param>
+        /// <returns>Derivate values</returns>
+        /// see page 385: https://books.google.de/books?id=dFHvBQAAQBAJ&pg=PA392&lpg=PA392&dq=c%23+calculate+first+order+derivative+of+value+array&source=bl&ots=TCxHXAy2tq&sig=ACfU3U1jbFOYgdHjz1ebnt9EcoUDjZhTbw&hl=de&sa=X&ved=2ahUKEwiqr8Pe0-3hAhUPLlAKHW1RATYQ6AEwAnoECAYQAQ#v=onepage&q=c%23%20calculate%20first%20order%20derivative%20of%20value%20array&f=false
+        public static List<double> DerivativeForward(List<double> y)
+        {
+            List<double> dydx = new List<double>();
+            int h = 1;
+
+            for (int x = 0; x < y.Count - 3; x++)
+            {
+                double derivativeValue = 0;
+                if (y == null || y.Count < 3) { derivativeValue = double.NaN; }
+                else { derivativeValue = (-3 * y[x] + 4 * y[x + 1] - y[x + 2]) / 2 / h; }
+                dydx.Add(derivativeValue);
+            }
+            return dydx;
+        }
+
+        //**********************************************************************************************************************************************************************************************
+
+        /// <summary>
+        /// Get an angle in the range between 0 and 360 degree
+        /// </summary>
+        /// <param name="angle">angle in degree</param>
+        /// <returns>angle in degree between 0 and 360</returns>
+        /// see: http://james-ramsden.com/angle-class-for-c/
+        public static double GetPositiveAngle(double angle)
+        {
+            if (angle < 0) { return 360 - (Math.Abs(angle) % 360); }    //-360 to 0 to between 0 and 360
+            else if (angle > 360) { return angle % 360; }               //over 360 to between 0 and 360
+            else { return angle; }                                      //else it's fine, return it back
+        }
+
+        //**********************************************************************************************************************************************************************************************
+
+        /// <summary>
+        /// Get the difference between the two angles.
+        /// Example:
+        /// 90 -> 100 = 10
+        /// 100 -> 90 = 350
+        /// 350 -> 10 = 20
+        /// 10 -> 350 = 340
+        /// </summary>
+        /// <param name="angle1">Angle 1</param>
+        /// <param name="angle2">Angle 2</param>
+        /// <param name="smallAngleDiff">Always return differences smaller than 180 degree</param>
+        /// <returns>angle difference</returns>
+        public static double AngleDiff(double angle1, double angle2, bool smallAngleDiff)
+        {
+            double angleDiff = angle2 - angle1;
+            if (smallAngleDiff) { angleDiff = Math.Abs(angleDiff); }
+
+            if(angleDiff < 0) { angleDiff = GetPositiveAngle(angleDiff); }
+            if(angleDiff > 180) { angleDiff = 360 - angleDiff; }
+            return angleDiff;
+        }
+
+        //**********************************************************************************************************************************************************************************************
+
+        /// <summary>
+        /// Check if the angle in the range between rangeLower and rangeUpper.
+        /// Example:
+        /// angle = 90, rangeLower = 80, rangeUpper = 100 ==> true
+        /// angle = 20, rangeLower = -45, rangeUpper = 45 ==> true
+        /// angle = 40, rangeLower = 315, rangeUpper = 45 ==> true 
+        /// angle = -40, rangeLower = 315, rangeUpper = 45 ==> true 
+        /// angle = -50, rangeLower = 315, rangeUpper = 45 ==> false
+        /// </summary>
+        /// <param name="angle">angle in degree</param>
+        /// <returns>angle in degree between 0 and 360</returns>
+        /// see: https://www.xarg.org/2010/06/is-an-angle-between-two-other-angles/
+        public static bool IsAngleInRange(double angle, double rangeLower, double rangeUpper)
+        { 
+            double rangeLowerPositive = GetPositiveAngle(rangeLower);
+            double rangeUpperPositive = GetPositiveAngle(rangeUpper);
+            double anglePositive = GetPositiveAngle(angle);
+
+            if (rangeLowerPositive < rangeUpperPositive)
+            {
+                return rangeLower <= anglePositive && anglePositive <= rangeUpperPositive;
+            }
+            return rangeLowerPositive <= anglePositive || anglePositive <= rangeUpperPositive;
+        }
+
         #endregion
 
         //**********************************************************************************************************************************************************************************************
