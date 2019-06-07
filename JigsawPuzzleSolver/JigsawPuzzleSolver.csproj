@@ -127,7 +127,6 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     <Compile Include="PeakFinders\DifferencePeakFinder.cs" />
     <Compile Include="PeakFinders\DouglasPeuckerLineApprox.cs" />
     <Compile Include="PeakFinders\SmoothingFilter.cs" />
-    <Compile Include="Settings.cs" />
     <Compile Include="Structures\PolarCoordinate.cs" />
     <Compile Include="WindowTheme\AppThemeData.cs" />
     <Compile Include="GUI Elements\Converters\AbsConverter.cs" />
@@ -161,7 +160,6 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     <Compile Include="WindowTheme\WindowThemeUserControl.xaml.cs">
       <DependentUpon>WindowThemeUserControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="PeakFinders\ZScorePeakFinder.cs" />
     <Page Include="GUI Elements\PieceJoinerControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

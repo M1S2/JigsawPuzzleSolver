@@ -291,96 +291,57 @@ namespace JigsawPuzzleSolver
         }
 
         //##############################################################################################################################################################################################
-
-//        /// <summary>
-//        /// Perform HSV segmentation on input image. Works with white or black background (depending on PuzzleSolverParameters.PuzzleIsInputBackgroundWhite).
-//        /// </summary>
-//        /// <param name="inputImg">Color input image</param>
-//        /// <returns>Mask image</returns>
-//        private Image<Gray, byte> inputImgHsvSegmentation(Image<Rgba, byte> inputImg)
-//        {
-//            Image<Gray, byte> mask;
-
-//            using (Image<Hsv, byte> hsvSourceImg = inputImg.Convert<Hsv, byte>())
-//            {
-//                Image<Gray, byte> maskInverted;
-//                if (PuzzleSolverParameters.Instance.PuzzleIsInputBackgroundWhite)
-//                {
-//#warning White color values must be adjusted with real scanned image
-//                    maskInverted = hsvSourceImg.InRange(new Hsv(0, 0, 220), new Hsv(180, 20, 255));    // white background is defined as the inner region of the top of the HSV color cylinder (hue=0...180, sat=0...20, val=220...255)
-//                }
-//                else
-//                {
-//                    maskInverted = hsvSourceImg.InRange(new Hsv(0, 0, 0), new Hsv(180, 255, 50));    // black background is defined as the whole lower base of the HSV color cylinder (hue=0...180, sat=0...255, val=0...50)
-//                }
-
-//                mask = maskInverted.Not();
-//                maskInverted.Dispose();
-//            }
-//            return mask;
-//        }
-
-
-        /// <summary>
-        /// Draw the given 1D-Histogram to an image.
-        /// </summary>
-        /// <param name="hist">1D-Histogram to draw.</param>
-        /// <param name="numBins">Number of bins used while calculating the histogram.</param>
-        /// <param name="binDrawWidth">Drawing width of one bin in pixels.</param>
-        /// <param name="histDrawHeight">Drawing height of the whole histogram in pixels.</param>
-        /// <param name="lineColor">Drawing color of the line.</param>
-        /// <returns>Image with a line plot of the 1D-Histogram</returns>
-        private Image<Rgb, byte> drawHist(Mat hist, int numBins, int binDrawWidth, int histDrawHeight, MCvScalar lineColor)
-        {
-            Point minLoc = new Point(), maxLoc = new Point();
-            double minVal = 0, maxVal = 0;
-            CvInvoke.MinMaxLoc(hist, ref minVal, ref maxVal, ref minLoc, ref maxLoc);
-            
-            Mat histImg = new Mat(histDrawHeight, numBins * binDrawWidth, DepthType.Cv8U, 3);
-            Matrix<float> histMatrix = new Matrix<float>(hist.Rows, hist.Cols);
-            hist.CopyTo(histMatrix);
-
-            for (int b = 0; b < numBins - 1; b++)
-            {
-                int binVal1norm = (int)Math.Round(histMatrix[b, 0] * histDrawHeight / maxVal);
-                int binVal2norm = (int)Math.Round(histMatrix[b + 1, 0] * histDrawHeight / maxVal);
-                CvInvoke.Line(histImg, new Point(binDrawWidth * b, histDrawHeight - binVal1norm), new Point(binDrawWidth * (b + 1), histDrawHeight - binVal2norm), lineColor, 2, LineType.EightConnected);
-            }
-            return histImg.ToImage<Rgb, byte>();
-        }
         
+        /*
         /// <summary>
-        /// Find the highest value in the histogram using a mask to only use a specific range.
+        /// Perform GrabCut segmentation on input image to get a mask for the pieces (foreground).
         /// </summary>
-        /// <param name="hist">1D-Histogram</param>
-        /// <param name="rangeMinVal">Start value of the allowed range. All values smaller than this value are discarded. This is not a bin number, it's a value!</param>
-        /// <param name="rangeMaxVal">End value of the allowed range. All values bigger than this value are discarded. This is not a bin number, it's a value!</param>
-        /// <param name="histMaxVal">The highest histogram value.</param>
-        /// <returns>Value of the highest bin in the allowed range.</returns>
-        private double highestBinValInRange(Mat hist, int rangeMinVal, int rangeMaxVal, int histMaxVal)
+        /// <param name="inputImg">Input image for segmentation</param>
+        /// <returns>Mask for foreground</returns>
+        private Image<Gray, byte> getMaskGrabCut(Image<Rgba, byte> inputImg)
         {
-            int numBins = hist.Rows;
-            Point minLoc = new Point(), maxLoc = new Point();
-            double minVal = 0, maxVal = 0;
+            Image<Gray, byte> mask = inputImg.Convert<Rgb, byte>().GrabCut(new Rectangle(1, 1, inputImg.Width - 1, inputImg.Height - 1), 2);
+            mask = mask.ThresholdBinary(new Gray(2), new Gray(255));            // Change the mask. All values bigger than 2 get mapped to 255. All values equal or smaller than 2 get mapped to 0.
+            return mask;
+        }*/
 
-            //Create mask for allowed range (allowed = 1, out of range = 0)
-            Matrix<byte> maskHist = new Matrix<byte>(hist.Rows, hist.Cols);     
-            maskHist.SetValue(0);
-            for (int binVal = rangeMinVal; binVal < rangeMaxVal; binVal++) { maskHist[(int)(((float)binVal / histMaxVal) * numBins), 0] = 1; }
+/*
+        /// <summary>
+        /// Calculate a mask for the pieces. Works with white or black background (depending on PuzzleSolverParameters.PuzzleIsInputBackgroundWhite).
+        /// </summary>
+        /// <param name="inputImg">Color input image</param>
+        /// <returns>Mask image</returns>
+        private Image<Gray, byte> getMaskHsvSegmentation(Image<Rgba, byte> inputImg)
+        {
+            Image<Gray, byte> mask;
 
-            CvInvoke.MinMaxLoc(hist, ref minVal, ref maxVal, ref minLoc, ref maxLoc, maskHist);
-            int highestBinNumber = maxLoc.Y;
-            return ((highestBinNumber + 0.5) / numBins) * histMaxVal;       // + 0.5 to be in the middle of the bin
-        }
+            using (Image<Hsv, byte> hsvSourceImg = inputImg.Convert<Hsv, byte>())
+            {
+                Image<Gray, byte> maskInverted;
+                if (PuzzleSolverParameters.Instance.PuzzleIsInputBackgroundWhite)
+                {
+#warning White color values must be adjusted with real scanned image
+                    maskInverted = hsvSourceImg.InRange(new Hsv(0, 0, 220), new Hsv(180, 20, 255));    // white background is defined as the inner region of the top of the HSV color cylinder (hue=0...180, sat=0...20, val=220...255)
+                }
+                else
+                {
+                    maskInverted = hsvSourceImg.InRange(new Hsv(0, 0, 0), new Hsv(180, 255, 50));    // black background is defined as the whole lower base of the HSV color cylinder (hue=0...180, sat=0...255, val=0...50)
+                }
+
+                mask = maskInverted.Not();
+                maskInverted.Dispose();
+            }
+            return mask;
+        }*/
 
         /// <summary>
-        /// Perform HSV segmentation on input image. The function calculates a histogram to find the piece background color. 
+        /// Calculate a mask for the pieces. The function calculates a histogram to find the piece background color. 
         /// Everything within a specific HSV range around the piece background color is regarded as foreground. The rest is regarded as background.
         /// </summary>
         /// <param name="inputImg">Color input image</param>
         /// <returns>Mask image</returns>
         /// see: https://docs.opencv.org/2.4/modules/imgproc/doc/histograms.html?highlight=calchist
-        private Image<Gray, byte> inputImgHsvSegmentationHistogram(Image<Rgba, byte> inputImg)
+        private Image<Gray, byte> getMaskHsvSegmentationHistogram(Image<Rgba, byte> inputImg)
         {
             Image<Gray, byte> mask;
 
@@ -400,28 +361,39 @@ namespace JigsawPuzzleSolver
                 // Draw the histograms for debugging purposes
                 if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
                 {
-                    _logHandle.Report(new LogBox.LogEventImage("Hist H", drawHist(histOutH, hbins, 30, 1024, new MCvScalar(255, 0, 0)).Bitmap));
-                    _logHandle.Report(new LogBox.LogEventImage("Hist S", drawHist(histOutS, sbins, 30, 1024, new MCvScalar(0, 255, 0)).Bitmap));
-                    _logHandle.Report(new LogBox.LogEventImage("Hist V", drawHist(histOutV, vbins, 30, 1024, new MCvScalar(0, 0, 255)).Bitmap));
+                    _logHandle.Report(new LogBox.LogEventImage("Hist H", Utils.DrawHist(histOutH, hbins, 30, 1024, new MCvScalar(255, 0, 0)).Bitmap));
+                    _logHandle.Report(new LogBox.LogEventImage("Hist S", Utils.DrawHist(histOutS, sbins, 30, 1024, new MCvScalar(0, 255, 0)).Bitmap));
+                    _logHandle.Report(new LogBox.LogEventImage("Hist V", Utils.DrawHist(histOutV, vbins, 30, 1024, new MCvScalar(0, 0, 255)).Bitmap));
                 }
+
+//#warning Use border color
+//                int borderHeight = 10;
+//                Image<Hsv, byte> borderImg = hsvSourceImg.Copy(new Rectangle(0, hsvSourceImg.Height - borderHeight, hsvSourceImg.Width, borderHeight));
+//                MCvScalar meanBorderColorScalar = CvInvoke.Mean(borderImg);
+//                Hsv meanBorderColor = new Hsv(meanBorderColorScalar.V0, meanBorderColorScalar.V1, meanBorderColorScalar.V2);
+//                if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
+//                {
+//                    Image<Hsv, byte> borderColorImg = new Image<Hsv, byte>(12, 12);
+//                    borderColorImg.SetValue(meanBorderColor);
+//                    _logHandle.Report(new LogBox.LogEventImage("HSV Border Color (" + meanBorderColor.Hue + " ; " + meanBorderColor.Satuation + "; " + meanBorderColor.Value + ")", borderColorImg.Bitmap));
+//                }
 
 #warning Make this to settings (mainHueSegment)
                 int mainHueSegment = 90;    // Is the piece background rather red (0), green (60) or blue (120) ? 
-                int hueDiff = 15;
+                int hDiffHist = 15;
+                int hDiff = 15; //20;
+                int sDiff = 15; //20; //40;
+                int vDiff = 15; //20; //40;
 
                 // Find the peaks in the histograms and use them as piece background color. Black and white areas are ignored.
                 Hsv pieceBackgroundColor = new Hsv();
-                pieceBackgroundColor.Hue = highestBinValInRange(histOutH, mainHueSegment - hueDiff, mainHueSegment + hueDiff, 179); //25, 179, 179);
-                pieceBackgroundColor.Satuation = highestBinValInRange(histOutS, 50, 255, 255);
-                pieceBackgroundColor.Value = highestBinValInRange(histOutV, 75, 255, 255);
+                pieceBackgroundColor.Hue = Utils.HighestBinValInRange(histOutH, mainHueSegment - hDiffHist, mainHueSegment + hDiffHist, 179); //25, 179, 179);
+                pieceBackgroundColor.Satuation = Utils.HighestBinValInRange(histOutS, 50, 205, 255); //50, 255, 255);
+                pieceBackgroundColor.Value = Utils.HighestBinValInRange(histOutV, 75, 205, 255); //75, 255, 255);
 
                 histOutH.Dispose();
                 histOutS.Dispose();
                 histOutV.Dispose();
-
-                double hDiff = 15; //20;
-                double sDiff = 20; //40;
-                double vDiff = 20; //40;
 
                 // Show the found piece background color
                 if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
@@ -492,12 +464,12 @@ namespace JigsawPuzzleSolver
                 parallelOptions.MaxDegreeOfParallelism = (PuzzleSolverParameters.Instance.UseParallelLoops ? Environment.ProcessorCount : 1);
                 Parallel.For(0, imageFilesInfo.Count, parallelOptions, (i) =>
                 {
-                    using (Image<Rgba, byte> sourceImg = CvInvoke.Imread(imageFilesInfo[i].FullName).ToImage<Rgba, byte>(true)) //.LimitImageSize(2000, 2000))
+                    using (Image<Rgba, byte> sourceImg = CvInvoke.Imread(imageFilesInfo[i].FullName).ToImage<Rgba, byte>(true)) //.LimitImageSize(1000, 1000))
                     {
                         //CvInvoke.CvtColor(sourceImg, sourceImg, ColorConversion.Bgr2Rgba);               // Images are read in BGR model (not RGB)
-                        if (PuzzleSolverParameters.Instance.PuzzleApplyMedianBlurFilter) { CvInvoke.MedianBlur(sourceImg, sourceImg, 5); }
+                        CvInvoke.MedianBlur(sourceImg, sourceImg, 5);
 
-                        using (Image<Gray, byte> mask = inputImgHsvSegmentationHistogram(sourceImg))
+                        using (Image<Gray, byte> mask = getMaskHsvSegmentationHistogram(sourceImg))    //getMaskGrabCut(sourceImg))
                         {
                             _logHandle.Report(new LogBox.LogEventImage("Extracting Pieces from source image " + i.ToString(), sourceImg.Bitmap));
                             if (PuzzleSolverParameters.Instance.SolverShowDebugResults) { _logHandle.Report(new LogBox.LogEventImage("Mask " + i.ToString(), mask.Bitmap)); }

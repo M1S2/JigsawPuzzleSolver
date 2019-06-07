@@ -287,7 +287,7 @@ namespace JigsawPuzzleSolver
         }
 
         //**********************************************************************************************************************************************************************************************
-        
+
         /// <summary>
         /// Rotate the array count times
         /// </summary>
@@ -320,6 +320,22 @@ namespace JigsawPuzzleSolver
                     array[0] = temp;
                 }
             }
+        }
+
+        //**********************************************************************************************************************************************************************************************
+
+        /// <summary>
+        /// Rotate the list count times
+        /// </summary>
+        /// <typeparam name="T">Type of the list</typeparam>
+        /// <param name="list">list to rotate</param>
+        /// <param name="count">number of rotations</param>
+        public static void Rotate<T>(this List<T> list, int count)
+        {
+            T[] array = list.ToArray();
+            array.Rotate(count);
+            list.Clear();
+            list.AddRange(array.ToList());
         }
 
         //**********************************************************************************************************************************************************************************************
@@ -441,7 +457,7 @@ namespace JigsawPuzzleSolver
         //**********************************************************************************************************************************************************************************************
         //**********************************************************************************************************************************************************************************************
 
-        #region Image utilities
+        #region Image, Histogram utilities
 
         /// <summary>
         /// Convert a Bitmap to a BitmapImage that can be used with WPF Image controls
@@ -536,6 +552,12 @@ namespace JigsawPuzzleSolver
 
         //**********************************************************************************************************************************************************************************************
 
+        /// <summary>
+        /// Rotate the given Mat by 90, 180 or 270 degree
+        /// </summary>
+        /// <param name="src">Mat to rotate</param>
+        /// <param name="angle">Angle to rotate the Mat. Could be 0, 90, 180, 270 or -90</param>
+        /// <returns>Rotated Mat</returns>
         public static Mat RotateMat(Mat src, int angle)
         {
             if (angle % 90 != 0) { return src; }
@@ -598,6 +620,62 @@ namespace JigsawPuzzleSolver
         {
             if (img.Width > maxWidth || img.Height > maxHeight) { return img.Resize(maxWidth, maxHeight, Inter.Area, true); }
             else { return img; }
+        }
+
+        //**********************************************************************************************************************************************************************************************
+        
+        /// <summary>
+        /// Draw the given 1D-Histogram to an image.
+        /// </summary>
+        /// <param name="hist">1D-Histogram to draw.</param>
+        /// <param name="numBins">Number of bins used while calculating the histogram.</param>
+        /// <param name="binDrawWidth">Drawing width of one bin in pixels.</param>
+        /// <param name="histDrawHeight">Drawing height of the whole histogram in pixels.</param>
+        /// <param name="lineColor">Drawing color of the line.</param>
+        /// <returns>Image with a line plot of the 1D-Histogram</returns>
+        public static Image<Rgb, byte> DrawHist(Mat hist, int numBins, int binDrawWidth, int histDrawHeight, MCvScalar lineColor)
+        {
+            Point minLoc = new Point(), maxLoc = new Point();
+            double minVal = 0, maxVal = 0;
+            CvInvoke.MinMaxLoc(hist, ref minVal, ref maxVal, ref minLoc, ref maxLoc);
+
+            Mat histImg = new Mat(histDrawHeight, numBins * binDrawWidth, DepthType.Cv8U, 3);
+            Matrix<float> histMatrix = new Matrix<float>(hist.Rows, hist.Cols);
+            hist.CopyTo(histMatrix);
+
+            for (int b = 0; b < numBins - 1; b++)
+            {
+                int binVal1norm = (int)Math.Round(histMatrix[b, 0] * histDrawHeight / maxVal);
+                int binVal2norm = (int)Math.Round(histMatrix[b + 1, 0] * histDrawHeight / maxVal);
+                CvInvoke.Line(histImg, new Point(binDrawWidth * b, histDrawHeight - binVal1norm), new Point(binDrawWidth * (b + 1), histDrawHeight - binVal2norm), lineColor, 2, LineType.EightConnected);
+            }
+            return histImg.ToImage<Rgb, byte>();
+        }
+
+        //**********************************************************************************************************************************************************************************************
+
+        /// <summary>
+        /// Find the highest value in the histogram using a mask to only use a specific range.
+        /// </summary>
+        /// <param name="hist">1D-Histogram</param>
+        /// <param name="rangeMinVal">Start value of the allowed range. All values smaller than this value are discarded. This is not a bin number, it's a value!</param>
+        /// <param name="rangeMaxVal">End value of the allowed range. All values bigger than this value are discarded. This is not a bin number, it's a value!</param>
+        /// <param name="histMaxVal">The highest histogram value.</param>
+        /// <returns>Value of the highest bin in the allowed range.</returns>
+        public static double HighestBinValInRange(Mat hist, int rangeMinVal, int rangeMaxVal, int histMaxVal)
+        {
+            int numBins = hist.Rows;
+            Point minLoc = new Point(), maxLoc = new Point();
+            double minVal = 0, maxVal = 0;
+
+            //Create mask for allowed range (allowed = 1, out of range = 0)
+            Matrix<byte> maskHist = new Matrix<byte>(hist.Rows, hist.Cols);
+            maskHist.SetValue(0);
+            for (int binVal = rangeMinVal; binVal < rangeMaxVal; binVal++) { maskHist[(int)(((float)binVal / histMaxVal) * numBins), 0] = 1; }
+
+            CvInvoke.MinMaxLoc(hist, ref minVal, ref maxVal, ref minLoc, ref maxLoc, maskHist);
+            int highestBinNumber = maxLoc.Y;
+            return ((highestBinNumber + 0.5) / numBins) * histMaxVal;       // + 0.5 to be in the middle of the bin
         }
 
         #endregion

@@ -176,11 +176,11 @@ namespace JigsawPuzzleSolver
 
 #warning Only for faster testing !!!
             //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", logHandle);
-             //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", logHandle);
+            //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", logHandle);
             //PuzzleHandle = new Puzzle(@"..\..\..\Scans\ToyStoryBack", logHandle);
             //PuzzleHandle = new Puzzle(@"..\..\..\Scans\horsesNumbered", logHandle);
 
-            PuzzleHandle = new Puzzle(@"..\..\..\Test_Pictures\ScannedImages\4", logHandle);
+            PuzzleHandle = new Puzzle(@"..\..\..\Test_Pictures\ScannedImages\2", logHandle);
 
             PuzzleSavingState = PuzzleSavingStates.NEW_UNSAVED;
         }

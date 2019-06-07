@@ -78,16 +78,6 @@ namespace JigsawPuzzleSolver
             set { _puzzleMinPieceSize = value; OnPropertyChanged(); }
         }
 
-        private bool _puzzleApplyMedianBlurFilter;
-        /// <summary>
-        /// Enable this option to apply a median blur filter to the input images. The median filter reduces noise and persist edges.
-        /// </summary>
-        public bool PuzzleApplyMedianBlurFilter
-        {
-            get { return _puzzleApplyMedianBlurFilter; }
-            set { _puzzleApplyMedianBlurFilter = value; OnPropertyChanged(); }
-        }
-
         private bool _puzzleIsInputBackgroundWhite;
         /// <summary>
         /// Is the background of the input images white or black (true = white, false = black).
@@ -110,64 +100,14 @@ namespace JigsawPuzzleSolver
 
         //**********************************************************************************************************************************************************************************************
 
-        private int _pieceFindCornersGFTTMaxCorners;
+        private double _pieceFindCornersPeakDismissPercentage;
         /// <summary>
-        /// Maximum number of features that should be detected by the GFTT detector (Good Features To Track). Reduce this setting for speed improvements.
+        /// This setting is used to find the corners of the pieces using polar coordinates. The peaks under this threshold are dismissed.
         /// </summary>
-        public int PieceFindCornersGFTTMaxCorners
+        public double PieceFindCornersPeakDismissPercentage
         {
-            get { return _pieceFindCornersGFTTMaxCorners; }
-            set { _pieceFindCornersGFTTMaxCorners = value; OnPropertyChanged(); }
-        }
-
-        private double _pieceFindCornersGFTTQualityLevel;
-        /// <summary>
-        /// Minimal accepted quality of image corners of the GFTT detector (Good Features To Track).
-        /// </summary>
-        public double PieceFindCornersGFTTQualityLevel
-        {
-            get { return _pieceFindCornersGFTTQualityLevel; }
-            set { _pieceFindCornersGFTTQualityLevel = value; OnPropertyChanged(); }
-        }
-
-        private double _pieceFindCornersGFTTMinDist;
-        /// <summary>
-        /// Minimum euclidian distance between returned corners of the GFTT detector (Good Features To Track). The higher this setting the less points are returned.
-        /// </summary>
-        public double PieceFindCornersGFTTMinDist
-        {
-            get { return _pieceFindCornersGFTTMinDist; }
-            set { _pieceFindCornersGFTTMinDist = value; OnPropertyChanged(); }
-        }
-
-        private int _pieceFindCornersGFTTBlockSize;
-        /// <summary>
-        /// Size of the averaging block of the GFTT detector (Good Features To Track).
-        /// </summary>
-        public int PieceFindCornersGFTTBlockSize
-        {
-            get { return _pieceFindCornersGFTTBlockSize; }
-            set { _pieceFindCornersGFTTBlockSize = value; OnPropertyChanged(); }
-        }
-
-        private double _pieceFindCornersMaxAngleDiff;
-        /// <summary>
-        /// This setting is used to find the corners of the pieces. Only corners with angles near 90 degree are kept. The higher this setting the more the squares can be twisted.
-        /// </summary>
-        public double PieceFindCornersMaxAngleDiff
-        {
-            get { return _pieceFindCornersMaxAngleDiff; }
-            set { _pieceFindCornersMaxAngleDiff = value; OnPropertyChanged(); }
-        }
-
-        private double _pieceFindCornersMaxCornerDistRatio;
-        /// <summary>
-        /// This setting limits the contour points that are used to find the corners of the piece. The piece is split in four squares (Top-Left, Top-Right, Bottom-Left, Bottom-Right) and points that are too far from the corners are discarded. The higher this setting the more points are kept.
-        /// </summary>
-        public double PieceFindCornersMaxCornerDistRatio
-        {
-            get { return _pieceFindCornersMaxCornerDistRatio; }
-            set { _pieceFindCornersMaxCornerDistRatio = value; OnPropertyChanged(); }
+            get { return _pieceFindCornersPeakDismissPercentage; }
+            set { _pieceFindCornersPeakDismissPercentage = value; OnPropertyChanged(); }
         }
 
         //**********************************************************************************************************************************************************************************************
@@ -211,15 +151,9 @@ namespace JigsawPuzzleSolver
             SolverShowDebugResults = false;
             CompressPuzzleOutputFile = true;
             PuzzleMinPieceSize = 50;
-            PuzzleApplyMedianBlurFilter = true;
             PuzzleIsInputBackgroundWhite = true;
             PuzzleSolverKeepMatchesThreshold = 5; //2.5f;
-            PieceFindCornersGFTTMaxCorners = 500;
-            PieceFindCornersGFTTQualityLevel = 0.01;
-            PieceFindCornersGFTTMinDist = 5; //10;
-            PieceFindCornersGFTTBlockSize = 2; //6;
-            PieceFindCornersMaxAngleDiff = 10;
-            PieceFindCornersMaxCornerDistRatio = 1.5;
+            PieceFindCornersPeakDismissPercentage = 0.1;
             EdgeCompareWindowSizePercent = 0.003; //0.002; //0.01; //0.15;
             EdgeCompareEndpointDiffIgnoreThreshold = 15;
             UseParallelLoops = true;
@@ -237,15 +171,9 @@ namespace JigsawPuzzleSolver
             Instance.SolverShowDebugResults = tmpParams.SolverShowDebugResults;
             Instance.CompressPuzzleOutputFile = tmpParams.CompressPuzzleOutputFile;
             Instance.PuzzleMinPieceSize = tmpParams.PuzzleMinPieceSize;
-            Instance.PuzzleApplyMedianBlurFilter = tmpParams.PuzzleApplyMedianBlurFilter;
             Instance.PuzzleIsInputBackgroundWhite = tmpParams.PuzzleIsInputBackgroundWhite;
             Instance.PuzzleSolverKeepMatchesThreshold = tmpParams.PuzzleSolverKeepMatchesThreshold;
-            Instance.PieceFindCornersGFTTMaxCorners = tmpParams.PieceFindCornersGFTTMaxCorners;
-            Instance.PieceFindCornersGFTTQualityLevel = tmpParams.PieceFindCornersGFTTQualityLevel;
-            Instance.PieceFindCornersGFTTMinDist = tmpParams.PieceFindCornersGFTTMinDist;
-            Instance.PieceFindCornersGFTTBlockSize = tmpParams.PieceFindCornersGFTTBlockSize;
-            Instance.PieceFindCornersMaxAngleDiff = tmpParams.PieceFindCornersMaxAngleDiff;
-            Instance.PieceFindCornersMaxCornerDistRatio = tmpParams.PieceFindCornersMaxCornerDistRatio;
+            Instance.PieceFindCornersPeakDismissPercentage = tmpParams.PieceFindCornersPeakDismissPercentage;
             Instance.EdgeCompareWindowSizePercent = tmpParams.EdgeCompareWindowSizePercent;
             Instance.EdgeCompareEndpointDiffIgnoreThreshold = tmpParams.EdgeCompareEndpointDiffIgnoreThreshold;
             Instance.UseParallelLoops = tmpParams.UseParallelLoops;
