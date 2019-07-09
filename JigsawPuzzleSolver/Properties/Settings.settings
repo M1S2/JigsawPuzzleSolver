@@ -5,5 +5,11 @@
     <Setting Name="SolverParameters" Type="JigsawPuzzleSolver.PuzzleSolverParameters" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="AppTheme" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="AppAccent" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
   </Settings>
 </SettingsFile>

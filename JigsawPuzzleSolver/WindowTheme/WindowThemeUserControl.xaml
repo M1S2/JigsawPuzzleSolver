@@ -21,6 +21,15 @@
                 <Setter Property="Header" Value="{Binding Name, Mode=OneWay}" />
                 <Setter Property="Icon" Value="{StaticResource AppThemeMenuIcon}" />
                 <Setter Property="Foreground" Value="{DynamicResource BlackBrush}"/>
+                <Setter Property="Margin" Value="2"/>
+                <Setter Property="Background" Value="Transparent"/>
+
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsSelectedItem}" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource BlackBrush}"/>
+                        <Setter Property="Foreground" Value="{DynamicResource WhiteBrush}"/>
+                    </DataTrigger>
+                </Style.Triggers>
             </Style>
 
             <Style x:Key="AccentColorMenuItemStyle" BasedOn="{StaticResource MetroMenuItem}" TargetType="{x:Type MenuItem}">
@@ -28,6 +37,15 @@
                 <Setter Property="Header" Value="{Binding Name, Mode=OneWay}" />
                 <Setter Property="Icon" Value="{StaticResource AccentMenuIcon}" />
                 <Setter Property="Foreground" Value="{DynamicResource BlackBrush}"/>
+                <Setter Property="Margin" Value="2"/>
+                <Setter Property="Background" Value="Transparent"/>
+
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsSelectedItem}" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource BlackBrush}"/>
+                        <Setter Property="Foreground" Value="{DynamicResource WhiteBrush}"/>
+                    </DataTrigger>
+                </Style.Triggers>
             </Style>
 
             <Style x:Key="MenuItemHighlightStyle" TargetType="{x:Type MenuItem}">
