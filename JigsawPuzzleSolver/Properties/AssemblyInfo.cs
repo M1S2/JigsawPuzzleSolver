@@ -12,9 +12,10 @@ using System.Windows;
 [assembly: AssemblyConfiguration("Release")]
 [assembly: AssemblyCompany("Markus Scheich")]
 [assembly: AssemblyProduct("JigsawPuzzleSolver")]
-[assembly: AssemblyCopyright("Copyright ©  2018")]
+[assembly: AssemblyCopyright("Copyright ©  2020")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
+[assembly: AssemblyInfoHelper.GitHub.GitHubRepo("https://github.com/M1S2/JigsawPuzzleSolver")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 

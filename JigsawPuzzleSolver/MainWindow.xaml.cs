@@ -102,23 +102,6 @@ namespace JigsawPuzzleSolver
             }
         }
 
-        private ICommand _infoCommand;
-        public ICommand InfoCommand
-        {
-            get
-            {
-                if (_infoCommand == null)
-                {
-                    _infoCommand = new JigsawPuzzleSolver.GUI_Elements.RelayCommand(param =>
-                    {
-                        AssemblyInfoHelper_WPF.WindowAssemblyInfo windowAssemblyInfo = new AssemblyInfoHelper_WPF.WindowAssemblyInfo();
-                        windowAssemblyInfo.ShowDialog();
-                    });
-                }
-                return _infoCommand;
-            }
-        }
-
         private ICommand _openSettingsFlyoutCommand;
         public ICommand OpenSettingsFlyoutCommand
         {
@@ -166,22 +149,22 @@ namespace JigsawPuzzleSolver
 
         private void OpenNewPuzzle()
         {
-            /*System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
+            System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
             folderBrowserDialog1.Description = "Select a folder containing all scanned puzzle piece images.";
             if(PuzzleHandle != null) { folderBrowserDialog1.SelectedPath = PuzzleHandle.PuzzlePiecesFolderPath; }
             if(folderBrowserDialog1.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 PuzzleHandle = new Puzzle(folderBrowserDialog1.SelectedPath, logHandle);
-                logHandle.Report(new LogBox.LogEventInfo("New puzzle created from \"" + PuzzleHandle.PuzzlePiecesFolderPath + "\""));
-            }*/
+                logHandle.Report(new LogEventInfo("New puzzle created from \"" + PuzzleHandle.PuzzlePiecesFolderPath + "\""));
+            }
 
-#warning Only for faster testing !!!
+//#warning Only for faster testing !!!
             //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", logHandle);
             //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", logHandle);
             //PuzzleHandle = new Puzzle(@"..\..\..\Scans\ToyStoryBack", logHandle);
             //PuzzleHandle = new Puzzle(@"..\..\..\Scans\horsesNumbered", logHandle);
 
-            PuzzleHandle = new Puzzle(@"..\..\..\Test_Pictures\ScannedImages\2", logHandle);
+            //PuzzleHandle = new Puzzle(@"..\..\..\Test_Pictures\ScannedImages\2", logHandle);
 
             PuzzleSavingState = PuzzleSavingStates.NEW_UNSAVED;
         }

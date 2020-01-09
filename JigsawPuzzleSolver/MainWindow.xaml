@@ -11,6 +11,7 @@
         xmlns:MetroControls="http://metro.mahapps.com/winfx/xaml/controls"
         xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
         xmlns:windowTheme="clr-namespace:JigsawPuzzleSolver.WindowTheme"
+        xmlns:assemblyInfoHelper="clr-namespace:AssemblyInfoHelper;assembly=AssemblyInfoHelper"
         x:Class="JigsawPuzzleSolver.MainWindow"
         mc:Ignorable="d"
         Title="Puzzle Solver" 
@@ -56,9 +57,7 @@
             <Button Command="{Binding OpenSettingsFlyoutCommand}" ToolTip="Open settings">
                 <iconPacks:PackIconMaterial Width="22" Height="22" Kind="Settings" Foreground="{DynamicResource IdealForegroundColorBrush}"/>
             </Button>
-            <Button Command="{Binding InfoCommand}" ToolTip="About this application">
-                <iconPacks:PackIconModern Width="22" Height="22" Kind="InformationCircle" Foreground="{DynamicResource IdealForegroundColorBrush}"/>
-            </Button>
+            <assemblyInfoHelper:AppInfoButton EnableNewVersionNotification="True"/>
         </MetroControls:WindowCommands>
     </MetroControls:MetroWindow.RightWindowCommands>
     
