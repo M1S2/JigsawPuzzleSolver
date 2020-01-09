@@ -17,6 +17,7 @@ using Emgu.CV.Structure;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Util;
 using Emgu.CV.Cvb;
+using LogBox.LogEvents;
 
 namespace JigsawPuzzleSolver
 {
@@ -236,14 +237,14 @@ namespace JigsawPuzzleSolver
 
         //##############################################################################################################################################################################################
 
-        private IProgress<LogBox.LogEvent> _logHandle;
+        private IProgress<LogEvent> _logHandle;
         private CancellationToken _cancelToken;
 
         private List<MatchScore> matches = new List<MatchScore>();
 
         //##############################################################################################################################################################################################
 
-        public Puzzle(string piecesFolderPath, IProgress<LogBox.LogEvent> logHandle)
+        public Puzzle(string piecesFolderPath, IProgress<LogEvent> logHandle)
         {
             PuzzlePiecesFolderPath = Path.GetFullPath(piecesFolderPath);
 
@@ -361,9 +362,9 @@ namespace JigsawPuzzleSolver
                 // Draw the histograms for debugging purposes
                 if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
                 {
-                    _logHandle.Report(new LogBox.LogEventImage("Hist H", Utils.DrawHist(histOutH, hbins, 30, 1024, new MCvScalar(255, 0, 0)).Bitmap));
-                    _logHandle.Report(new LogBox.LogEventImage("Hist S", Utils.DrawHist(histOutS, sbins, 30, 1024, new MCvScalar(0, 255, 0)).Bitmap));
-                    _logHandle.Report(new LogBox.LogEventImage("Hist V", Utils.DrawHist(histOutV, vbins, 30, 1024, new MCvScalar(0, 0, 255)).Bitmap));
+                    _logHandle.Report(new LogEventImage("Hist H", Utils.DrawHist(histOutH, hbins, 30, 1024, new MCvScalar(255, 0, 0)).Bitmap));
+                    _logHandle.Report(new LogEventImage("Hist S", Utils.DrawHist(histOutS, sbins, 30, 1024, new MCvScalar(0, 255, 0)).Bitmap));
+                    _logHandle.Report(new LogEventImage("Hist V", Utils.DrawHist(histOutV, vbins, 30, 1024, new MCvScalar(0, 0, 255)).Bitmap));
                 }
 
 //#warning Use border color
@@ -405,7 +406,7 @@ namespace JigsawPuzzleSolver
                     lowPieceBgColorImg.SetValue(new Hsv(pieceBackgroundColor.Hue - hDiff, pieceBackgroundColor.Satuation - sDiff, pieceBackgroundColor.Value - vDiff));
                     highPieceBgColorImg.SetValue(new Hsv(pieceBackgroundColor.Hue + hDiff, pieceBackgroundColor.Satuation + sDiff, pieceBackgroundColor.Value + vDiff));
 
-                    _logHandle.Report(new LogBox.LogEventImage("HSV Piece Bg Color (" + pieceBackgroundColor.Hue + " ; " + pieceBackgroundColor.Satuation + "; " + pieceBackgroundColor.Value + ")", Utils.Combine2ImagesHorizontal(Utils.Combine2ImagesHorizontal(lowPieceBgColorImg.Convert<Rgb, byte>(), pieceBgColorImg.Convert<Rgb, byte>(), 0), highPieceBgColorImg.Convert<Rgb, byte>(), 0).Bitmap));
+                    _logHandle.Report(new LogEventImage("HSV Piece Bg Color (" + pieceBackgroundColor.Hue + " ; " + pieceBackgroundColor.Satuation + "; " + pieceBackgroundColor.Value + ")", Utils.Combine2ImagesHorizontal(Utils.Combine2ImagesHorizontal(lowPieceBgColorImg.Convert<Rgb, byte>(), pieceBgColorImg.Convert<Rgb, byte>(), 0), highPieceBgColorImg.Convert<Rgb, byte>(), 0).Bitmap));
 
                     pieceBgColorImg.Dispose();
                     lowPieceBgColorImg.Dispose();
@@ -434,7 +435,7 @@ namespace JigsawPuzzleSolver
                 CurrentSolverState = PuzzleSolverState.INIT_PIECES;
                 Piece.NextPieceID = 0;
                 CurrentSolverStepPercentageFinished = 0;
-                _logHandle.Report(new LogBox.LogEventInfo("Extracting Pieces"));
+                _logHandle.Report(new LogEventInfo("Extracting Pieces"));
                 NumberPuzzlePieces = 0;
 
                 Pieces.Clear();
@@ -471,8 +472,8 @@ namespace JigsawPuzzleSolver
 
                         using (Image<Gray, byte> mask = getMaskHsvSegmentationHistogram(sourceImg))    //getMaskGrabCut(sourceImg))
                         {
-                            _logHandle.Report(new LogBox.LogEventImage("Extracting Pieces from source image " + i.ToString(), sourceImg.Bitmap));
-                            if (PuzzleSolverParameters.Instance.SolverShowDebugResults) { _logHandle.Report(new LogBox.LogEventImage("Mask " + i.ToString(), mask.Bitmap)); }
+                            _logHandle.Report(new LogEventImage("Extracting Pieces from source image " + i.ToString(), sourceImg.Bitmap));
+                            if (PuzzleSolverParameters.Instance.SolverShowDebugResults) { _logHandle.Report(new LogEventImage("Mask " + i.ToString(), mask.Bitmap)); }
 
                             CvBlobDetector blobDetector = new CvBlobDetector();                 // Find all blobs in the mask image, extract them and add them to the list of pieces
                             CvBlobs blobs = new CvBlobs();
@@ -538,7 +539,7 @@ namespace JigsawPuzzleSolver
                             Interlocked.Add(ref loopCount, 1);
                             CurrentSolverStepPercentageFinished = (loopCount / (double)imageFilesInfo.Count) * 100;
 
-                            _logHandle.Report(new LogBox.LogEventImage("Source Img " + i.ToString() + " Pieces", sourceImg.Bitmap));
+                            _logHandle.Report(new LogEventImage("Source Img " + i.ToString() + " Pieces", sourceImg.Bitmap));
                             InputImages.Add(new ImageGallery.ImageDescribed(Path.GetFileName(imageFilesInfo[i].FullName), sourceImg.Bitmap));
                             blobs.Dispose();
                             GC.Collect();
@@ -550,12 +551,12 @@ namespace JigsawPuzzleSolver
             }
             catch (OperationCanceledException)
             {
-                _logHandle.Report(new LogBox.LogEventWarning("The operation was canceled. Step: " + CurrentSolverState.ToString()));
+                _logHandle.Report(new LogEventWarning("The operation was canceled. Step: " + CurrentSolverState.ToString()));
                 CurrentSolverState = PuzzleSolverState.UNSOLVED;
             }
             catch (Exception ex)
             {
-                _logHandle.Report(new LogBox.LogEventError("The following error occured in step " + CurrentSolverState.ToString() + ":\n" + ex.Message));
+                _logHandle.Report(new LogEventError("The following error occured in step " + CurrentSolverState.ToString() + ":\n" + ex.Message));
                 CurrentSolverState = PuzzleSolverState.ERROR;
                 CurrentSolverStepPercentageFinished = 100;
             }
@@ -599,7 +600,7 @@ namespace JigsawPuzzleSolver
             {
                 CurrentSolverState = PuzzleSolverState.COMPARE_EDGES;
                 CurrentSolverStepPercentageFinished = 0;
-                _logHandle.Report(new LogBox.LogEventInfo("Comparing all edges"));
+                _logHandle.Report(new LogEventInfo("Comparing all edges"));
 
                 matches.Clear();
                 int no_edges = (int)Pieces.Count * 4;
@@ -647,7 +648,7 @@ namespace JigsawPuzzleSolver
                 {
                     foreach (MatchScore matchScore in matches)
                     {
-                        _logHandle.Report(new LogBox.LogEventImage("MatchScore " + Pieces[matchScore.PieceIndex1].PieceID + "_Edge" + (matchScore.EdgeIndex1).ToString() + " <-->" + Pieces[matchScore.PieceIndex2].PieceID + "_Edge" + (matchScore.EdgeIndex2).ToString() + " = " + matchScore.score.ToString(), Utils.Combine2ImagesHorizontal(Pieces[matchScore.PieceIndex1].Edges[matchScore.EdgeIndex1].ContourImg, Pieces[matchScore.PieceIndex2].Edges[matchScore.EdgeIndex2].ContourImg, 20)));
+                        _logHandle.Report(new LogEventImage("MatchScore " + Pieces[matchScore.PieceIndex1].PieceID + "_Edge" + (matchScore.EdgeIndex1).ToString() + " <-->" + Pieces[matchScore.PieceIndex2].PieceID + "_Edge" + (matchScore.EdgeIndex2).ToString() + " = " + matchScore.score.ToString(), Utils.Combine2ImagesHorizontal(Pieces[matchScore.PieceIndex1].Edges[matchScore.EdgeIndex1].ContourImg, Pieces[matchScore.PieceIndex2].Edges[matchScore.EdgeIndex2].ContourImg, 20)));
                     }
                 }
             }
@@ -663,7 +664,7 @@ namespace JigsawPuzzleSolver
         {
             await Task.Run(() =>
             {
-                _logHandle.Report(new LogBox.LogEventInfo("Puzzle solving started."));
+                _logHandle.Report(new LogEventInfo("Puzzle solving started."));
                 extract_pieces_HSV_segmentation();
             }, _cancelToken);
         }
@@ -684,7 +685,7 @@ namespace JigsawPuzzleSolver
                     CurrentSolverStepPercentageFinished = 0;
                     PuzzleDisjointSet p = new PuzzleDisjointSet(Pieces.Count);
 
-                    _logHandle.Report(new LogBox.LogEventInfo("Join Pieces"));
+                    _logHandle.Report(new LogEventInfo("Join Pieces"));
 
                     for (int i = 0; i < matches.Count; i++)
                     {
@@ -701,7 +702,7 @@ namespace JigsawPuzzleSolver
                         p.JoinSets(p1, p2, e1, e2);
                     }
 
-                    _logHandle.Report(new LogBox.LogEventInfo("Possible solution found " + (p.InOneSet() ? "(one set)." : "(" + p.SetCount.ToString() + " sets)")));
+                    _logHandle.Report(new LogEventInfo("Possible solution found " + (p.InOneSet() ? "(one set)." : "(" + p.SetCount.ToString() + " sets)")));
                     CurrentSolverStepPercentageFinished = 100;
                     CurrentSolverState = PuzzleSolverState.SOLVED;
                     CurrentSolutionNumber = 0;
@@ -731,18 +732,18 @@ namespace JigsawPuzzleSolver
                         Bitmap solutionImg = GenerateSolutionImage2(solution, setNo);
                         PuzzleSolutionImages.Add(new ImageGallery.ImageDescribed("Solution #" + setNo.ToString(), solutionImg));
 
-                        _logHandle.Report(new LogBox.LogEventImage("Solution #" + setNo.ToString(), solutionImg));
+                        _logHandle.Report(new LogEventImage("Solution #" + setNo.ToString(), solutionImg));
                         setNo++;
                     }
                 }
                 catch (OperationCanceledException)
                 {
-                    _logHandle.Report(new LogBox.LogEventWarning("The operation was canceled. Step: " + CurrentSolverState.ToString()));
+                    _logHandle.Report(new LogEventWarning("The operation was canceled. Step: " + CurrentSolverState.ToString()));
                     CurrentSolverState = PuzzleSolverState.UNSOLVED;
                 }
                 catch (Exception ex)
                 {
-                    _logHandle.Report(new LogBox.LogEventError("The following error occured in step " + CurrentSolverState.ToString() + ":\n" + ex.Message));
+                    _logHandle.Report(new LogEventError("The following error occured in step " + CurrentSolverState.ToString() + ":\n" + ex.Message));
                     CurrentSolverState = PuzzleSolverState.ERROR;
                     CurrentSolverStepPercentageFinished = 100;
                 }

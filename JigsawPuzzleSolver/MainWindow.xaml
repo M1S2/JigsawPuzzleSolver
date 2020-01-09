@@ -231,7 +231,7 @@
 
         <GridSplitter ResizeDirection="Rows" Grid.Row="1" Height="5" Margin="0,5,0,5" ShowsPreview="False" HorizontalAlignment="Stretch" VerticalAlignment="Top" Background="#FFB2B2B2"/>
 
-        <LogBox:LogBoxControl Grid.Row="1" x:Name="logBox1" Margin="5,15,5,5"/>
+        <LogBox:LogBoxControl Grid.Row="1" x:Name="logBox1" Margin="5,15,5,5" EnableImageLogs="True"/>
 
         <StatusBar Grid.Row="2">
             <Image VerticalAlignment="Center" Margin="3" ToolTip="{Binding PuzzleSavingState}">

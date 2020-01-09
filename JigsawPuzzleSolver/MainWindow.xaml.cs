@@ -28,6 +28,7 @@ using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using JigsawPuzzleSolver.GUI_Elements;
 using JigsawPuzzleSolver.WindowTheme;
+using LogBox.LogEvents;
 
 namespace JigsawPuzzleSolver
 {
@@ -139,7 +140,7 @@ namespace JigsawPuzzleSolver
 
         //##############################################################################################################################################################################################
 
-        private IProgress<LogBox.LogEvent> logHandle;
+        private IProgress<LogEvent> logHandle;
 
         //##############################################################################################################################################################################################
 
@@ -155,7 +156,7 @@ namespace JigsawPuzzleSolver
             //PuzzleSolverParameters.Instance.CompressPuzzleOutputFile = true;
 
             logBox1.AutoScrollToLastLogEntry = true;
-            logHandle = new Progress<LogBox.LogEvent>(progressValue =>
+            logHandle = new Progress<LogEvent>(progressValue =>
             {
                 logBox1.LogEvent(progressValue);
             });
@@ -201,17 +202,17 @@ namespace JigsawPuzzleSolver
                 if (saveFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
                     PuzzleSavingState = PuzzleSavingStates.SAVING;
-                    logHandle.Report(new LogBox.LogEventInfo("Saving puzzle to \"" + PuzzleHandle.PuzzleXMLOutputPath + "\""));
+                    logHandle.Report(new LogEventInfo("Saving puzzle to \"" + PuzzleHandle.PuzzleXMLOutputPath + "\""));
                     PuzzleHandle.PuzzleXMLOutputPath = saveFileDialog.FileName;
                     await Task.Run(() => { PuzzleHandle.Save(PuzzleHandle.PuzzleXMLOutputPath, PuzzleSolverParameters.Instance.CompressPuzzleOutputFile); });
                     PuzzleSavingState = PuzzleSavingStates.SAVED;
-                    logHandle.Report(new LogBox.LogEventInfo("Saving puzzle ready."));
+                    logHandle.Report(new LogEventInfo("Saving puzzle ready."));
                     CommandManager.InvalidateRequerySuggested();
                 }                
             }
             catch(Exception ex)
             {
-                logHandle.Report(new LogBox.LogEventError("Error while saving: " + ex.Message));
+                logHandle.Report(new LogEventError("Error while saving: " + ex.Message));
             }
         }
 
@@ -234,18 +235,18 @@ namespace JigsawPuzzleSolver
                 {
                     string xmlPath = openFileDialog.FileName;
                     PuzzleSavingState = PuzzleSavingStates.LOADING;
-                    logHandle.Report(new LogBox.LogEventInfo("Loading puzzle from \"" + xmlPath + "\""));
+                    logHandle.Report(new LogEventInfo("Loading puzzle from \"" + xmlPath + "\""));
                     PuzzleHandle = new Puzzle() { PuzzleXMLOutputPath = xmlPath };      // Neccessary to show the path while loading (when PuzzleHandle is null, no path is displayed)
                     PuzzleHandle = await Task.Run(() => { return Puzzle.Load(xmlPath, PuzzleSolverParameters.Instance.CompressPuzzleOutputFile); });
                     PuzzleHandle.PuzzleXMLOutputPath = xmlPath;
                     PuzzleSavingState = PuzzleSavingStates.LOADED;
-                    logHandle.Report(new LogBox.LogEventInfo("Loading puzzle ready."));
+                    logHandle.Report(new LogEventInfo("Loading puzzle ready."));
                     CommandManager.InvalidateRequerySuggested();
                 }
             }
             catch (Exception ex)
             {
-                logHandle.Report(new LogBox.LogEventError("Error while loading: " + ex.Message));
+                logHandle.Report(new LogEventError("Error while loading: " + ex.Message));
             }
         }
 

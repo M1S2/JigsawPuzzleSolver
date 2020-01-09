@@ -51,8 +51,7 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
       <HintPath>..\CircularProgressBar\bin\Debug\CircularProgressBarControl.dll</HintPath>
     </Reference>
     <Reference Include="ControlzEx, Version=4.0.0.0, Culture=neutral, PublicKeyToken=69f1c32f803d307e, processorArchitecture=MSIL">
-      <HintPath>..\packages\ControlzEx.4.0.0-alpha0232\lib\net45\ControlzEx.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\packages\ControlzEx.4.0.0\lib\net45\ControlzEx.dll</HintPath>
     </Reference>
     <Reference Include="Emgu.CV.UI, Version=3.4.3.3016, Culture=neutral, PublicKeyToken=7281126722ab4438, processorArchitecture=MSIL">
       <HintPath>..\packages\EMGU.CV.3.4.3.3016\lib\net35\Emgu.CV.UI.dll</HintPath>
@@ -65,8 +64,8 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     <Reference Include="ImageGallery">
       <HintPath>..\ImageGallery\bin\Debug\ImageGallery.dll</HintPath>
     </Reference>
-    <Reference Include="LogBox">
-      <HintPath>..\LogBox\bin\Debug\LogBox.dll</HintPath>
+    <Reference Include="LogBox, Version=2.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\LogBox.2.1.0\lib\net452\LogBox.dll</HintPath>
     </Reference>
     <Reference Include="MahApps.Metro, Version=2.0.0.0, Culture=neutral, PublicKeyToken=51482d6f650b2b3f, processorArchitecture=MSIL">
       <HintPath>..\packages\MahApps.Metro.2.0.0-alpha0262\lib\net45\MahApps.Metro.dll</HintPath>
