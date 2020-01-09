@@ -1,13 +1,12 @@
-# README 
+# JigsawPuzzleSolver
 
-|
-| ---------| -----------------------------------------|
-| Project: | JigsawPuzzleSolver                       |
-| Version: | %version%                                |
+[![GitHub Release Version](https://img.shields.io/github/v/release/M1S2/JigsawPuzzleSolver)](https://github.com/M1S2/JigsawPuzzleSolver/releases/latest)
+[![GitHub License](https://img.shields.io/github/license/M1S2/JigsawPuzzleSolver)](LICENSE.md)
 
-## Purpose
 Solving jigsaw puzzles by comparing the edges of the puzzle pieces against each other and joining them.
 The solver only uses the shapes of the edges to compare them. No color matching is done.
+
+![JigsawPuzzleSolver screenshot](doc/Screenshot_JigsawPuzzleSolver.png)
 
 ## Usage
 1. Scan all puzzle pieces that should be joined. There can be multiple pieces per input image. The single pieces are extracted from the input image by segmentation. Scan the rear side of the pieces to get better edges.

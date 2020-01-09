@@ -1,6 +1,4 @@
-# CHANGELOG 
-
-Project: JigsawPuzzleSolver
+# JigsawPuzzleSolver
 
 ## [%version%] - %date%
 
@@ -8,7 +6,7 @@ Project: JigsawPuzzleSolver
 - Speed improvements
 - Settings menu added
 
-## [v2.0] - 06.03.2019 20:06
+## [v2.0.0] - 06.03.2019 20:06
 
 - PieceViewer added. Showing details for each piece.
 - Saving and loading puzzle possible
@@ -16,7 +14,7 @@ Project: JigsawPuzzleSolver
 - Show solver progress in taskbar
 - PieceJoinerControl added. Use this to reassemble the puzzle.
 
-## [v1.0] - 18.01.2019 22:46
+## [v1.0.0] - 18.01.2019 22:46
 
 - Initial version of project JigsawPuzzleSolver
 - Possible to stop while solving
