@@ -8,6 +8,7 @@
              xmlns:converters="clr-namespace:JigsawPuzzleSolver.GUI_Elements.Converters"
              xmlns:MetroControls="http://metro.mahapps.com/winfx/xaml/controls"
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:imageGallery="clr-namespace:ImageGallery;assembly=ImageGallery"
              mc:Ignorable="d" 
              Name="PieceJoinerControlUserControl"
              d:DesignHeight="300" d:DesignWidth="700">
@@ -46,7 +47,9 @@
             </Grid.RowDefinitions>
 
             <Border Grid.Row="0" Margin="5,5,5,0" BorderBrush="Gray" CornerRadius="2" BorderThickness="1">
-                <Image Margin="5" Source="{Binding CurrentPieceSourceImage, Converter={StaticResource BitmapConverter}}"/>
+                <imageGallery:ZoomBorder ClipToBounds="True">
+                    <Image Margin="5" Source="{Binding CurrentPieceSourceImage, Converter={StaticResource BitmapConverter}}"/>
+                </imageGallery:ZoomBorder>
             </Border>
             <Border Grid.Row="1" Margin="5,0,5,5" BorderBrush="Gray" BorderThickness="1" CornerRadius="2" HorizontalAlignment="Stretch">
                 <TextBlock Text="{Binding CurrentPiece.PieceSourceFileName, Converter={StaticResource FilePathNameConverter}}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="14"/>

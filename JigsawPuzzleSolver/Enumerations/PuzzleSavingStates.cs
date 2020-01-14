@@ -39,6 +39,11 @@ namespace JigsawPuzzleSolver
         /// <summary>
         /// The puzzle is saving to a file
         /// </summary>
-        SAVING
+        SAVING,
+
+        /// <summary>
+        /// Error while saving
+        /// </summary>
+        ERROR
     }
 }

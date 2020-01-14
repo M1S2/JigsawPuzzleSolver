@@ -195,6 +195,7 @@ namespace JigsawPuzzleSolver
             }
             catch(Exception ex)
             {
+                PuzzleSavingState = PuzzleSavingStates.ERROR;
                 logHandle.Report(new LogEventError("Error while saving: " + ex.Message));
             }
         }
@@ -229,6 +230,7 @@ namespace JigsawPuzzleSolver
             }
             catch (Exception ex)
             {
+                PuzzleSavingState = PuzzleSavingStates.ERROR;
                 logHandle.Report(new LogEventError("Error while loading: " + ex.Message));
             }
         }

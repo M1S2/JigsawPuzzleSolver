@@ -198,8 +198,11 @@ namespace JigsawPuzzleSolver
             PieceSourceFileLocation = pieceSourceFileLocation;
             PieceSize = PieceImgColor.Size;
 
-            _logHandle.Report(new LogEventImage(PieceID + " Color", PieceImgColor));
-            if (PuzzleSolverParameters.Instance.SolverShowDebugResults) { _logHandle.Report(new LogEventImage(PieceID + " Bw", PieceImgBw)); }
+            if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
+            {
+                _logHandle.Report(new LogEventImage(PieceID + " Color", PieceImgColor));
+                _logHandle.Report(new LogEventImage(PieceID + " Bw", PieceImgBw));
+            }
 
             process();
         }

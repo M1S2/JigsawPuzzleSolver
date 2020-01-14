@@ -34,6 +34,8 @@ namespace JigsawPuzzleSolver.GUI_Elements.Converters
                 case PuzzleSavingStates.SAVING:
                 case PuzzleSavingStates.LOADING:
                     iconDataStr = (new PackIconModern() { Kind = PackIconModernKind.Hourglass }).Data; break;
+                case PuzzleSavingStates.ERROR:
+                    iconDataStr = (new PackIconEntypo() { Kind = PackIconEntypoKind.CircleWithCross }).Data; break;
                 default:
                     return null;
             }

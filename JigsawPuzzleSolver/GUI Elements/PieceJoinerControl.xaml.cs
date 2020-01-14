@@ -118,7 +118,7 @@ namespace JigsawPuzzleSolver.GUI_Elements
                 {
                     using (Graphics srcGraphics = Graphics.FromImage(srcImg))
                     {
-                        srcGraphics.DrawRectangle(new System.Drawing.Pen(System.Drawing.Color.Lime, 10), new System.Drawing.Rectangle(CurrentPiece.PieceSourceFileLocation, CurrentPiece.PieceSize));
+                        srcGraphics.DrawRectangle(new System.Drawing.Pen(System.Drawing.Color.Lime, (int)(0.005 * srcImg.Height)), new System.Drawing.Rectangle(CurrentPiece.PieceSourceFileLocation, CurrentPiece.PieceSize));
                     }
                 }
                 return srcImg;

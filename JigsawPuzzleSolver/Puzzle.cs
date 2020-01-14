@@ -472,8 +472,11 @@ namespace JigsawPuzzleSolver
 
                         using (Image<Gray, byte> mask = getMaskHsvSegmentationHistogram(sourceImg))    //getMaskGrabCut(sourceImg))
                         {
-                            _logHandle.Report(new LogEventImage("Extracting Pieces from source image " + i.ToString(), sourceImg.Bitmap));
-                            if (PuzzleSolverParameters.Instance.SolverShowDebugResults) { _logHandle.Report(new LogEventImage("Mask " + i.ToString(), mask.Bitmap)); }
+                            if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
+                            {
+                                _logHandle.Report(new LogEventImage("Extracting Pieces from source image " + i.ToString(), sourceImg.Bitmap));
+                                _logHandle.Report(new LogEventImage("Mask " + i.ToString(), mask.Bitmap));
+                            }
 
                             CvBlobDetector blobDetector = new CvBlobDetector();                 // Find all blobs in the mask image, extract them and add them to the list of pieces
                             CvBlobs blobs = new CvBlobs();
@@ -518,10 +521,10 @@ namespace JigsawPuzzleSolver
                                 Piece p = new Piece(pieceSourceImgMasked, pieceMask, imageFilesInfo[i].FullName, roi.Location, _logHandle, _cancelToken);
                                 lock (_piecesLock) { Pieces.Add(p); }
 
-                                sourceImg.Draw(roi, new Rgba(255, 0, 0, 1), 2);
+                                sourceImg.Draw(roi, new Rgba(255, 0, 0, 1), (int)(0.005 * sourceImg.Height)); //2);
                                 int baseLine = 0;
-                                Size textSize = CvInvoke.GetTextSize(p.PieceID.Replace("Piece", ""), FontFace.HersheyDuplex, 3, 2, ref baseLine);
-                                CvInvoke.PutText(sourceImg, p.PieceID.Replace("Piece", ""), Point.Add(roi.Location, new Size(0, textSize.Height + 10)), FontFace.HersheyDuplex, 3, new MCvScalar(255, 0, 0), 2);
+                                Size textSize = CvInvoke.GetTextSize(p.PieceID.Replace("Piece", ""), FontFace.HersheySimplex, (int)(0.001 * sourceImg.Height), 2, ref baseLine);
+                                CvInvoke.PutText(sourceImg, p.PieceID.Replace("Piece", ""), Point.Add(roi.Location, new Size(20, textSize.Height + 40)), FontFace.HersheySimplex, (int)(0.001 * sourceImg.Height), new MCvScalar(255, 0, 0), (int)(0.003 * sourceImg.Height));
 
                                 NumberPuzzlePieces++;
 
@@ -539,7 +542,7 @@ namespace JigsawPuzzleSolver
                             Interlocked.Add(ref loopCount, 1);
                             CurrentSolverStepPercentageFinished = (loopCount / (double)imageFilesInfo.Count) * 100;
 
-                            _logHandle.Report(new LogEventImage("Source Img " + i.ToString() + " Pieces", sourceImg.Bitmap));
+                            if (PuzzleSolverParameters.Instance.SolverShowDebugResults) { _logHandle.Report(new LogEventImage("Source Img " + i.ToString() + " Pieces", sourceImg.Bitmap)); }
                             InputImages.Add(new ImageGallery.ImageDescribed(Path.GetFileName(imageFilesInfo[i].FullName), sourceImg.Bitmap));
                             blobs.Dispose();
                             GC.Collect();
@@ -732,7 +735,7 @@ namespace JigsawPuzzleSolver
                         Bitmap solutionImg = GenerateSolutionImage2(solution, setNo);
                         PuzzleSolutionImages.Add(new ImageGallery.ImageDescribed("Solution #" + setNo.ToString(), solutionImg));
 
-                        _logHandle.Report(new LogEventImage("Solution #" + setNo.ToString(), solutionImg));
+                        if (PuzzleSolverParameters.Instance.SolverShowDebugResults) { _logHandle.Report(new LogEventImage("Solution #" + setNo.ToString(), solutionImg)); }
                         setNo++;
                     }
                 }

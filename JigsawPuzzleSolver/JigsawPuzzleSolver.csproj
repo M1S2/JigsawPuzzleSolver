@@ -64,8 +64,8 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     <Reference Include="ImageGallery">
       <HintPath>..\ImageGallery\bin\Debug\ImageGallery.dll</HintPath>
     </Reference>
-    <Reference Include="LogBox, Version=2.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\LogBox.2.1.0\lib\net452\LogBox.dll</HintPath>
+    <Reference Include="LogBox, Version=2.1.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\LogBox.2.1.1\lib\net452\LogBox.dll</HintPath>
     </Reference>
     <Reference Include="MahApps.Metro, Version=2.0.0.0, Culture=neutral, PublicKeyToken=51482d6f650b2b3f, processorArchitecture=MSIL">
       <HintPath>..\packages\MahApps.Metro.2.0.0-alpha0262\lib\net45\MahApps.Metro.dll</HintPath>
