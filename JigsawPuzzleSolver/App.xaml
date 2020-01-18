@@ -86,7 +86,7 @@
                             <TextBlock Text="{Binding PieceID}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="25" Foreground="{DynamicResource IdealForegroundColorBrush}"/>
                         </Border>
                         <Grid Grid.Row="1" Grid.ColumnSpan="2" Margin="3">
-                            <Image Source="{Binding PieceImgColor, Converter={StaticResource BitmapConverter}}"/>
+                            <Image Source="{Binding PieceImgColor.Bmp, Converter={StaticResource BitmapConverter}}"/>
                         </Grid>
                         <TextBlock Grid.Row="2" Grid.Column="0" Text="ID:" VerticalAlignment="Center"/>
                         <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding PieceID}" VerticalAlignment="Center"/>

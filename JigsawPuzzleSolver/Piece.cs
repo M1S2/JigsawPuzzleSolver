@@ -109,23 +109,23 @@ namespace JigsawPuzzleSolver
             set { _pieceIndex = value; OnPropertyChanged(); }
         }
 
-        private Bitmap _pieceImgColor;
+        private LocalDriveBitmap _pieceImgColor;
         /// <summary>
         /// Color image of the extracted piece
         /// </summary>
         [DataMember]
-        public Bitmap PieceImgColor
+        public LocalDriveBitmap PieceImgColor
         {
             get { return _pieceImgColor; }
             set { _pieceImgColor = value;  OnPropertyChanged(); }
         }
 
-        private Bitmap _pieceImgBw;
+        private LocalDriveBitmap _pieceImgBw;
         /// <summary>
         /// Black white image of the extracted piece
         /// </summary>
         [DataMember]
-        public Bitmap PieceImgBw
+        public LocalDriveBitmap PieceImgBw
         {
             get { return _pieceImgBw; }
             set { _pieceImgBw = value; OnPropertyChanged(); }
@@ -192,17 +192,14 @@ namespace JigsawPuzzleSolver
             PieceIndex = NextPieceID;
             NextPieceID++;
 
-            PieceImgColor = new Bitmap(color.Bitmap);
-            PieceImgBw = new Bitmap(bw.Bitmap);
+            PieceImgColor = new LocalDriveBitmap(System.IO.Path.GetDirectoryName(pieceSourceFileName) + @"\Results\" + PieceID + "_Color.png", color.Bitmap);
+            PieceImgBw = new LocalDriveBitmap(System.IO.Path.GetDirectoryName(pieceSourceFileName) + @"\Results\" + PieceID + "_Bw.png", bw.Bitmap);
             PieceSourceFileName = pieceSourceFileName;
             PieceSourceFileLocation = pieceSourceFileLocation;
-            PieceSize = PieceImgColor.Size;
+            PieceSize = bw.Bitmap.Size;
 
-            if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
-            {
-                _logHandle.Report(new LogEventImage(PieceID + " Color", PieceImgColor));
-                _logHandle.Report(new LogEventImage(PieceID + " Bw", PieceImgBw));
-            }
+            _logHandle.Report(new LogEventImage(PieceID + " Color", color.Bitmap));
+            if (PuzzleSolverParameters.Instance.SolverShowDebugResults) { _logHandle.Report(new LogEventImage(PieceID + " Bw", bw.Bitmap)); }
 
             process();
         }
@@ -278,22 +275,23 @@ namespace JigsawPuzzleSolver
         /// see: https://web.stanford.edu/class/cs231a/prev_projects_2016/computer-vision-solve__1_.pdf
         private void find_corners_PolarCoordinates()
         {
+            Bitmap bwImg = PieceImgBw.Bmp;
+            Size pieceMiddle = new Size(bwImg.Width / 2, bwImg.Height / 2);
+
             VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint();
-            CvInvoke.FindContours(new Image<Gray, byte>(PieceImgBw), contours, null, RetrType.List, ChainApproxMethod.ChainApproxSimple);
+            CvInvoke.FindContours(new Image<Gray, byte>(bwImg), contours, null, RetrType.List, ChainApproxMethod.ChainApproxSimple);
             if (contours.Size == 0) { return; }
             VectorOfPoint contour = contours[0];
 
             if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
             {
-                using (Image<Rgb, byte> polarContourImg = new Image<Rgb, byte>(PieceImgColor))
+                using (Image<Rgb, byte> polarContourImg = new Image<Rgb, byte>(PieceImgColor.Bmp))
                 {
                     for (int i = 0; i < contour.Size; i++) { CvInvoke.Circle(polarContourImg, Point.Round(contour[i]), 2, new MCvScalar(255 * ((double)i / contour.Size), 0, 255 - 255 * ((double)i / contour.Size)), 1); }
                     _logHandle.Report(new LogEventImage(PieceID + " Polar Contour", polarContourImg.Bitmap));
                 }
             }
 
-            Size pieceMiddle = new Size(PieceImgBw.Width / 2, PieceImgBw.Height / 2);
-            
             List<PolarCoordinate> polarContour = new List<PolarCoordinate>();
             for (int i = 0; i < contour.Size; i++)
             {
@@ -352,6 +350,8 @@ namespace JigsawPuzzleSolver
                 }
             }
 
+            bwImg.Dispose();
+
             if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
             {                
                 int maxRadius = (int)polarContour.Select(p => p.Radius).Max();
@@ -363,9 +363,10 @@ namespace JigsawPuzzleSolver
                     _logHandle.Report(new LogEventImage(PieceID + " Polar", polarImg.ToImage<Rgb, byte>().Bitmap));
                     polarImg.Dispose();
 
-                    Image<Rgb, byte> corner_img = new Image<Rgb, byte>(PieceImgColor);
+                    Image<Rgb, byte> corner_img = new Image<Rgb, byte>(PieceImgColor.Bmp);
                     for (int i = 0; i < corners.Size; i++) { CvInvoke.Circle(corner_img, Point.Round(corners[i]), 7, new MCvScalar(255, 0, 0), -1); }
                     _logHandle.Report(new LogEventImage(PieceID + " Found Corners (" + corners.Size.ToString() + ")", corner_img.Bitmap));
+                    corner_img.Dispose();
                 }
             }
         }
@@ -392,7 +393,7 @@ namespace JigsawPuzzleSolver
             int max_iterations = 100;
             bool found_all_corners = false;
 
-            Image<Gray, byte> bw_clone = new Image<Gray, byte>(PieceImgBw);
+            Image<Gray, byte> bw_clone = new Image<Gray, byte>(PieceImgBw.Bmp);
 
             //Binary search, altering quality until exactly 4 corners are found. Usually done in 1 or 2 iterations
             while (0 < max_iterations--)
@@ -437,14 +438,16 @@ namespace JigsawPuzzleSolver
 
             if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
             {
-                Graphics g = Graphics.FromImage(PieceImgColor);
+                Bitmap colorImg = PieceImgColor.Bmp;
+                Graphics g = Graphics.FromImage(colorImg);
                 for (int i = 0; i < corners.Size; i++)
                 {
                     g.DrawEllipse(new Pen(Color.Red), new RectangleF(PointF.Subtract(corners[i], new Size(2, 2)), new SizeF(4, 4)));
                     //CvInvoke.Circle(PieceImgColor, Point.Round(corners[i]), 4, new MCvScalar(255, 0, 0));
                 }
                 g.Dispose();
-                _logHandle.Report(new LogEventImage(PieceID + " Corners", PieceImgColor));
+                _logHandle.Report(new LogEventImage(PieceID + " Corners", colorImg));
+                colorImg.Dispose();
             }
 
             if (!found_all_corners)
@@ -461,6 +464,8 @@ namespace JigsawPuzzleSolver
         /// </summary>
         private void find_corners_MaximumRectangle()
         {
+            Bitmap bwImg = PieceImgBw.Bmp;
+
             double pieceFindCornersMaxAngleDiff = 10;
             double pieceFindCornersMaxCornerDistRatio = 1.5;
 
@@ -470,7 +475,7 @@ namespace JigsawPuzzleSolver
 
             // Find all dominant corner points using the GFTTDetector (this uses the Harris corner detector)
             GFTTDetector detector = new GFTTDetector(500, 0.01, 5, 2, true, 0.04);
-            MKeyPoint[] keyPoints = detector.Detect(new Image<Gray, byte>(PieceImgBw));
+            MKeyPoint[] keyPoints = detector.Detect(new Image<Gray, byte>(bwImg));
             List<Point> possibleCorners = keyPoints.Select(k => Point.Round(k.Point)).ToList();
 
             if (possibleCorners.Count > 0)
@@ -483,21 +488,23 @@ namespace JigsawPuzzleSolver
 
                 // Sort the dominant corners by the distance to upper right corner of the bounding rectangle (ImageWidth, 0) and keep only the corners that are near enough to this point
                 List<Point> possibleCornersSortedUpperRight = new List<Point>(possibleCorners);
-                possibleCornersSortedUpperRight.Sort(new DistanceToPointComparer(new Point(PieceImgBw.Width, 0), DistanceOrders.NEAREST_FIRST));
-                double minCornerDistUpperRight = Utils.Distance(possibleCornersSortedUpperRight[0], new PointF(PieceImgBw.Width, 0));
-                possibleCornersSortedUpperRight = possibleCornersSortedUpperRight.Where(c => Utils.Distance(c, new PointF(PieceImgBw.Width, 0)) < minCornerDistUpperRight * pieceFindCornersMaxCornerDistRatio).ToList();
+                possibleCornersSortedUpperRight.Sort(new DistanceToPointComparer(new Point(bwImg.Width, 0), DistanceOrders.NEAREST_FIRST));
+                double minCornerDistUpperRight = Utils.Distance(possibleCornersSortedUpperRight[0], new PointF(bwImg.Width, 0));
+                possibleCornersSortedUpperRight = possibleCornersSortedUpperRight.Where(c => Utils.Distance(c, new PointF(bwImg.Width, 0)) < minCornerDistUpperRight * pieceFindCornersMaxCornerDistRatio).ToList();
 
                 // Sort the dominant corners by the distance to lower right corner of the bounding rectangle (ImageWidth, ImageHeight) and keep only the corners that are near enough to this point
                 List<Point> possibleCornersSortedLowerRight = new List<Point>(possibleCorners);
-                possibleCornersSortedLowerRight.Sort(new DistanceToPointComparer(new Point(PieceImgBw.Width, PieceImgBw.Height), DistanceOrders.NEAREST_FIRST));
-                double minCornerDistLowerRight = Utils.Distance(possibleCornersSortedLowerRight[0], new PointF(PieceImgBw.Width, PieceImgBw.Height));
-                possibleCornersSortedLowerRight = possibleCornersSortedLowerRight.Where(c => Utils.Distance(c, new PointF(PieceImgBw.Width, PieceImgBw.Height)) < minCornerDistLowerRight * pieceFindCornersMaxCornerDistRatio).ToList();
+                possibleCornersSortedLowerRight.Sort(new DistanceToPointComparer(new Point(bwImg.Width, bwImg.Height), DistanceOrders.NEAREST_FIRST));
+                double minCornerDistLowerRight = Utils.Distance(possibleCornersSortedLowerRight[0], new PointF(bwImg.Width, bwImg.Height));
+                possibleCornersSortedLowerRight = possibleCornersSortedLowerRight.Where(c => Utils.Distance(c, new PointF(bwImg.Width, bwImg.Height)) < minCornerDistLowerRight * pieceFindCornersMaxCornerDistRatio).ToList();
 
                 // Sort the dominant corners by the distance to lower left corner of the bounding rectangle (0, ImageHeight) and keep only the corners that are near enough to this point
                 List<Point> possibleCornersSortedLowerLeft = new List<Point>(possibleCorners);
-                possibleCornersSortedLowerLeft.Sort(new DistanceToPointComparer(new Point(0, PieceImgBw.Height), DistanceOrders.NEAREST_FIRST));
-                double minCornerDistLowerLeft = Utils.Distance(possibleCornersSortedLowerLeft[0], new PointF(0, PieceImgBw.Height));
-                possibleCornersSortedLowerLeft = possibleCornersSortedLowerLeft.Where(c => Utils.Distance(c, new PointF(0, PieceImgBw.Height)) < minCornerDistLowerLeft * pieceFindCornersMaxCornerDistRatio).ToList();
+                possibleCornersSortedLowerLeft.Sort(new DistanceToPointComparer(new Point(0, bwImg.Height), DistanceOrders.NEAREST_FIRST));
+                double minCornerDistLowerLeft = Utils.Distance(possibleCornersSortedLowerLeft[0], new PointF(0, bwImg.Height));
+                possibleCornersSortedLowerLeft = possibleCornersSortedLowerLeft.Where(c => Utils.Distance(c, new PointF(0, bwImg.Height)) < minCornerDistLowerLeft * pieceFindCornersMaxCornerDistRatio).ToList();
+
+                bwImg.Dispose();
 
                 // Combine all possibleCorners from the four lists and discard all combination with too bad angle differences
                 List<FindCornerRectangleScore> scores = new List<FindCornerRectangleScore>();
@@ -539,13 +546,16 @@ namespace JigsawPuzzleSolver
 
             if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
             {
-                using (Image<Rgb, byte> imgCorners = new Image<Rgb, byte>(PieceImgColor))
+                Bitmap colorImg = PieceImgColor.Bmp;
+                using (Image<Rgb, byte> imgCorners = new Image<Rgb, byte>(colorImg))
                 {
                     Features2DToolbox.DrawKeypoints(imgCorners, new VectorOfKeyPoint(keyPoints), imgCorners, new Bgr(0, 0, 255));       // Draw the dominant key points
 
                     for (int i = 0; i < corners.Size; i++) { CvInvoke.Circle(imgCorners, Point.Round(corners[i]), 4, new MCvScalar(0, Math.Max(255 - i * 50, 50), 0), 3); }
                     _logHandle.Report(new LogEventImage(PieceID + " Corners", imgCorners.Bitmap));
+                    imgCorners.Dispose();
                 }
+                colorImg.Dispose();
             }
         }
 
@@ -579,12 +589,14 @@ namespace JigsawPuzzleSolver
         /// </summary>
         private void extract_edges()
         {
+            Bitmap bwImg = PieceImgBw.Bmp;
             _logHandle.Report(new LogEventInfo(PieceID + " Extracting edges"));
 
             if (corners.Size != 4) { return; }
 
             VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint();
-            CvInvoke.FindContours(new Image<Gray, byte>(PieceImgBw), contours, null, RetrType.List, ChainApproxMethod.ChainApproxNone);
+            CvInvoke.FindContours(new Image<Gray, byte>(bwImg), contours, null, RetrType.List, ChainApproxMethod.ChainApproxNone);
+            bwImg.Dispose();
             if (contours.Size == 0)
             {
                 _logHandle.Report(new LogEventError(PieceID + " No contours found."));
@@ -621,9 +633,12 @@ namespace JigsawPuzzleSolver
 
             if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
             {
-                Image<Rgb, byte> edge_img = new Image<Rgb, byte>(PieceImgColor);
+                Bitmap colorImg = PieceImgColor.Bmp;
+                Image<Rgb, byte> edge_img = new Image<Rgb, byte>(colorImg);
                 for (int i = 0; i < corners.Size; i++) { CvInvoke.Circle(edge_img, Point.Round(corners[i]), 2, new MCvScalar(255, 0, 0), 1); }
                 _logHandle.Report(new LogEventImage(PieceID + " New corners", edge_img.Bitmap));
+                colorImg.Dispose();
+                edge_img.Dispose();
             }
 
             List<int> sections = find_all_in(contour, corners);
@@ -682,7 +697,12 @@ namespace JigsawPuzzleSolver
                 _logHandle.Report(new LogEventError(PieceID + " Found too many edges for this piece. " + count.ToString() + " found."));
             }
 
-            if (PuzzleSolverParameters.Instance.SolverShowDebugResults) { _logHandle.Report(new LogEventImage(PieceID + " Type " + PieceType.ToString(), PieceImgColor)); }
+            if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
+            {
+                Bitmap colorImg = PieceImgColor.Bmp;
+                _logHandle.Report(new LogEventImage(PieceID + " Type " + PieceType.ToString(), colorImg));
+                colorImg.Dispose();
+            }
         }
 
         //##############################################################################################################################################################################################
@@ -708,11 +728,25 @@ namespace JigsawPuzzleSolver
             cornersArray.Rotate(times_to_rotate);
             corners = new VectorOfPoint(cornersArray);
 
-            Image<Rgb, byte> cvImgColor = new Image<Rgb, byte>(PieceImgColor);
-            Image<Gray, byte> cvImgBw = new Image<Gray, byte>(PieceImgBw);
+            Bitmap colorImg = PieceImgColor.Bmp, bwImg = PieceImgBw.Bmp;
+            Image<Rgb, byte> cvImgColor = new Image<Rgb, byte>(colorImg);
+            Image<Gray, byte> cvImgBw = new Image<Gray, byte>(bwImg);
 
-            PieceImgColor = new Bitmap(cvImgColor.Rotate(times_to_rotate * 90, new Rgb(Color.Transparent), false).Bitmap);
-            PieceImgBw = new Bitmap(cvImgBw.Rotate(times_to_rotate * 90, new Gray(0), false).Bitmap);
+            colorImg.Dispose();
+            bwImg.Dispose();
+            PieceImgColor.DeleteFile();
+            PieceImgBw.DeleteFile();
+
+            colorImg = cvImgColor.Rotate(times_to_rotate * 90, new Rgb(255, 255, 255), false).Bitmap;
+            bwImg = cvImgBw.Rotate(times_to_rotate * 90, new Gray(0), false).Bitmap;
+            
+            PieceImgColor.Bmp = colorImg;
+            PieceImgBw.Bmp = bwImg;
+
+            colorImg.Dispose();
+            bwImg.Dispose();
+            cvImgColor.Dispose();
+            cvImgBw.Dispose();
         }
 
     }

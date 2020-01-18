@@ -59,23 +59,26 @@ namespace JigsawPuzzleSolver
         [DataMember]
         public int EdgeNumber { get; private set; }
 
-        public Bitmap PieceImgColor { get; private set; }
-        public Bitmap ContourImg { get; private set; }
+        public LocalDriveBitmap PieceImgColor { get; private set; }
+        public LocalDriveBitmap ContourImg { get; private set; }
 
         private IProgress<LogEvent> _logHandle;
         private CancellationToken _cancelToken;
 
         //##############################################################################################################################################################################################
 
-        public Edge(string pieceID, int edgeNumber, Bitmap pieceImgColor, VectorOfPoint edgeContour, IProgress<LogEvent> logHandle, CancellationToken cancelToken)
+        public Edge(string pieceID, int edgeNumber, LocalDriveBitmap pieceImgColor, VectorOfPoint edgeContour, IProgress<LogEvent> logHandle, CancellationToken cancelToken)
         {
             _logHandle = logHandle;
             _cancelToken = cancelToken;
             PieceID = pieceID;
             EdgeNumber = edgeNumber;
             contour = edgeContour;
-            if (PuzzleSolverParameters.Instance.SolverShowDebugResults) { PieceImgColor = new Bitmap(pieceImgColor); }
-            ContourImg = null;
+            if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
+            {
+                PieceImgColor = pieceImgColor;
+                ContourImg = new LocalDriveBitmap(System.IO.Path.GetDirectoryName(PieceImgColor.LocalFilePath) + @"\Edges\" + PieceID + "_Edge#" + edgeNumber.ToString() + ".png", null);
+            }
 
             normalized_contour = normalize(contour);    //Normalized contours are used for comparisons
 
@@ -131,13 +134,15 @@ namespace JigsawPuzzleSolver
 
             if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
             {
-                ContourImg = new Bitmap(PieceImgColor);
+                Bitmap contourImg = PieceImgColor.Bmp;
                 for (int i = 0; i < contour.Size; i++)
                 {
-                    Graphics g = Graphics.FromImage(ContourImg);
+                    Graphics g = Graphics.FromImage(contourImg);
                     g.DrawEllipse(new Pen(Color.Red), new RectangleF(PointF.Subtract(contour[i], new Size(1, 1)), new SizeF(2, 2)));
                 }
-                _logHandle.Report(new LogEventImage(PieceID + " Edge " + EdgeNumber.ToString() + " " + EdgeType.ToString(), ContourImg));
+                _logHandle.Report(new LogEventImage(PieceID + " Edge " + EdgeNumber.ToString() + " " + EdgeType.ToString(), contourImg));
+                ContourImg.Bmp = contourImg;
+                contourImg.Dispose();
             }
         }
 

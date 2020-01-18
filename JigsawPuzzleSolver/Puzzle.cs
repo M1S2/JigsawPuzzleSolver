@@ -359,6 +359,9 @@ namespace JigsawPuzzleSolver
                 CvInvoke.CalcHist(vm, new int[] { 1 }, new Mat(), histOutS, new int[] { sbins }, new float[] { 0, 255 }, false);
                 CvInvoke.CalcHist(vm, new int[] { 2 }, new Mat(), histOutV, new int[] { vbins }, new float[] { 0, 255 }, false);
 
+                hsvImgMat.Dispose();
+                vm.Dispose();
+
                 // Draw the histograms for debugging purposes
                 if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
                 {
@@ -367,17 +370,17 @@ namespace JigsawPuzzleSolver
                     _logHandle.Report(new LogEventImage("Hist V", Utils.DrawHist(histOutV, vbins, 30, 1024, new MCvScalar(0, 0, 255)).Bitmap));
                 }
 
-//#warning Use border color
-//                int borderHeight = 10;
-//                Image<Hsv, byte> borderImg = hsvSourceImg.Copy(new Rectangle(0, hsvSourceImg.Height - borderHeight, hsvSourceImg.Width, borderHeight));
-//                MCvScalar meanBorderColorScalar = CvInvoke.Mean(borderImg);
-//                Hsv meanBorderColor = new Hsv(meanBorderColorScalar.V0, meanBorderColorScalar.V1, meanBorderColorScalar.V2);
-//                if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
-//                {
-//                    Image<Hsv, byte> borderColorImg = new Image<Hsv, byte>(12, 12);
-//                    borderColorImg.SetValue(meanBorderColor);
-//                    _logHandle.Report(new LogBox.LogEventImage("HSV Border Color (" + meanBorderColor.Hue + " ; " + meanBorderColor.Satuation + "; " + meanBorderColor.Value + ")", borderColorImg.Bitmap));
-//                }
+                //#warning Use border color
+                //                int borderHeight = 10;
+                //                Image<Hsv, byte> borderImg = hsvSourceImg.Copy(new Rectangle(0, hsvSourceImg.Height - borderHeight, hsvSourceImg.Width, borderHeight));
+                //                MCvScalar meanBorderColorScalar = CvInvoke.Mean(borderImg);
+                //                Hsv meanBorderColor = new Hsv(meanBorderColorScalar.V0, meanBorderColorScalar.V1, meanBorderColorScalar.V2);
+                //                if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
+                //                {
+                //                    Image<Hsv, byte> borderColorImg = new Image<Hsv, byte>(12, 12);
+                //                    borderColorImg.SetValue(meanBorderColor);
+                //                    _logHandle.Report(new LogBox.LogEventImage("HSV Border Color (" + meanBorderColor.Hue + " ; " + meanBorderColor.Satuation + "; " + meanBorderColor.Value + ")", borderColorImg.Bitmap));
+                //                }
 
 #warning Make this to settings (mainHueSegment)
                 int mainHueSegment = 90;    // Is the piece background rather red (0), green (60) or blue (120) ? 
@@ -465,16 +468,19 @@ namespace JigsawPuzzleSolver
                 parallelOptions.MaxDegreeOfParallelism = (PuzzleSolverParameters.Instance.UseParallelLoops ? Environment.ProcessorCount : 1);
                 Parallel.For(0, imageFilesInfo.Count, parallelOptions, (i) =>
                 {
-                    using (Image<Rgba, byte> sourceImg = CvInvoke.Imread(imageFilesInfo[i].FullName).ToImage<Rgba, byte>(true)) //.LimitImageSize(1000, 1000))
+                    //_logHandle.Report(new LogEventInfo("!!!MEMORY: Before sourceImg read " + (System.Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64 / 1000000).ToString()));
+
+                    using (Image<Rgba, byte> sourceImg = new Image<Rgba, byte>(imageFilesInfo[i].FullName)) //.LimitImageSize(1000, 1000))
                     {
                         //CvInvoke.CvtColor(sourceImg, sourceImg, ColorConversion.Bgr2Rgba);               // Images are read in BGR model (not RGB)
                         CvInvoke.MedianBlur(sourceImg, sourceImg, 5);
 
                         using (Image<Gray, byte> mask = getMaskHsvSegmentationHistogram(sourceImg))    //getMaskGrabCut(sourceImg))
                         {
+                            _logHandle.Report(new LogEventInfo("Extracting Pieces from source image " + i.ToString()));
                             if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
                             {
-                                _logHandle.Report(new LogEventImage("Extracting Pieces from source image " + i.ToString(), sourceImg.Bitmap));
+                                _logHandle.Report(new LogEventImage("Source image " + i.ToString(), sourceImg.Bitmap));
                                 _logHandle.Report(new LogEventImage("Mask " + i.ToString(), mask.Bitmap));
                             }
 
@@ -521,13 +527,13 @@ namespace JigsawPuzzleSolver
                                 Piece p = new Piece(pieceSourceImgMasked, pieceMask, imageFilesInfo[i].FullName, roi.Location, _logHandle, _cancelToken);
                                 lock (_piecesLock) { Pieces.Add(p); }
 
-                                sourceImg.Draw(roi, new Rgba(255, 0, 0, 1), (int)(0.005 * sourceImg.Height)); //2);
+                                sourceImg.Draw(roi, new Rgba(255, 0, 0, 1), 2);
                                 int baseLine = 0;
-                                Size textSize = CvInvoke.GetTextSize(p.PieceID.Replace("Piece", ""), FontFace.HersheySimplex, (int)(0.001 * sourceImg.Height), 2, ref baseLine);
-                                CvInvoke.PutText(sourceImg, p.PieceID.Replace("Piece", ""), Point.Add(roi.Location, new Size(20, textSize.Height + 40)), FontFace.HersheySimplex, (int)(0.001 * sourceImg.Height), new MCvScalar(255, 0, 0), (int)(0.003 * sourceImg.Height));
-
+                                Size textSize = CvInvoke.GetTextSize(p.PieceID.Replace("Piece", ""), FontFace.HersheyDuplex, 3, 2, ref baseLine);
+                                CvInvoke.PutText(sourceImg, p.PieceID.Replace("Piece", ""), Point.Add(roi.Location, new Size(0, textSize.Height + 10)), FontFace.HersheyDuplex, 3, new MCvScalar(255, 0, 0), 2);
+                                
                                 NumberPuzzlePieces++;
-
+                                
                                 pieceSourceImg.Dispose();
                                 pieceMask.Dispose();
                                 pieceSourceImageForeground.Dispose();
@@ -542,12 +548,20 @@ namespace JigsawPuzzleSolver
                             Interlocked.Add(ref loopCount, 1);
                             CurrentSolverStepPercentageFinished = (loopCount / (double)imageFilesInfo.Count) * 100;
 
-                            if (PuzzleSolverParameters.Instance.SolverShowDebugResults) { _logHandle.Report(new LogEventImage("Source Img " + i.ToString() + " Pieces", sourceImg.Bitmap)); }
-                            InputImages.Add(new ImageGallery.ImageDescribed(Path.GetFileName(imageFilesInfo[i].FullName), sourceImg.Bitmap));
+                            _logHandle.Report(new LogEventImage("Source Img " + i.ToString() + " Pieces", sourceImg.Bitmap));
+#warning Possible Memory Leak in ImageGallery ?!
+                            InputImages.Add(new ImageGallery.ImageDescribed(Path.GetFileName(imageFilesInfo[i].FullName), (Bitmap)sourceImg.LimitImageSize(1000, 1000).Bitmap.Clone()));
                             blobs.Dispose();
+                            blobDetector.Dispose();
                             GC.Collect();
                         }
                     }
+                    
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                    GC.Collect();
+
+                    _logHandle.Report(new LogEventInfo("!!!MEMORY: After sourceImg read " + (System.Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64 / 1000000).ToString()));
                 });
 
                 Pieces.Sort(p => ((Piece)p).PieceIndex, null);
@@ -651,7 +665,12 @@ namespace JigsawPuzzleSolver
                 {
                     foreach (MatchScore matchScore in matches)
                     {
-                        _logHandle.Report(new LogEventImage("MatchScore " + Pieces[matchScore.PieceIndex1].PieceID + "_Edge" + (matchScore.EdgeIndex1).ToString() + " <-->" + Pieces[matchScore.PieceIndex2].PieceID + "_Edge" + (matchScore.EdgeIndex2).ToString() + " = " + matchScore.score.ToString(), Utils.Combine2ImagesHorizontal(Pieces[matchScore.PieceIndex1].Edges[matchScore.EdgeIndex1].ContourImg, Pieces[matchScore.PieceIndex2].Edges[matchScore.EdgeIndex2].ContourImg, 20)));
+                        Bitmap contourImg1 = Pieces[matchScore.PieceIndex1].Edges[matchScore.EdgeIndex1].ContourImg.Bmp;
+                        Bitmap contourImg2 = Pieces[matchScore.PieceIndex2].Edges[matchScore.EdgeIndex2].ContourImg.Bmp;
+                        _logHandle.Report(new LogEventImage("MatchScore " + Pieces[matchScore.PieceIndex1].PieceID + "_Edge" + (matchScore.EdgeIndex1).ToString() + " <-->" + Pieces[matchScore.PieceIndex2].PieceID + "_Edge" + (matchScore.EdgeIndex2).ToString() + " = " + matchScore.score.ToString(), Utils.Combine2ImagesHorizontal(contourImg1, contourImg2, 20)));
+
+                        contourImg1.Dispose();
+                        contourImg2.Dispose();
                     }
                 }
             }
@@ -735,7 +754,7 @@ namespace JigsawPuzzleSolver
                         Bitmap solutionImg = GenerateSolutionImage2(solution, setNo);
                         PuzzleSolutionImages.Add(new ImageGallery.ImageDescribed("Solution #" + setNo.ToString(), solutionImg));
 
-                        if (PuzzleSolverParameters.Instance.SolverShowDebugResults) { _logHandle.Report(new LogEventImage("Solution #" + setNo.ToString(), solutionImg)); }
+                        _logHandle.Report(new LogEventImage("Solution #" + setNo.ToString(), solutionImg));
                         setNo++;
                     }
                 }
@@ -755,7 +774,7 @@ namespace JigsawPuzzleSolver
 
         //**********************************************************************************************************************************************************************************************
 
-        #region Generate Solution Image
+#region Generate Solution Image
 
         //private Bitmap GenerateSolutionImage(Matrix<int> solutionLocations, int solutionID)
         //{ 
@@ -871,8 +890,10 @@ namespace JigsawPuzzleSolver
                     int piece_number = solutionLocations[j, i];
                     if (piece_number == -1) { continue; }
 
-                    max_piece_width = Math.Max(max_piece_width, Pieces[piece_number].PieceImgColor.Width);
-                    max_piece_height = Math.Max(max_piece_height, Pieces[piece_number].PieceImgColor.Height);
+                    Bitmap colorImg = Pieces[piece_number].PieceImgColor.Bmp;
+                    max_piece_width = Math.Max(max_piece_width, colorImg.Width);
+                    max_piece_height = Math.Max(max_piece_height, colorImg.Height);
+                    colorImg.Dispose();
                 }
             }
             max_piece_height += 150;
@@ -892,10 +913,12 @@ namespace JigsawPuzzleSolver
                     int piece_number = solutionLocations[j, i];
                     if (piece_number == -1) { continue; }
 
-                    g.DrawImage(Pieces[piece_number].PieceImgColor, i * max_piece_width, j * max_piece_height + 150);
+                    Bitmap colorImg = Pieces[piece_number].PieceImgColor.Bmp;
+                    g.DrawImage(colorImg, i * max_piece_width, j * max_piece_height + 150);
                     Rectangle pieceRect = new Rectangle(i * max_piece_width, j * max_piece_height, max_piece_width, max_piece_height);
                     g.DrawRectangle(redPen, pieceRect);
                     g.DrawString(Pieces[piece_number].PieceID + Environment.NewLine + Path.GetFileName(Pieces[piece_number].PieceSourceFileName), new Font("Arial", 40), new SolidBrush(Color.Blue), pieceRect, stringFormat);
+                    colorImg.Dispose();
                 }
             }
             redPen.Dispose();
@@ -903,7 +926,7 @@ namespace JigsawPuzzleSolver
             return outImg;
         }
 
-        #endregion
+#endregion
 
     }
 }

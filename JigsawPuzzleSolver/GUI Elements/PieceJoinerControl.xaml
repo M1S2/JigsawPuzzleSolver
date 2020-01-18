@@ -97,7 +97,7 @@
                                 </Style>    
                             </Border.Style>
                             
-                            <Image Source="{Binding PieceImgColor, Converter={StaticResource BitmapConverter}}"/>
+                            <Image Source="{Binding PieceImgColor.Bmp, Converter={StaticResource BitmapConverter}}"/>
                         </Border>
                         <Border Grid.Row="1" CornerRadius="2" HorizontalAlignment="Stretch">
                             <Border.Style>

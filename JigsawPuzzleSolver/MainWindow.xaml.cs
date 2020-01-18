@@ -149,22 +149,17 @@ namespace JigsawPuzzleSolver
 
         private void OpenNewPuzzle()
         {
-            System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
+            /*System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
             folderBrowserDialog1.Description = "Select a folder containing all scanned puzzle piece images.";
             if(PuzzleHandle != null) { folderBrowserDialog1.SelectedPath = PuzzleHandle.PuzzlePiecesFolderPath; }
             if(folderBrowserDialog1.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 PuzzleHandle = new Puzzle(folderBrowserDialog1.SelectedPath, logHandle);
                 logHandle.Report(new LogEventInfo("New puzzle created from \"" + PuzzleHandle.PuzzlePiecesFolderPath + "\""));
-            }
+            }*/
 
-//#warning Only for faster testing !!!
-            //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen\Test\Test3.png", logHandle);
-            //PuzzleHandle = new Puzzle(@"..\..\..\Scans\AngryBirds\ScannerOpen", logHandle);
-            //PuzzleHandle = new Puzzle(@"..\..\..\Scans\ToyStoryBack", logHandle);
-            //PuzzleHandle = new Puzzle(@"..\..\..\Scans\horsesNumbered", logHandle);
-
-            //PuzzleHandle = new Puzzle(@"..\..\..\Test_Pictures\ScannedImages\2", logHandle);
+#warning Only for faster testing !!!
+            PuzzleHandle = new Puzzle(@"..\..\..\Test_Pictures\ScannedImages\4", logHandle);
 
             PuzzleSavingState = PuzzleSavingStates.NEW_UNSAVED;
         }
