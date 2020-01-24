@@ -81,10 +81,15 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Converters\BitmapToImageSourceConverter.cs" />
-    <Compile Include="ImageDescribed.cs" />
-    <Compile Include="ImageGalleryControl.xaml.cs">
+    <Compile Include="LocalDriveBitmaps\ImageDescribedLight.cs" />
+    <Compile Include="LocalDriveBitmaps\ImageGalleryControlLight.xaml.cs">
+      <DependentUpon>ImageGalleryControlLight.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="NormalBitmaps\ImageDescribed.cs" />
+    <Compile Include="NormalBitmaps\ImageGalleryControl.xaml.cs">
       <DependentUpon>ImageGalleryControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="LocalDriveBitmaps\LocalDriveBitmap.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -116,7 +121,11 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="ImageGalleryControl.xaml">
+    <Page Include="LocalDriveBitmaps\ImageGalleryControlLight.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="NormalBitmaps\ImageGalleryControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

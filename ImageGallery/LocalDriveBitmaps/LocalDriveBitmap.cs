@@ -7,7 +7,7 @@ using System.Runtime.Serialization;
 using System.IO;
 using System.Drawing;
 
-namespace JigsawPuzzleSolver
+namespace ImageGallery.LocalDriveBitmaps
 {
     /// <summary>
     /// Class to save and load bitmap direct to/from local drive. Use this to avoid RAM memory overflow when working with many bitmaps.
@@ -37,16 +37,24 @@ namespace JigsawPuzzleSolver
         }
 
         /// <summary>
+        /// If true, the file is only loaded and saving is forbidden (image file is never overwritten); if false, the file can be overwritten
+        /// </summary>
+        private bool _onlyLoadFile;
+
+        /// <summary>
         /// Construct a new LocalDriveBitmap
         /// </summary>
         /// <param name="localFilePath">Full file path of the image file on the local drive.</param>
         /// <param name="bmp">Initial bitmap to save</param>
         /// <param name="deleteFileOnDestruction">if true, the file is deleted on destruction of this object (file and this object exist the same amount of time); if false, the file remains on the file system after destruction</param>
-        public LocalDriveBitmap(string localFilePath, Bitmap bmp, bool deleteFileOnDestruction = false)
+        /// <param name="onlyLoadFile">If true, the file is only loaded and saving is forbidden (image file is never overwritten); if false, the file can be overwritten</param>
+        public LocalDriveBitmap(string localFilePath, Bitmap bmp, bool deleteFileOnDestruction = false, bool onlyLoadFile = false)
         {
             LocalFilePath = localFilePath;
             DeleteFileOnDestruction = deleteFileOnDestruction;
+            _onlyLoadFile = false;
             Save(bmp);
+            _onlyLoadFile = onlyLoadFile;
         }
 
         /// <summary>
@@ -54,19 +62,23 @@ namespace JigsawPuzzleSolver
         /// </summary>
         /// <param name="localFilePath">Full file path of the image file on the local drive.</param>
         /// <param name="deleteFileOnDestruction">if true, the file is deleted on destruction of this object (file and this object exist the same amount of time); if false, the file remains on the file system after destruction</param>
-        public LocalDriveBitmap(string localFilePath, bool deleteFileOnDestruction = false)
+        /// <param name="onlyLoadFile">If true, the file is only loaded and saving is forbidden (image file is never overwritten); if false, the file can be overwritten</param>
+        public LocalDriveBitmap(string localFilePath, bool deleteFileOnDestruction = false, bool onlyLoadFile = false)
         {
             LocalFilePath = localFilePath;
             DeleteFileOnDestruction = deleteFileOnDestruction;
+            _onlyLoadFile = onlyLoadFile;
         }
 
         /// <summary>
         /// Construct a new LocalDriveBitmap from an existing one
         /// </summary>
-        public LocalDriveBitmap(LocalDriveBitmap localDriveBmp)
+        /// <param name="onlyLoadFile">If true, the file is only loaded and saving is forbidden (image file is never overwritten); if false, the file can be overwritten</param>
+        public LocalDriveBitmap(LocalDriveBitmap localDriveBmp, bool onlyLoadFile = false)
         {
             LocalFilePath = localDriveBmp.LocalFilePath;
             DeleteFileOnDestruction = localDriveBmp.DeleteFileOnDestruction;
+            _onlyLoadFile = onlyLoadFile;
         }
 
         /// <summary>
@@ -83,7 +95,7 @@ namespace JigsawPuzzleSolver
         /// <param name="bmp">Bitmap to save</param>
         private void Save(Bitmap bmp)
         {
-            if(bmp == null) { return; }
+            if(bmp == null || _onlyLoadFile) { return; }
             if (!Directory.Exists(Path.GetDirectoryName(LocalFilePath))) { Directory.CreateDirectory(Path.GetDirectoryName(LocalFilePath)); }
 
             System.Drawing.Imaging.ImageFormat imgFormat;
@@ -107,7 +119,15 @@ namespace JigsawPuzzleSolver
         /// <returns>Loaded Bitmap</returns>
         private Bitmap Load()
         {
-            return (Bitmap)Image.FromFile(LocalFilePath);
+            if (!File.Exists(LocalFilePath)) { return null; }
+
+            Image image;
+            using (FileStream myStream = new FileStream(LocalFilePath, FileMode.Open))
+            {
+                image = Image.FromStream(myStream);
+                myStream.Close();
+            }
+            return (Bitmap)image;
         }
 
         /// <summary>

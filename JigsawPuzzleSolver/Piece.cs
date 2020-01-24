@@ -15,6 +15,7 @@ using System.Runtime.Serialization;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using LogBox.LogEvents;
+using ImageGallery.LocalDriveBitmaps;
 
 namespace JigsawPuzzleSolver
 {
@@ -192,14 +193,19 @@ namespace JigsawPuzzleSolver
             PieceIndex = NextPieceID;
             NextPieceID++;
 
-            PieceImgColor = new LocalDriveBitmap(System.IO.Path.GetDirectoryName(pieceSourceFileName) + @"\Results\" + PieceID + "_Color.png", color.Bitmap);
+#warning Limit Image Size produces scaling errors when drawing debug images
+            PieceImgColor = new LocalDriveBitmap(System.IO.Path.GetDirectoryName(pieceSourceFileName) + @"\Results\" + PieceID + "_Color.png", color.LimitImageSize(200, 200).Bitmap);
             PieceImgBw = new LocalDriveBitmap(System.IO.Path.GetDirectoryName(pieceSourceFileName) + @"\Results\" + PieceID + "_Bw.png", bw.Bitmap);
             PieceSourceFileName = pieceSourceFileName;
             PieceSourceFileLocation = pieceSourceFileLocation;
             PieceSize = bw.Bitmap.Size;
 
-            _logHandle.Report(new LogEventImage(PieceID + " Color", color.Bitmap));
-            if (PuzzleSolverParameters.Instance.SolverShowDebugResults) { _logHandle.Report(new LogEventImage(PieceID + " Bw", bw.Bitmap)); }
+            
+            if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
+            {
+                _logHandle.Report(new LogEventImage(PieceID + " Color", color.Bitmap));
+                _logHandle.Report(new LogEventImage(PieceID + " Bw", bw.Bitmap));
+            }
 
             process();
         }
@@ -285,11 +291,13 @@ namespace JigsawPuzzleSolver
 
             if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
             {
-                using (Image<Rgb, byte> polarContourImg = new Image<Rgb, byte>(PieceImgColor.Bmp))
+                Bitmap colorImg = PieceImgColor.Bmp;
+                using (Image<Rgb, byte> polarContourImg = new Image<Rgb, byte>(colorImg))
                 {
                     for (int i = 0; i < contour.Size; i++) { CvInvoke.Circle(polarContourImg, Point.Round(contour[i]), 2, new MCvScalar(255 * ((double)i / contour.Size), 0, 255 - 255 * ((double)i / contour.Size)), 1); }
                     _logHandle.Report(new LogEventImage(PieceID + " Polar Contour", polarContourImg.Bitmap));
                 }
+                colorImg.Dispose();
             }
 
             List<PolarCoordinate> polarContour = new List<PolarCoordinate>();

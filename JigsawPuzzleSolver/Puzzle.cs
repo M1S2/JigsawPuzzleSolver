@@ -18,6 +18,7 @@ using Emgu.CV.CvEnum;
 using Emgu.CV.Util;
 using Emgu.CV.Cvb;
 using LogBox.LogEvents;
+using ImageGallery.LocalDriveBitmaps;
 
 namespace JigsawPuzzleSolver
 {
@@ -132,9 +133,9 @@ namespace JigsawPuzzleSolver
         //**********************************************************************************************************************************************************************************************
 
         private static object _puzzleSolutionImgListLock = new object();
-        private ObservableCollection<ImageGallery.ImageDescribed> _puzzleSolutionImages;
+        private ObservableCollection<ImageDescribedLight> _puzzleSolutionImages;
         [DataMember]
-        public ObservableCollection<ImageGallery.ImageDescribed> PuzzleSolutionImages
+        public ObservableCollection<ImageDescribedLight> PuzzleSolutionImages
         {
             get { return _puzzleSolutionImages; }
             private set { _puzzleSolutionImages = value; OnPropertyChanged(); }
@@ -143,9 +144,9 @@ namespace JigsawPuzzleSolver
         //**********************************************************************************************************************************************************************************************
 
         private static object _inputImgListLock = new object();
-        private ObservableCollection<ImageGallery.ImageDescribed> _inputImages;
+        private ObservableCollection<ImageDescribedLight> _inputImages;
         [DataMember]
-        public ObservableCollection<ImageGallery.ImageDescribed> InputImages
+        public ObservableCollection<ImageDescribedLight> InputImages
         {
             get { return _inputImages; }
             private set { _inputImages = value; OnPropertyChanged(); }
@@ -267,10 +268,10 @@ namespace JigsawPuzzleSolver
             SolutionsRotations = new ObservableCollection<Matrix<int>>();
             SolutionsRotations.CollectionChanged += SolutionsRotations_CollectionChanged;
 
-            InputImages = new ObservableCollection<ImageGallery.ImageDescribed>();
+            InputImages = new ObservableCollection<ImageDescribedLight>();
             BindingOperations.EnableCollectionSynchronization(InputImages, _inputImgListLock);
 
-            PuzzleSolutionImages = new ObservableCollection<ImageGallery.ImageDescribed>();
+            PuzzleSolutionImages = new ObservableCollection<ImageDescribedLight>();
             BindingOperations.EnableCollectionSynchronization(PuzzleSolutionImages, _puzzleSolutionImgListLock);
 
             Pieces = new ObservableCollection<Piece>();
@@ -390,10 +391,12 @@ namespace JigsawPuzzleSolver
                 int vDiff = 15; //20; //40;
 
                 // Find the peaks in the histograms and use them as piece background color. Black and white areas are ignored.
-                Hsv pieceBackgroundColor = new Hsv();
-                pieceBackgroundColor.Hue = Utils.HighestBinValInRange(histOutH, mainHueSegment - hDiffHist, mainHueSegment + hDiffHist, 179); //25, 179, 179);
-                pieceBackgroundColor.Satuation = Utils.HighestBinValInRange(histOutS, 50, 205, 255); //50, 255, 255);
-                pieceBackgroundColor.Value = Utils.HighestBinValInRange(histOutV, 75, 205, 255); //75, 255, 255);
+                Hsv pieceBackgroundColor = new Hsv
+                {
+                    Hue = Utils.HighestBinValInRange(histOutH, mainHueSegment - hDiffHist, mainHueSegment + hDiffHist, 179), //25, 179, 179);
+                    Satuation = Utils.HighestBinValInRange(histOutS, 50, 205, 255), //50, 255, 255);
+                    Value = Utils.HighestBinValInRange(histOutV, 75, 205, 255) //75, 255, 255);
+                };
 
                 histOutH.Dispose();
                 histOutS.Dispose();
@@ -463,9 +466,11 @@ namespace JigsawPuzzleSolver
                 int loopCount = 0;
 
                 //For each input image
-                ParallelOptions parallelOptions = new ParallelOptions();
-                parallelOptions.CancellationToken = _cancelToken;
-                parallelOptions.MaxDegreeOfParallelism = (PuzzleSolverParameters.Instance.UseParallelLoops ? Environment.ProcessorCount : 1);
+                ParallelOptions parallelOptions = new ParallelOptions
+                {
+                    CancellationToken = _cancelToken,
+                    MaxDegreeOfParallelism = (PuzzleSolverParameters.Instance.UseParallelLoops ? Environment.ProcessorCount : 1)
+                };
                 Parallel.For(0, imageFilesInfo.Count, parallelOptions, (i) =>
                 {
                     //_logHandle.Report(new LogEventInfo("!!!MEMORY: Before sourceImg read " + (System.Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64 / 1000000).ToString()));
@@ -544,13 +549,12 @@ namespace JigsawPuzzleSolver
 
                                 GC.Collect();
                             }
-
+                            
                             Interlocked.Add(ref loopCount, 1);
                             CurrentSolverStepPercentageFinished = (loopCount / (double)imageFilesInfo.Count) * 100;
 
-                            _logHandle.Report(new LogEventImage("Source Img " + i.ToString() + " Pieces", sourceImg.Bitmap));
-#warning Possible Memory Leak in ImageGallery ?!
-                            InputImages.Add(new ImageGallery.ImageDescribed(Path.GetFileName(imageFilesInfo[i].FullName), (Bitmap)sourceImg.LimitImageSize(1000, 1000).Bitmap.Clone()));
+                            if (PuzzleSolverParameters.Instance.SolverShowDebugResults) { _logHandle.Report(new LogEventImage("Source Img " + i.ToString() + " Pieces", sourceImg.Bitmap)); }
+                            InputImages.Add(new ImageDescribedLight(Path.GetFileName(imageFilesInfo[i].FullName), PuzzlePiecesFolderPath + @"\Results\InputImagesMarked\" + Path.GetFileName(imageFilesInfo[i].FullName), sourceImg.LimitImageSize(1000, 1000).Bitmap));
                             blobs.Dispose();
                             blobDetector.Dispose();
                             GC.Collect();
@@ -560,8 +564,6 @@ namespace JigsawPuzzleSolver
                     GC.Collect();
                     GC.WaitForPendingFinalizers();
                     GC.Collect();
-
-                    _logHandle.Report(new LogEventInfo("!!!MEMORY: After sourceImg read " + (System.Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64 / 1000000).ToString()));
                 });
 
                 Pieces.Sort(p => ((Piece)p).PieceIndex, null);
@@ -626,9 +628,11 @@ namespace JigsawPuzzleSolver
 
                 ConcurrentDictionary<int, MatchScore> matchesDict = new ConcurrentDictionary<int, MatchScore>();        // Using ConcurrentDictionary because ConcurrentList doesn't exist
 
-                ParallelOptions parallelOptions = new ParallelOptions();
-                parallelOptions.CancellationToken = _cancelToken;
-                parallelOptions.MaxDegreeOfParallelism = (PuzzleSolverParameters.Instance.UseParallelLoops ? Environment.ProcessorCount : 1);
+                ParallelOptions parallelOptions = new ParallelOptions
+                {
+                    CancellationToken = _cancelToken,
+                    MaxDegreeOfParallelism = (PuzzleSolverParameters.Instance.UseParallelLoops ? Environment.ProcessorCount : 1)
+                };
                 Parallel.For(0, no_edges, parallelOptions, (i) =>
                 {
                     Parallel.For(i, no_edges, parallelOptions, (j) =>
@@ -639,11 +643,13 @@ namespace JigsawPuzzleSolver
                         if (loop_count > no_compares) { loop_count = no_compares; }
                         CurrentSolverStepPercentageFinished = (loop_count / (double)no_compares) * 100;
 
-                        MatchScore matchScore = new MatchScore();
-                        matchScore.PieceIndex1 = i / 4;
-                        matchScore.PieceIndex2 = j / 4;
-                        matchScore.EdgeIndex1 = i % 4;
-                        matchScore.EdgeIndex2 = j % 4;
+                        MatchScore matchScore = new MatchScore
+                        {
+                            PieceIndex1 = i / 4,
+                            PieceIndex2 = j / 4,
+                            EdgeIndex1 = i % 4,
+                            EdgeIndex2 = j % 4
+                        };
 
                         Edge edge1 = Pieces[matchScore.PieceIndex1].Edges[matchScore.EdgeIndex1];
                         Edge edge2 = Pieces[matchScore.PieceIndex2].Edges[matchScore.EdgeIndex2];
@@ -723,8 +729,8 @@ namespace JigsawPuzzleSolver
 
                         p.JoinSets(p1, p2, e1, e2);
                     }
-
-                    _logHandle.Report(new LogEventInfo("Possible solution found " + (p.InOneSet() ? "(one set)." : "(" + p.SetCount.ToString() + " sets)")));
+                    
+                    _logHandle.Report(new LogEventInfo("Possible solution found (" + p.SetCount.ToString() + " solutions)"));
                     CurrentSolverStepPercentageFinished = 100;
                     CurrentSolverState = PuzzleSolverState.SOLVED;
                     CurrentSolutionNumber = 0;
@@ -752,9 +758,10 @@ namespace JigsawPuzzleSolver
                         SolutionsRotations.Add(solution_rotations);
 
                         Bitmap solutionImg = GenerateSolutionImage2(solution, setNo);
-                        PuzzleSolutionImages.Add(new ImageGallery.ImageDescribed("Solution #" + setNo.ToString(), solutionImg));
+                        PuzzleSolutionImages.Add(new ImageDescribedLight("Solution #" + setNo.ToString(), PuzzlePiecesFolderPath + @"\Results\Solutions\Solution#" + setNo.ToString() + ".png", solutionImg));
 
-                        _logHandle.Report(new LogEventImage("Solution #" + setNo.ToString(), solutionImg));
+                        if (PuzzleSolverParameters.Instance.SolverShowDebugResults) { _logHandle.Report(new LogEventImage("Solution #" + setNo.ToString(), solutionImg)); }
+                        solutionImg.Dispose();
                         setNo++;
                     }
                 }
@@ -917,7 +924,7 @@ namespace JigsawPuzzleSolver
                     g.DrawImage(colorImg, i * max_piece_width, j * max_piece_height + 150);
                     Rectangle pieceRect = new Rectangle(i * max_piece_width, j * max_piece_height, max_piece_width, max_piece_height);
                     g.DrawRectangle(redPen, pieceRect);
-                    g.DrawString(Pieces[piece_number].PieceID + Environment.NewLine + Path.GetFileName(Pieces[piece_number].PieceSourceFileName), new Font("Arial", 40), new SolidBrush(Color.Blue), pieceRect, stringFormat);
+                    g.DrawString(Pieces[piece_number].PieceID + Environment.NewLine + Path.GetFileName(Pieces[piece_number].PieceSourceFileName), new Font("Arial", 20), new SolidBrush(Color.Blue), pieceRect, stringFormat);
                     colorImg.Dispose();
                 }
             }

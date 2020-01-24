@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:JigsawPuzzleSolver"
         xmlns:LogBox="clr-namespace:LogBox;assembly=LogBox"
-        xmlns:ImgGallery="clr-namespace:ImageGallery;assembly=ImageGallery"
+        xmlns:ImgGallery="clr-namespace:ImageGallery.LocalDriveBitmaps;assembly=ImageGallery"
         xmlns:guiElements="clr-namespace:JigsawPuzzleSolver.GUI_Elements"
         xmlns:converters="clr-namespace:JigsawPuzzleSolver.GUI_Elements.Converters"
         xmlns:MetroControls="http://metro.mahapps.com/winfx/xaml/controls"
@@ -194,7 +194,7 @@
                         <TextBlock Text="Input Image Viewer" VerticalAlignment="Center" Foreground="{Binding RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}, Path=Foreground}" FontSize="{Binding RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}, Path=FontSize}"/>
                     </DockPanel>
                 </TabItem.Header>
-                <ImgGallery:ImageGalleryControl Margin="10" NextAtEndBeginsNew="True" ImgList="{Binding PuzzleHandle.InputImages, Mode=OneWay}"/>
+                <ImgGallery:ImageGalleryControlLight Margin="10" NextAtEndBeginsNew="True" ImgList="{Binding PuzzleHandle.InputImages, Mode=OneWay}"/>
             </TabItem>
 
             <TabItem>
@@ -214,7 +214,7 @@
                         <TextBlock Text="Solver Result" VerticalAlignment="Center" Foreground="{Binding RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}, Path=Foreground}" FontSize="{Binding RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}, Path=FontSize}"/>
                     </DockPanel>
                 </TabItem.Header>
-                <ImgGallery:ImageGalleryControl Margin="10" NextAtEndBeginsNew="True" ImgList="{Binding PuzzleHandle.PuzzleSolutionImages, Mode=OneWay}"/>
+                <ImgGallery:ImageGalleryControlLight Margin="10" NextAtEndBeginsNew="True" ImgList="{Binding PuzzleHandle.PuzzleSolutionImages, Mode=OneWay}"/>
             </TabItem>
 
             <TabItem>

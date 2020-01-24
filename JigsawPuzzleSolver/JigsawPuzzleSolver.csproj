@@ -135,7 +135,6 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     <Compile Include="Enumerations\PuzzleSolverState.cs" />
     <Compile Include="GUI Elements\Converters\IconPackToGeometryDrawingConverter.cs" />
     <Compile Include="GUI Elements\Converters\PuzzleStateToIconConverter.cs" />
-    <Compile Include="LocalDriveBitmap.cs" />
     <Compile Include="PeakFinders\DifferencePeakFinder.cs" />
     <Compile Include="PeakFinders\DouglasPeuckerLineApprox.cs" />
     <Compile Include="PeakFinders\SmoothingFilter.cs" />

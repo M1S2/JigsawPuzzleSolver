@@ -1,0 +1,81 @@
+﻿<UserControl x:Class="ImageGallery.LocalDriveBitmaps.ImageGalleryControlLight"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:imageGallery="clr-namespace:ImageGallery"
+             xmlns:MetroControls="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             mc:Ignorable="d" 
+             Name="ImageGalleryUserControlLight"
+             d:DesignHeight="450" d:DesignWidth="800">
+
+    <UserControl.Resources>
+        <imageGallery:BitmapToImageSourceConverter x:Key="BitmapConverter"/>
+        <CollectionViewSource Source="{Binding ImgList, ElementName=ImageGalleryUserControlLight}" x:Key="collectionViewSourcePieces"/>
+    </UserControl.Resources>
+
+    <Grid DataContext="{Binding ElementName=ImageGalleryUserControlLight}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="120"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="50"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="50"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0" Height="45" Width="45" Command="{Binding PreviousImgCommand}" ToolTip="Previous Image" Style="{DynamicResource MahApps.Metro.Styles.MetroCircleButtonStyle}">
+                <iconPacks:PackIconMaterial Width="22" Height="22" Kind="ChevronLeft"/>
+            </Button>
+            <imageGallery:ZoomBorder Grid.Column="1" ClipToBounds="True">
+                <Image Margin="5" Source="{Binding SelectedImage.Img.Bmp, Converter={StaticResource BitmapConverter}}" />
+            </imageGallery:ZoomBorder>
+
+            <TextBlock Grid.Column="1" Text="No images available" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="30" Foreground="{DynamicResource GrayBrush3}">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Visibility" Value="Hidden"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Path=ImgList.Count, ElementName=ImageGalleryUserControlLight}" Value="0">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Path=ImgList, ElementName=ImageGalleryUserControlLight}" Value="{x:Null}">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+
+            <Button Grid.Column="2" Height="45" Width="45" Command="{Binding NextImgCommand}" ToolTip="Next Image" Style="{DynamicResource MahApps.Metro.Styles.MetroCircleButtonStyle}">
+                <iconPacks:PackIconMaterial Width="22" Height="22" Kind="ChevronRight"/>
+            </Button>
+        </Grid>
+
+        <ListBox Grid.Row="1" ItemsSource="{Binding Source={StaticResource collectionViewSourcePieces}}" SelectedValue="{Binding SelectedImage}" SelectedIndex="{Binding SelectedImgIndex, ElementName=ImageGalleryUserControl}" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel/>
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Width="150" Orientation="Vertical">
+                        <Image Height="65" Margin="5" Source="{Binding Img.Bmp, Converter={StaticResource BitmapConverter}}"/>
+                        <TextBlock FontSize="14" Text="{Binding Description}" ToolTip="{Binding Description}" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="Padding" Value="0"/>
+                    <Setter Property="Margin" Value="5"/>
+                </Style>
+            </ListBox.ItemContainerStyle>
+        </ListBox>
+    </Grid>
+</UserControl>

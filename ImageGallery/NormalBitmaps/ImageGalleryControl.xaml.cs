@@ -17,7 +17,7 @@ using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
 using System.Drawing;
 
-namespace ImageGallery
+namespace ImageGallery.NormalBitmaps
 {
     /// <summary>
     /// Interaktionslogik für ImageGalleryControl.xaml

@@ -14,6 +14,7 @@ using System.Runtime.Serialization;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using LogBox.LogEvents;
+using ImageGallery.LocalDriveBitmaps;
 
 namespace JigsawPuzzleSolver
 {

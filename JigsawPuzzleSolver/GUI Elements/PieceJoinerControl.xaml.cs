@@ -113,14 +113,16 @@ namespace JigsawPuzzleSolver.GUI_Elements
             {
                 if(PuzzleHandle == null || PuzzleHandle.InputImages == null || PuzzleHandle.InputImages.Count == 0 || CurrentPiece == null) { return null; }
 
-                Bitmap srcImg = (Bitmap)PuzzleHandle?.InputImages.Where(p => p.Description == System.IO.Path.GetFileName(CurrentPiece?.PieceSourceFileName))?.First().Img.Clone();
-                if(srcImg != null)
+#warning Is Clone producing a memory leak here ?!
+                Bitmap srcImg = (Bitmap)PuzzleHandle?.InputImages.Where(p => p.Description == System.IO.Path.GetFileName(CurrentPiece?.PieceSourceFileName))?.First().Img.Bmp.Clone();
+#warning Drawing Rectangle disabled because of error
+                /*if(srcImg != null)
                 {
                     using (Graphics srcGraphics = Graphics.FromImage(srcImg))
                     {
                         srcGraphics.DrawRectangle(new System.Drawing.Pen(System.Drawing.Color.Lime, (int)(0.005 * srcImg.Height)), new System.Drawing.Rectangle(CurrentPiece.PieceSourceFileLocation, CurrentPiece.PieceSize));
                     }
-                }
+                }*/
                 return srcImg;
             }
         }

@@ -8,7 +8,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 
-namespace ImageGallery
+namespace ImageGallery.NormalBitmaps
 {
     /// <summary>
     /// Class that capsulates a Bitmap with description text
