@@ -622,8 +622,27 @@ namespace JigsawPuzzleSolver
             else { return img; }
         }
 
+        /// <summary>
+        /// Limit the Image size to maximum width and heigth values. If one of the dimensions is greater than the max dimension, the image is resized.
+        /// </summary>
+        /// <param name="bmp">Image to resize</param>
+        /// <param name="maxWidth">Maximum allowed width</param>
+        /// <param name="maxHeight">Maximum allowed height</param>
+        /// <returns>Resized image</returns>
+        public static Bitmap LimitImageSize(this Bitmap bmp, int maxWidth, int maxHeight)
+        {
+            if (bmp.Width > maxWidth || bmp.Height > maxHeight)
+            {
+                using (Image<Rgba, byte> img = new Image<Rgba, byte>(bmp))
+                {
+                    return img.LimitImageSize(maxWidth, maxHeight).Bitmap;
+                }
+            }
+            else { return bmp; }
+        }
+
         //**********************************************************************************************************************************************************************************************
-        
+
         /// <summary>
         /// Draw the given 1D-Histogram to an image.
         /// </summary>

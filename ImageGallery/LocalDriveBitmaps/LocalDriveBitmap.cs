@@ -125,8 +125,8 @@ namespace ImageGallery.LocalDriveBitmaps
             using (FileStream myStream = new FileStream(LocalFilePath, FileMode.Open))
             {
                 image = Image.FromStream(myStream);
-                myStream.Close();
             }
+
             return (Bitmap)image;
         }
 

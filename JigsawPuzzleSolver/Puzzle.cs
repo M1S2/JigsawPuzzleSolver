@@ -554,7 +554,7 @@ namespace JigsawPuzzleSolver
                             CurrentSolverStepPercentageFinished = (loopCount / (double)imageFilesInfo.Count) * 100;
 
                             if (PuzzleSolverParameters.Instance.SolverShowDebugResults) { _logHandle.Report(new LogEventImage("Source Img " + i.ToString() + " Pieces", sourceImg.Bitmap)); }
-                            InputImages.Add(new ImageDescribedLight(Path.GetFileName(imageFilesInfo[i].FullName), PuzzlePiecesFolderPath + @"\Results\InputImagesMarked\" + Path.GetFileName(imageFilesInfo[i].FullName), sourceImg.LimitImageSize(1000, 1000).Bitmap));
+                            InputImages.Add(new ImageDescribedLight(Path.GetFileName(imageFilesInfo[i].FullName), PuzzlePiecesFolderPath + @"\Results\InputImagesMarked\" + Path.GetFileName(imageFilesInfo[i].FullName), sourceImg.Bitmap)); //sourceImg.LimitImageSize(1000, 1000).Bitmap));
                             blobs.Dispose();
                             blobDetector.Dispose();
                             GC.Collect();
@@ -929,8 +929,10 @@ namespace JigsawPuzzleSolver
                 }
             }
             redPen.Dispose();
-            
-            return outImg;
+
+            Bitmap outImgSmall = outImg.LimitImageSize(solutionLocations.Size.Width * 200, solutionLocations.Size.Height * 200);
+            outImg.Dispose();
+            return outImgSmall;
         }
 
 #endregion

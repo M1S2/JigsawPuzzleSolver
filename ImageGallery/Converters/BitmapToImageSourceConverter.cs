@@ -19,8 +19,8 @@ namespace ImageGallery
         // see: https://stackoverflow.com/questions/22499407/how-to-display-a-bitmap-in-a-wpf-image
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
-            Bitmap bitmap = (Bitmap)value;
-            if(bitmap == null) { return null; }
+            Bitmap bitmap = new Bitmap((Bitmap)value);
+            if (bitmap == null) { return null; }
             using (MemoryStream memory = new MemoryStream())
             {
                 bitmap.Save(memory, System.Drawing.Imaging.ImageFormat.Bmp);
@@ -30,6 +30,7 @@ namespace ImageGallery
                 bitmapimage.StreamSource = memory;
                 bitmapimage.CacheOption = BitmapCacheOption.OnLoad;
                 bitmapimage.EndInit();
+                bitmap.Dispose();
                 return bitmapimage;
             }
         }

@@ -192,9 +192,8 @@ namespace JigsawPuzzleSolver
             PieceID = "Piece#" + NextPieceID.ToString();
             PieceIndex = NextPieceID;
             NextPieceID++;
-
-#warning Limit Image Size produces scaling errors when drawing debug images
-            PieceImgColor = new LocalDriveBitmap(System.IO.Path.GetDirectoryName(pieceSourceFileName) + @"\Results\" + PieceID + "_Color.png", color.LimitImageSize(200, 200).Bitmap);
+            
+            PieceImgColor = new LocalDriveBitmap(System.IO.Path.GetDirectoryName(pieceSourceFileName) + @"\Results\" + PieceID + "_Color.png", (PuzzleSolverParameters.Instance.SolverShowDebugResults ? color.Bitmap : color.LimitImageSize(200, 200).Bitmap));
             PieceImgBw = new LocalDriveBitmap(System.IO.Path.GetDirectoryName(pieceSourceFileName) + @"\Results\" + PieceID + "_Bw.png", bw.Bitmap);
             PieceSourceFileName = pieceSourceFileName;
             PieceSourceFileLocation = pieceSourceFileLocation;
@@ -707,9 +706,7 @@ namespace JigsawPuzzleSolver
 
             if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
             {
-                Bitmap colorImg = PieceImgColor.Bmp;
-                _logHandle.Report(new LogEventImage(PieceID + " Type " + PieceType.ToString(), colorImg));
-                colorImg.Dispose();
+                _logHandle.Report(new LogEventInfo(PieceID + " Type " + PieceType.ToString()));
             }
         }
 
