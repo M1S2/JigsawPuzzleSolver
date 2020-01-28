@@ -5,6 +5,7 @@ VisualStudioVersion = 15.0.27703.2018
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JigsawPuzzleSolver", "JigsawPuzzleSolver\JigsawPuzzleSolver.csproj", "{9223CFF7-718E-4FA9-B997-81CA57AE308C}"
 	ProjectSection(ProjectDependencies) = postProject
+		{AADA3516-FF2A-4C8D-AC3F-43C38ACB7BE4} = {AADA3516-FF2A-4C8D-AC3F-43C38ACB7BE4}
 		{2CF94154-BB35-4E3D-8D7F-1735C3346BA4} = {2CF94154-BB35-4E3D-8D7F-1735C3346BA4}
 		{9CDD335C-5349-4A1B-A8D9-AF757B185CB1} = {9CDD335C-5349-4A1B-A8D9-AF757B185CB1}
 		{0DD522F9-42DB-497B-AA8D-1B34660E6981} = {0DD522F9-42DB-497B-AA8D-1B34660E6981}
@@ -21,6 +22,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CircularProgressBar", "CircularProgressBar\CircularProgressBar.csproj", "{9CDD335C-5349-4A1B-A8D9-AF757B185CB1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TextBlockPathEllipsis", "TextBlockPathEllipsis\TextBlockPathEllipsis.csproj", "{2CF94154-BB35-4E3D-8D7F-1735C3346BA4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CroppingImageLibrary", "CroppingImageLibrary\CroppingImageLibrary.csproj", "{AADA3516-FF2A-4C8D-AC3F-43C38ACB7BE4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -44,6 +47,10 @@ Global
 		{2CF94154-BB35-4E3D-8D7F-1735C3346BA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2CF94154-BB35-4E3D-8D7F-1735C3346BA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2CF94154-BB35-4E3D-8D7F-1735C3346BA4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AADA3516-FF2A-4C8D-AC3F-43C38ACB7BE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AADA3516-FF2A-4C8D-AC3F-43C38ACB7BE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AADA3516-FF2A-4C8D-AC3F-43C38ACB7BE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AADA3516-FF2A-4C8D-AC3F-43C38ACB7BE4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

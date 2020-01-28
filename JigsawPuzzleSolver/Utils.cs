@@ -460,6 +460,26 @@ namespace JigsawPuzzleSolver
         #region Image, Histogram utilities
 
         /// <summary>
+        /// Convert RGB Color to HSV
+        /// </summary>
+        /// <param name="color">Color to convert</param>
+        /// <param name="hue">Hue [0...179]</param>
+        /// <param name="saturation">Saturation [0...255]</param>
+        /// <param name="value">Value [0...255]</param>
+        /// see: https://stackoverflow.com/questions/359612/how-to-change-rgb-color-to-hsv
+        public static void ColorToHSV(System.Drawing.Color color, out double hue, out double saturation, out double value)
+        {
+            int max = Math.Max(color.R, Math.Max(color.G, color.B));
+            int min = Math.Min(color.R, Math.Min(color.G, color.B));
+
+            hue = color.GetHue() / 2;
+            saturation = ((max == 0) ? 0 : 1d - (1d * min / max)) * 255;
+            value = max;
+        }
+
+        //**********************************************************************************************************************************************************************************************
+
+        /// <summary>
         /// Convert a Bitmap to a BitmapImage that can be used with WPF Image controls
         /// </summary>
         /// <param name="bitmap">Bitmap to convert</param>

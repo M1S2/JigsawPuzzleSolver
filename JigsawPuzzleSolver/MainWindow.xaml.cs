@@ -77,7 +77,7 @@ namespace JigsawPuzzleSolver
         {
             get
             {
-                if (_openNewPuzzleCommand == null) { _openNewPuzzleCommand = new JigsawPuzzleSolver.GUI_Elements.RelayCommand(param => this.OpenNewPuzzle(), param => { return (PuzzleSavingState != PuzzleSavingStates.SAVING && PuzzleSavingState != PuzzleSavingStates.LOADING); }); }
+                if (_openNewPuzzleCommand == null) { _openNewPuzzleCommand = new RelayCommand(param => this.OpenNewPuzzle(), param => { return (PuzzleSavingState != PuzzleSavingStates.SAVING && PuzzleSavingState != PuzzleSavingStates.LOADING); }); }
                 return _openNewPuzzleCommand;
             }
         }
@@ -87,7 +87,7 @@ namespace JigsawPuzzleSolver
         {
             get
             {
-                if (_savePuzzleCommand == null) { _savePuzzleCommand = new JigsawPuzzleSolver.GUI_Elements.RelayCommand(param => this.SavePuzzle(), param => { return (PuzzleHandle != null && PuzzleSavingState != PuzzleSavingStates.SAVING && PuzzleSavingState != PuzzleSavingStates.LOADING); }); }
+                if (_savePuzzleCommand == null) { _savePuzzleCommand = new RelayCommand(param => this.SavePuzzle(), param => { return (PuzzleHandle != null && PuzzleSavingState != PuzzleSavingStates.SAVING && PuzzleSavingState != PuzzleSavingStates.LOADING); }); }
                 return _savePuzzleCommand;
             }
         }
@@ -97,7 +97,7 @@ namespace JigsawPuzzleSolver
         {
             get
             {
-                if (_loadPuzzleCommand == null) { _loadPuzzleCommand = new JigsawPuzzleSolver.GUI_Elements.RelayCommand(param => this.LoadPuzzle(), param => { return (PuzzleSavingState != PuzzleSavingStates.SAVING && PuzzleSavingState != PuzzleSavingStates.LOADING); }); }
+                if (_loadPuzzleCommand == null) { _loadPuzzleCommand = new RelayCommand(param => this.LoadPuzzle(), param => { return (PuzzleSavingState != PuzzleSavingStates.SAVING && PuzzleSavingState != PuzzleSavingStates.LOADING); }); }
                 return _loadPuzzleCommand;
             }
         }
@@ -109,13 +109,34 @@ namespace JigsawPuzzleSolver
             {
                 if(_openSettingsFlyoutCommand == null)
                 {
-                    _openSettingsFlyoutCommand = new JigsawPuzzleSolver.GUI_Elements.RelayCommand(param =>
+                    _openSettingsFlyoutCommand = new RelayCommand(param =>
                     {
                         Flyout flyout = this.Flyouts.Items[0] as Flyout;
                         flyout.IsOpen = !flyout.IsOpen;
                     });
                 }
                 return _openSettingsFlyoutCommand;
+            }
+        }
+
+        private ICommand _settingsPieceBackgroundCommand;
+        public ICommand SettingsPieceBackgroundCommand
+        {
+            get
+            {
+                if (_settingsPieceBackgroundCommand == null)
+                {
+                    _settingsPieceBackgroundCommand = new RelayCommand(param =>
+                    {
+                        GUI_Elements.PieceBackgroundColorPicker.PieceBackgroundColorPickerWindow window = new GUI_Elements.PieceBackgroundColorPicker.PieceBackgroundColorPickerWindow(PuzzleHandle?.PuzzlePiecesFolderPath, PuzzleSolverParameters.Instance.PieceBackgroundColor);
+                        bool? windowResult = window.ShowDialog();
+                        if (windowResult.HasValue && windowResult.Value == true)
+                        {
+                            PuzzleSolverParameters.Instance.PieceBackgroundColor = window.SelectedBackgroundColor;
+                        }
+                    });
+                }
+                return _settingsPieceBackgroundCommand;
             }
         }
 

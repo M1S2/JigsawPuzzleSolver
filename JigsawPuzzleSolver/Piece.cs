@@ -317,7 +317,7 @@ namespace JigsawPuzzleSolver
             List<double> contourRadius = polarContour.Select(p => p.Radius).ToList();
             List<int> peakPosOut = DifferencePeakFinder.FindPeaksCyclic(contourRadius, 5, 0, 1); //2, 0.999);
             double contourRadiusRange = contourRadius.Max() - contourRadius.Min();
-            List<PolarCoordinate> cornerCandidatesPolar = polarContour.Where(p => peakPosOut[polarContour.IndexOf(p)] == 1 && p.Radius > contourRadius.Min() + PuzzleSolverParameters.Instance.PieceFindCornersPeakDismissPercentage * contourRadiusRange).ToList();
+            List<PolarCoordinate> cornerCandidatesPolar = polarContour.Where(p => peakPosOut != null && peakPosOut[polarContour.IndexOf(p)] == 1 && p.Radius > contourRadius.Min() + PuzzleSolverParameters.Instance.PieceFindCornersPeakDismissPercentage * contourRadiusRange).ToList();
             cornerCandidatesPolar = cornerCandidatesPolar.OrderBy(p => p.Angle).ToList();
 
             List<PolarCoordinate> cornersPolar = new List<PolarCoordinate>();

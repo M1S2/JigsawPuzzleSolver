@@ -78,16 +78,6 @@ namespace JigsawPuzzleSolver
             set { _puzzleMinPieceSize = value; OnPropertyChanged(); }
         }
 
-        private bool _puzzleIsInputBackgroundWhite;
-        /// <summary>
-        /// Is the background of the input images white or black (true = white, false = black).
-        /// </summary>
-        public bool PuzzleIsInputBackgroundWhite
-        {
-            get { return _puzzleIsInputBackgroundWhite; }
-            set { _puzzleIsInputBackgroundWhite = value; OnPropertyChanged(); }
-        }
-
         private double _puzzleSolverKeepMatchesThreshold;
         /// <summary>
         /// Only the best matching piece pairs should be kept. This parameter is used to discard too bad pairs. The higher this value is the more pairs are kept.
@@ -99,6 +89,26 @@ namespace JigsawPuzzleSolver
         }
 
         //**********************************************************************************************************************************************************************************************
+
+        /// <summary>
+        /// Background color of the pieces
+        /// </summary>
+        [System.Xml.Serialization.XmlIgnore]
+        public System.Drawing.Color PieceBackgroundColor
+        {
+            get { return System.Drawing.ColorTranslator.FromHtml(PieceBackgroundColorString); }
+            set { _pieceBackgroundColorString = System.Drawing.ColorTranslator.ToHtml(value); OnPropertyChanged(); OnPropertyChanged("PieceBackgroundColorString"); }
+        }
+
+        private string _pieceBackgroundColorString;
+        /// <summary>
+        /// Background color string of the pieces
+        /// </summary>
+        public string PieceBackgroundColorString
+        {
+            get { return _pieceBackgroundColorString; }
+            set { _pieceBackgroundColorString = value; OnPropertyChanged(); OnPropertyChanged("PieceBackgroundColor"); }
+        }
 
         private double _pieceFindCornersPeakDismissPercentage;
         /// <summary>
@@ -151,7 +161,7 @@ namespace JigsawPuzzleSolver
             SolverShowDebugResults = false;
             CompressPuzzleOutputFile = true;
             PuzzleMinPieceSize = 50;
-            PuzzleIsInputBackgroundWhite = true;
+            PieceBackgroundColor = System.Drawing.Color.FromArgb(255, 103, 141, 156);
             PuzzleSolverKeepMatchesThreshold = 5; //2.5f;
             PieceFindCornersPeakDismissPercentage = 0.1;
             EdgeCompareWindowSizePercent = 0.003; //0.002; //0.01; //0.15;
@@ -171,7 +181,7 @@ namespace JigsawPuzzleSolver
             Instance.SolverShowDebugResults = tmpParams.SolverShowDebugResults;
             Instance.CompressPuzzleOutputFile = tmpParams.CompressPuzzleOutputFile;
             Instance.PuzzleMinPieceSize = tmpParams.PuzzleMinPieceSize;
-            Instance.PuzzleIsInputBackgroundWhite = tmpParams.PuzzleIsInputBackgroundWhite;
+            Instance.PieceBackgroundColor = tmpParams.PieceBackgroundColor;
             Instance.PuzzleSolverKeepMatchesThreshold = tmpParams.PuzzleSolverKeepMatchesThreshold;
             Instance.PieceFindCornersPeakDismissPercentage = tmpParams.PieceFindCornersPeakDismissPercentage;
             Instance.EdgeCompareWindowSizePercent = tmpParams.EdgeCompareWindowSizePercent;

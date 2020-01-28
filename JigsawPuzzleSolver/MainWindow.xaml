@@ -28,6 +28,7 @@
             <converters:PuzzleStateToProgressBarStateConverter x:Key="ProgressBarStateConverter"/>
             <converters:IconPackToGeometryDrawingConverter x:Key="IconPackGeometryDrawingConverter"/>
             <converters:PuzzleStateToIconConverter x:Key="PuzzleStateIconConverter"/>
+            <converters:ColorToBrushConverter x:Key="colorBrushConverter"/>
 
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.ToggleSwitch.xaml" />
@@ -90,7 +91,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="35"/>
                         <RowDefinition Height="35"/>
-                        <RowDefinition Height="35"/>
+                        <RowDefinition Height="55"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="45"/>
                     </Grid.RowDefinitions>
@@ -101,9 +102,15 @@
                     <TextBlock Grid.Row="1" Grid.Column="0" Text="Compress puzzle output file"/>
                     <MetroControls:ToggleSwitch Grid.Row="1" Grid.Column="1" OnLabel="Compress" OffLabel="Normal" VerticalAlignment="Center" Style="{StaticResource MahApps.Metro.Styles.ToggleSwitch.Win10}" IsChecked="{Binding Source={x:Static local:PuzzleSolverParameters.Instance}, Path=CompressPuzzleOutputFile, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ToolTip="Enable this option to compress the output XML file that is created while saving the puzzle.&#10;The settings must correspond to the file when loading."/>
 
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Puzzle background"/>
-                    <MetroControls:ToggleSwitch Grid.Row="2" Grid.Column="1" OnLabel="White" OffLabel="Black" VerticalAlignment="Center" Style="{StaticResource MahApps.Metro.Styles.ToggleSwitch.Win10}" IsChecked="{Binding Source={x:Static local:PuzzleSolverParameters.Instance}, Path=PuzzleIsInputBackgroundWhite, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ToolTip="Is the background of the input images white or black."/>
-
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Piece background" VerticalAlignment="Center"/>
+                    <Button Grid.Row="2" Grid.Column="1" Command="{Binding SettingsPieceBackgroundCommand}">
+                        <Button.Template>
+                            <ControlTemplate>
+                                <Ellipse Height="40" Width="40" HorizontalAlignment="Left" Stroke="{DynamicResource BlackBrush}" StrokeThickness="2" Fill="{Binding Source={x:Static local:PuzzleSolverParameters.Instance}, Path=PieceBackgroundColor, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource colorBrushConverter}}" ToolTip="Background color of the puzzle pieces."/>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                    
                     <Expander Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Header="Advanced settings">
                         <Grid Margin="10,0,0,0">
                             <Grid.ColumnDefinitions>

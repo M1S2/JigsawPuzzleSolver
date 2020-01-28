@@ -211,7 +211,7 @@ namespace JigsawPuzzleSolver.GUI_Elements
                     for (int j = 0; j < PuzzleHandle.Solutions[numSolution].Cols; j++)
                     {
                         int pieceNumber = PuzzleHandle.Solutions[numSolution][i, j];
-                        if (pieceNumber == -1) { continue; }
+                        if (pieceNumber == -1 || pieceNumber >= PuzzleHandle.Pieces.Count) { continue; }
                         orderedSolutionPieces.Add(PuzzleHandle.Pieces[pieceNumber]);
                     }
                 }
@@ -240,7 +240,7 @@ namespace JigsawPuzzleSolver.GUI_Elements
                     }
 
                     int piece_number = PuzzleHandle.Solutions[PuzzleHandle.CurrentSolutionNumber][y, x];
-                    if (piece_number == -1) { surroundingPieces.Add(null); continue; }
+                    if (piece_number == -1 || piece_number >= PuzzleHandle.Pieces.Count) { surroundingPieces.Add(null); continue; }
 
                     surroundingPieces.Add(PuzzleHandle.Pieces[piece_number]);
                 }

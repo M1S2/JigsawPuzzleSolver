@@ -1,0 +1,3 @@
+Copied from 
+https://github.com/dmitryshelamov/UI-Cropping-Image
+Commit 5d4437a

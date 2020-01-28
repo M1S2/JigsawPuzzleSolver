@@ -53,6 +53,9 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     <Reference Include="ControlzEx, Version=4.0.0.0, Culture=neutral, PublicKeyToken=69f1c32f803d307e, processorArchitecture=MSIL">
       <HintPath>..\packages\ControlzEx.4.0.0\lib\net45\ControlzEx.dll</HintPath>
     </Reference>
+    <Reference Include="CroppingImageLibrary">
+      <HintPath>..\CroppingImageLibrary\bin\Debug\CroppingImageLibrary.dll</HintPath>
+    </Reference>
     <Reference Include="Emgu.CV.UI, Version=3.4.3.3016, Culture=neutral, PublicKeyToken=7281126722ab4438, processorArchitecture=MSIL">
       <HintPath>..\packages\EMGU.CV.3.4.3.3016\lib\net35\Emgu.CV.UI.dll</HintPath>
       <Private>True</Private>
@@ -133,8 +136,12 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     <Compile Include="Enumerations\EdgeTypes.cs" />
     <Compile Include="Enumerations\PieceTypes.cs" />
     <Compile Include="Enumerations\PuzzleSolverState.cs" />
+    <Compile Include="GUI Elements\Converters\ColorToBrushConverter.cs" />
     <Compile Include="GUI Elements\Converters\IconPackToGeometryDrawingConverter.cs" />
     <Compile Include="GUI Elements\Converters\PuzzleStateToIconConverter.cs" />
+    <Compile Include="GUI Elements\PieceBackgroundColorPicker\PieceBackgroundColorPickerWindow.xaml.cs">
+      <DependentUpon>PieceBackgroundColorPickerWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="PeakFinders\DifferencePeakFinder.cs" />
     <Compile Include="PeakFinders\DouglasPeuckerLineApprox.cs" />
     <Compile Include="PeakFinders\SmoothingFilter.cs" />
@@ -171,6 +178,10 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     <Compile Include="WindowTheme\WindowThemeUserControl.xaml.cs">
       <DependentUpon>WindowThemeUserControl.xaml</DependentUpon>
     </Compile>
+    <Page Include="GUI Elements\PieceBackgroundColorPicker\PieceBackgroundColorPickerWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="GUI Elements\PieceJoinerControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

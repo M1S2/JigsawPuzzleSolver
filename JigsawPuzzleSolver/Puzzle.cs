@@ -307,34 +307,34 @@ namespace JigsawPuzzleSolver
             return mask;
         }*/
 
-/*
+
         /// <summary>
-        /// Calculate a mask for the pieces. Works with white or black background (depending on PuzzleSolverParameters.PuzzleIsInputBackgroundWhite).
+        /// Calculate a mask for the pieces.
         /// </summary>
         /// <param name="inputImg">Color input image</param>
         /// <returns>Mask image</returns>
         private Image<Gray, byte> getMaskHsvSegmentation(Image<Rgba, byte> inputImg)
         {
-            Image<Gray, byte> mask;
+            int hDiff = 20;
+            int sDiff = 30;
+            int vDiff = 30;
 
+            Color pieceBgColor = PuzzleSolverParameters.Instance.PieceBackgroundColor;
+
+            Image<Gray, byte> mask;
             using (Image<Hsv, byte> hsvSourceImg = inputImg.Convert<Hsv, byte>())
             {
-                Image<Gray, byte> maskInverted;
-                if (PuzzleSolverParameters.Instance.PuzzleIsInputBackgroundWhite)
-                {
-#warning White color values must be adjusted with real scanned image
-                    maskInverted = hsvSourceImg.InRange(new Hsv(0, 0, 220), new Hsv(180, 20, 255));    // white background is defined as the inner region of the top of the HSV color cylinder (hue=0...180, sat=0...20, val=220...255)
-                }
-                else
-                {
-                    maskInverted = hsvSourceImg.InRange(new Hsv(0, 0, 0), new Hsv(180, 255, 50));    // black background is defined as the whole lower base of the HSV color cylinder (hue=0...180, sat=0...255, val=0...50)
-                }
+                double h = 0, s = 0, v = 0;
+                Utils.ColorToHSV(pieceBgColor, out h, out s, out v);
 
-                mask = maskInverted.Not();
-                maskInverted.Dispose();
+                mask = hsvSourceImg.InRange(new Hsv(h - hDiff, s - sDiff, v - vDiff), new Hsv(h + hDiff, s + sDiff, v + vDiff));
+
+                // close small black gaps with morphological closing operation
+                Mat kernel = CvInvoke.GetStructuringElement(ElementShape.Rectangle, new Size(5, 5), new Point(-1, -1));
+                CvInvoke.MorphologyEx(mask, mask, MorphOp.Close, kernel, new Point(-1, -1), 5, BorderType.Default, new MCvScalar(0));
             }
             return mask;
-        }*/
+        }
 
         /// <summary>
         /// Calculate a mask for the pieces. The function calculates a histogram to find the piece background color. 
@@ -386,9 +386,9 @@ namespace JigsawPuzzleSolver
 #warning Make this to settings (mainHueSegment)
                 int mainHueSegment = 90;    // Is the piece background rather red (0), green (60) or blue (120) ? 
                 int hDiffHist = 15;
-                int hDiff = 15; //20;
-                int sDiff = 15; //20; //40;
-                int vDiff = 15; //20; //40;
+                int hDiff = 20;
+                int sDiff = 20; //40;
+                int vDiff = 20; //40;
 
                 // Find the peaks in the histograms and use them as piece background color. Black and white areas are ignored.
                 Hsv pieceBackgroundColor = new Hsv
@@ -401,6 +401,15 @@ namespace JigsawPuzzleSolver
                 histOutH.Dispose();
                 histOutS.Dispose();
                 histOutV.Dispose();
+
+
+//#warning Test extracting Piece Background Color from part of input image
+//                Image<Hsv, byte> roiImg = hsvSourceImg.Copy(new Rectangle(200, 225, 150, 150));     //new Rectangle(350, 150, 150, 150));
+//                _logHandle.Report(new LogEventImage("HSV ROI Img", roiImg.Bitmap));
+//                MCvScalar meanRoiColorScalar = CvInvoke.Mean(roiImg);
+//                Hsv meanRoiColor = new Hsv(meanRoiColorScalar.V0, meanRoiColorScalar.V1, meanRoiColorScalar.V2);
+//                pieceBackgroundColor = meanRoiColor;
+
 
                 // Show the found piece background color
                 if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
@@ -480,7 +489,7 @@ namespace JigsawPuzzleSolver
                         //CvInvoke.CvtColor(sourceImg, sourceImg, ColorConversion.Bgr2Rgba);               // Images are read in BGR model (not RGB)
                         CvInvoke.MedianBlur(sourceImg, sourceImg, 5);
 
-                        using (Image<Gray, byte> mask = getMaskHsvSegmentationHistogram(sourceImg))    //getMaskGrabCut(sourceImg))
+                        using (Image<Gray, byte> mask = getMaskHsvSegmentation(sourceImg))    //getMaskHsvSegmentationHistogram(sourceImg))    //getMaskGrabCut(sourceImg))
                         {
                             _logHandle.Report(new LogEventInfo("Extracting Pieces from source image " + i.ToString()));
                             if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
@@ -536,9 +545,9 @@ namespace JigsawPuzzleSolver
                                 int baseLine = 0;
                                 Size textSize = CvInvoke.GetTextSize(p.PieceID.Replace("Piece", ""), FontFace.HersheyDuplex, 3, 2, ref baseLine);
                                 CvInvoke.PutText(sourceImg, p.PieceID.Replace("Piece", ""), Point.Add(roi.Location, new Size(0, textSize.Height + 10)), FontFace.HersheyDuplex, 3, new MCvScalar(255, 0, 0), 2);
-                                
+
                                 NumberPuzzlePieces++;
-                                
+
                                 pieceSourceImg.Dispose();
                                 pieceMask.Dispose();
                                 pieceSourceImageForeground.Dispose();
@@ -549,7 +558,7 @@ namespace JigsawPuzzleSolver
 
                                 GC.Collect();
                             }
-                            
+
                             Interlocked.Add(ref loopCount, 1);
                             CurrentSolverStepPercentageFinished = (loopCount / (double)imageFilesInfo.Count) * 100;
 
