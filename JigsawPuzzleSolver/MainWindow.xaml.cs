@@ -87,7 +87,7 @@ namespace JigsawPuzzleSolver
         {
             get
             {
-                if (_savePuzzleCommand == null) { _savePuzzleCommand = new RelayCommand(param => this.SavePuzzle(), param => { return (PuzzleHandle != null && PuzzleSavingState != PuzzleSavingStates.SAVING && PuzzleSavingState != PuzzleSavingStates.LOADING); }); }
+                if (_savePuzzleCommand == null) { _savePuzzleCommand = new RelayCommand(async param => await this.SavePuzzle(), param => { return (PuzzleHandle != null && PuzzleSavingState != PuzzleSavingStates.SAVING && PuzzleSavingState != PuzzleSavingStates.LOADING); }); }
                 return _savePuzzleCommand;
             }
         }
@@ -97,7 +97,7 @@ namespace JigsawPuzzleSolver
         {
             get
             {
-                if (_loadPuzzleCommand == null) { _loadPuzzleCommand = new RelayCommand(param => this.LoadPuzzle(), param => { return (PuzzleSavingState != PuzzleSavingStates.SAVING && PuzzleSavingState != PuzzleSavingStates.LOADING); }); }
+                if (_loadPuzzleCommand == null) { _loadPuzzleCommand = new RelayCommand(async param => await this.LoadPuzzle(), param => { return (PuzzleSavingState != PuzzleSavingStates.SAVING && PuzzleSavingState != PuzzleSavingStates.LOADING); }); }
                 return _loadPuzzleCommand;
             }
         }
@@ -168,6 +168,25 @@ namespace JigsawPuzzleSolver
 
         //##############################################################################################################################################################################################
 
+        private async void FileFolder_Drop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+                string droppedFileOrFolder = files.FirstOrDefault();
+
+                FileAttributes attr = File.GetAttributes(droppedFileOrFolder);
+                if (attr.HasFlag(FileAttributes.Directory))      //detect whether its a directory or file
+                {
+                    OpenNewPuzzle(droppedFileOrFolder);
+                }
+                else
+                {
+                    await LoadPuzzle(droppedFileOrFolder);
+                }
+            }
+        }
+
         private void OpenNewPuzzle()
         {
             System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
@@ -175,19 +194,23 @@ namespace JigsawPuzzleSolver
             if(PuzzleHandle != null) { folderBrowserDialog1.SelectedPath = PuzzleHandle.PuzzlePiecesFolderPath; }
             if(folderBrowserDialog1.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                PuzzleHandle = new Puzzle(folderBrowserDialog1.SelectedPath, logHandle);
-                logHandle.Report(new LogEventInfo("New puzzle created from \"" + PuzzleHandle.PuzzlePiecesFolderPath + "\""));
+                OpenNewPuzzle(folderBrowserDialog1.SelectedPath);
             }
 
 //#warning Only for faster testing !!!
-            //PuzzleHandle = new Puzzle(@"..\..\..\Test_Pictures\ScannedImages\4", logHandle);
+            //OpenNewPuzzle(@"..\..\..\Test_Pictures\ScannedImages\4");
+        }
 
+        private void OpenNewPuzzle(string piecesFolderPath)
+        {
+            PuzzleHandle = new Puzzle(piecesFolderPath, logHandle);
+            logHandle.Report(new LogEventInfo("New puzzle created from \"" + PuzzleHandle.PuzzlePiecesFolderPath + "\""));
             PuzzleSavingState = PuzzleSavingStates.NEW_UNSAVED;
         }
 
         //**********************************************************************************************************************************************************************************************
 
-        private async void SavePuzzle()
+        private async Task SavePuzzle()
         {
             try
             {
@@ -218,31 +241,42 @@ namespace JigsawPuzzleSolver
 
         //**********************************************************************************************************************************************************************************************
 
-        private async void LoadPuzzle()
+        /// <summary>
+        /// Show a dialog to choose a XML file containing the solved puzzle result and open the file
+        /// </summary>
+        private async Task LoadPuzzle()
+        {
+            System.Windows.Forms.OpenFileDialog openFileDialog = new System.Windows.Forms.OpenFileDialog();
+            openFileDialog.Title = "Please choose the file to open";
+            openFileDialog.Filter = "XML file|*.xml";
+            if (PuzzleHandle != null)
+            {
+                openFileDialog.InitialDirectory = System.IO.Path.GetDirectoryName(PuzzleHandle.PuzzleXMLOutputPath);
+                openFileDialog.RestoreDirectory = true;
+                openFileDialog.FileName = System.IO.Path.GetFileName(PuzzleHandle.PuzzleXMLOutputPath);
+            }
+            if (openFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                await LoadPuzzle(openFileDialog.FileName);
+            }
+        }
+
+        /// <summary>
+        /// Load the solved puzzle result from the given XML file
+        /// </summary>
+        /// <param name="puzzleFileName">Path to an XML file containing the solved puzzle result</param>
+        private async Task LoadPuzzle(string puzzleFileName)
         {
             try
             {
-                System.Windows.Forms.OpenFileDialog openFileDialog = new System.Windows.Forms.OpenFileDialog();
-                openFileDialog.Title = "Please choose the file to open";
-                openFileDialog.Filter = "XML file|*.xml";
-                if (PuzzleHandle != null)
-                {
-                    openFileDialog.InitialDirectory = System.IO.Path.GetDirectoryName(PuzzleHandle.PuzzleXMLOutputPath);
-                    openFileDialog.RestoreDirectory = true;
-                    openFileDialog.FileName = System.IO.Path.GetFileName(PuzzleHandle.PuzzleXMLOutputPath);
-                }
-                if (openFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                {
-                    string xmlPath = openFileDialog.FileName;
-                    PuzzleSavingState = PuzzleSavingStates.LOADING;
-                    logHandle.Report(new LogEventInfo("Loading puzzle from \"" + xmlPath + "\""));
-                    PuzzleHandle = new Puzzle() { PuzzleXMLOutputPath = xmlPath };      // Neccessary to show the path while loading (when PuzzleHandle is null, no path is displayed)
-                    PuzzleHandle = await Task.Run(() => { return Puzzle.Load(xmlPath, PuzzleSolverParameters.Instance.CompressPuzzleOutputFile); });
-                    PuzzleHandle.PuzzleXMLOutputPath = xmlPath;
-                    PuzzleSavingState = PuzzleSavingStates.LOADED;
-                    logHandle.Report(new LogEventInfo("Loading puzzle ready."));
-                    CommandManager.InvalidateRequerySuggested();
-                }
+                PuzzleSavingState = PuzzleSavingStates.LOADING;
+                logHandle.Report(new LogEventInfo("Loading puzzle from \"" + puzzleFileName + "\""));
+                PuzzleHandle = new Puzzle() { PuzzleXMLOutputPath = puzzleFileName };      // Neccessary to show the path while loading (when PuzzleHandle is null, no path is displayed)
+                PuzzleHandle = await Task.Run(() => { return Puzzle.Load(puzzleFileName, PuzzleSolverParameters.Instance.CompressPuzzleOutputFile); });
+                PuzzleHandle.PuzzleXMLOutputPath = puzzleFileName;
+                PuzzleSavingState = PuzzleSavingStates.LOADED;
+                logHandle.Report(new LogEventInfo("Loading puzzle ready."));
+                CommandManager.InvalidateRequerySuggested();
             }
             catch (Exception ex)
             {

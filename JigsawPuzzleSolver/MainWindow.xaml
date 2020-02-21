@@ -19,7 +19,8 @@
         Width="1300"
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
         ResizeMode="CanResizeWithGrip"
-        Icon="jigsaw.ico">
+        Icon="jigsaw.ico" 
+        AllowDrop="True" Drop="FileFolder_Drop">
 
     <MetroControls:MetroWindow.Resources>
         <ResourceDictionary>
