@@ -213,7 +213,7 @@ namespace JigsawPuzzleSolver
             get { return Solutions.Select(s => Utils.FlattenMultidimArray(s.Data)).ToList(); }
             set
             {
-                if(Solutions == null) { Solutions = new ObservableCollection<Matrix<int>>(); }
+                if (Solutions == null) { Solutions = new ObservableCollection<Matrix<int>>(); }
                 Solutions.Clear();
                 foreach (int[][] solution in value) { Solutions.Add(new Matrix<int>(Utils.DeFlattenMultidimArray(solution))); }
             }
@@ -293,7 +293,7 @@ namespace JigsawPuzzleSolver
         }
 
         //##############################################################################################################################################################################################
-        
+
         /*
         /// <summary>
         /// Perform GrabCut segmentation on input image to get a mask for the pieces (foreground).
@@ -403,12 +403,12 @@ namespace JigsawPuzzleSolver
                 histOutV.Dispose();
 
 
-//#warning Test extracting Piece Background Color from part of input image
-//                Image<Hsv, byte> roiImg = hsvSourceImg.Copy(new Rectangle(200, 225, 150, 150));     //new Rectangle(350, 150, 150, 150));
-//                _logHandle.Report(new LogEventImage("HSV ROI Img", roiImg.Bitmap));
-//                MCvScalar meanRoiColorScalar = CvInvoke.Mean(roiImg);
-//                Hsv meanRoiColor = new Hsv(meanRoiColorScalar.V0, meanRoiColorScalar.V1, meanRoiColorScalar.V2);
-//                pieceBackgroundColor = meanRoiColor;
+                //#warning Test extracting Piece Background Color from part of input image
+                //                Image<Hsv, byte> roiImg = hsvSourceImg.Copy(new Rectangle(200, 225, 150, 150));     //new Rectangle(350, 150, 150, 150));
+                //                _logHandle.Report(new LogEventImage("HSV ROI Img", roiImg.Bitmap));
+                //                MCvScalar meanRoiColorScalar = CvInvoke.Mean(roiImg);
+                //                Hsv meanRoiColor = new Hsv(meanRoiColorScalar.V0, meanRoiColorScalar.V1, meanRoiColorScalar.V2);
+                //                pieceBackgroundColor = meanRoiColor;
 
 
                 // Show the found piece background color
@@ -459,7 +459,7 @@ namespace JigsawPuzzleSolver
                 List<string> imageExtensions = new List<string>() { ".jpg", ".png", ".bmp", ".tiff" };
                 FileAttributes attr = File.GetAttributes(PuzzlePiecesFolderPath);
                 List<FileInfo> imageFilesInfo = new List<FileInfo>();
-                if ((attr & FileAttributes.Directory) == FileAttributes.Directory)      //detect whether its a directory or file
+                if (attr.HasFlag(FileAttributes.Directory))      //detect whether its a directory or file
                 {
                     DirectoryInfo folderInfo = new DirectoryInfo(PuzzlePiecesFolderPath);
                     imageFilesInfo = folderInfo.GetFiles().ToList();
@@ -569,7 +569,7 @@ namespace JigsawPuzzleSolver
                             GC.Collect();
                         }
                     }
-                    
+
                     GC.Collect();
                     GC.WaitForPendingFinalizers();
                     GC.Collect();
@@ -708,6 +708,79 @@ namespace JigsawPuzzleSolver
 
         //**********************************************************************************************************************************************************************************************
 
+        /// <summary>
+        /// Check if the joining of the pieces in the given newSet is correct
+        /// </summary>
+        /// <param name="newSet">Forest to check</param>
+        /// <returns>true if set is valid, otherwise false</returns>
+        public bool JoinValidationFunction(Forest newSet)
+        {
+            /* check horizontal combinations, e.g.:
+             *  1 ↔ 2 ↔ 3
+             *  4 ↔ 5 ↔ 6
+             *  7 ↔ 8 ↔ 9    */
+            for (int r = 0; r<newSet.locations.Rows; r++)
+            {
+                for (int c = 0; c < newSet.locations.Cols - 1; c++)
+                {
+                    int pl_index = newSet.locations[r, c];
+                    int pr_index = newSet.locations[r, c + 1];
+                    if (pl_index != -1 && pr_index != -1)
+                    {
+                        Edge el = Pieces[pr_index].Edges[mod(0 - newSet.rotations[r, c + 1], 4)];   //Get left edge of piece right
+                        Edge er = Pieces[pl_index].Edges[mod(2 - newSet.rotations[r, c], 4)];       //Get right edge of piece left
+                        
+                        if(el.EdgeType == er.EdgeType || el.EdgeType == EdgeTypes.LINE || er.EdgeType == EdgeTypes.LINE)
+                        {
+                            return false;
+                        }
+                    }
+                }
+            }
+
+            /* check vertical combinations, e.g.:
+             *  1  2  3
+             *  ↕  ↕  ↕
+             *  4  5  6
+             *  ↕  ↕  ↕
+             *  7  8  9      */
+            for (int c = 0; c < newSet.locations.Cols; c++)
+            {
+                for (int r = 0; r < newSet.locations.Rows - 1; r++)
+                {
+                    int pt_index = newSet.locations[r, c];
+                    int pb_index = newSet.locations[r + 1, c];
+                    if (pt_index != -1 && pb_index != -1)
+                    {
+                        Edge et = Pieces[pb_index].Edges[mod(3 - newSet.rotations[r + 1, c], 4)];   //Get top edge of piece bottom
+                        Edge eb = Pieces[pt_index].Edges[mod(1 - newSet.rotations[r, c], 4)];       //Get bottom edge of piece top
+
+                        if (et.EdgeType == eb.EdgeType || et.EdgeType == EdgeTypes.LINE || eb.EdgeType == EdgeTypes.LINE)
+                        {
+                            return false;
+                        }
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Modulo x % m including negative numbers for x
+        /// </summary>
+        /// <param name="x">x % m</param>
+        /// <param name="m">x % m</param>
+        /// <returns>x % m including negative numbers for x</returns>
+        /// see: https://stackoverflow.com/questions/1082917/mod-of-negative-number-is-melting-my-brain
+        int mod(int x, int m)
+        {
+            int r = x % m;
+            return r < 0 ? r + m : r;
+        }
+
+        //**********************************************************************************************************************************************************************************************
+
         public async Task Solve()
         {
             await Task.Run(() =>
@@ -721,6 +794,7 @@ namespace JigsawPuzzleSolver
                     CurrentSolverState = PuzzleSolverState.SOLVE_PUZZLE;
                     CurrentSolverStepPercentageFinished = 0;
                     PuzzleDisjointSet p = new PuzzleDisjointSet(Pieces.Count);
+                    p.JoinValidation = JoinValidationFunction;
 
                     _logHandle.Report(new LogEventInfo("Join Pieces"));
 

@@ -20,6 +20,12 @@ namespace JigsawPuzzleSolver
     {
         public int SetCount { get; set; }          //A count of how many sets are left.
 
+        public delegate bool JoinValidationDelegate(Forest newSet);
+        /// <summary>
+        /// Function that gets called during JoinSets. Only if it returns true, the join result is accepted and applied. If it returns false, nothing is changed.
+        /// </summary>
+        public JoinValidationDelegate JoinValidation;
+
         private List<Forest> sets = new List<Forest>();
 
         //##############################################################################################################################################################################################
@@ -161,17 +167,24 @@ namespace JigsawPuzzleSolver
                     }
                 }
             }
-            
-            //Set the new representative a, to have this Mat
-            sets[rep_a].locations = new_a_locs;
-            sets[rep_a].rotations = new_a_rots;
 
-            //Updating the number of sets left
-            SetCount--;
+            Forest newSet = new Forest() { id = -1, locations = new_a_locs, rotations = new_a_rots, representative = rep_a };
+            bool validationResult = JoinValidation(newSet);
 
-            //Representative is the same idea as a disjoint set datastructure
-            sets[rep_b].representative = rep_a;
-            return true; //Everything seems ok if it got this far
+            if (validationResult)
+            {
+                //Set the new representative a, to have this Mat
+                sets[rep_a].locations = new_a_locs;
+                sets[rep_a].rotations = new_a_rots;
+
+                //Updating the number of sets left
+                SetCount--;
+
+                //Representative is the same idea as a disjoint set datastructure
+                sets[rep_b].representative = rep_a;
+                //return true; //Everything seems ok if it got this far
+            }
+            return validationResult;
         }
 
         //**********************************************************************************************************************************************************************************************
