@@ -100,50 +100,57 @@ namespace JigsawPuzzleSolver
         /// </summary>
         private void classify()
         {
-            EdgeType = EdgeTypes.UNKNOWN;
-            if(normalized_contour.Size <= 1) { return; }
-
-            //See if it is an outer edge comparing the distance between beginning and end with the arc length.
-            double contour_length = CvInvoke.ArcLength(normalized_contour, false);
-            
-            double begin_end_distance = Utils.Distance(normalized_contour.ToArray().First(), normalized_contour.ToArray().Last());
-            if (contour_length < begin_end_distance * 1.3)
+            try
             {
-                EdgeType = EdgeTypes.LINE;
+                EdgeType = EdgeTypes.UNKNOWN;
+                if (normalized_contour.Size <= 1) { return; }
+
+                //See if it is an outer edge comparing the distance between beginning and end with the arc length.
+                double contour_length = CvInvoke.ArcLength(normalized_contour, false);
+
+                double begin_end_distance = Utils.Distance(normalized_contour.ToArray().First(), normalized_contour.ToArray().Last());
+                if (contour_length < begin_end_distance * 1.3)
+                {
+                    EdgeType = EdgeTypes.LINE;
+                }
+
+                if (EdgeType == EdgeTypes.UNKNOWN)
+                {
+                    //Find the minimum or maximum value for x in the normalized contour and base the classification on that
+                    int minx = 100000000;
+                    int maxx = -100000000;
+                    for (int i = 0; i < normalized_contour.Size; i++)
+                    {
+                        if (minx > normalized_contour[i].X) { minx = (int)normalized_contour[i].X; }
+                        if (maxx < normalized_contour[i].X) { maxx = (int)normalized_contour[i].X; }
+                    }
+
+                    if (Math.Abs(minx) > Math.Abs(maxx))
+                    {
+                        EdgeType = EdgeTypes.BULB;
+                    }
+                    else
+                    {
+                        EdgeType = EdgeTypes.HOLE;
+                    }
+                }
+
+                if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
+                {
+                    Bitmap contourImg = PieceImgColor.Bmp;
+                    for (int i = 0; i < contour.Size; i++)
+                    {
+                        Graphics g = Graphics.FromImage(contourImg);
+                        g.DrawEllipse(new Pen(Color.Red), new RectangleF(PointF.Subtract(contour[i], new Size(1, 1)), new SizeF(2, 2)));
+                    }
+                    _logHandle.Report(new LogEventImage(PieceID + " Edge " + EdgeNumber.ToString() + " " + EdgeType.ToString(), contourImg));
+                    ContourImg.Bmp = contourImg;
+                    contourImg.Dispose();
+                }
             }
-
-            if (EdgeType == EdgeTypes.UNKNOWN)
+            catch(Exception ex)
             {
-                //Find the minimum or maximum value for x in the normalized contour and base the classification on that
-                int minx = 100000000;
-                int maxx = -100000000;
-                for (int i = 0; i < normalized_contour.Size; i++)
-                {
-                    if (minx > normalized_contour[i].X) { minx = (int)normalized_contour[i].X; }
-                    if (maxx < normalized_contour[i].X) { maxx = (int)normalized_contour[i].X; }
-                }
-
-                if (Math.Abs(minx) > Math.Abs(maxx))
-                {
-                    EdgeType = EdgeTypes.BULB;
-                }
-                else
-                {
-                    EdgeType = EdgeTypes.HOLE;
-                }
-            }
-
-            if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
-            {
-                Bitmap contourImg = PieceImgColor.Bmp;
-                for (int i = 0; i < contour.Size; i++)
-                {
-                    Graphics g = Graphics.FromImage(contourImg);
-                    g.DrawEllipse(new Pen(Color.Red), new RectangleF(PointF.Subtract(contour[i], new Size(1, 1)), new SizeF(2, 2)));
-                }
-                _logHandle.Report(new LogEventImage(PieceID + " Edge " + EdgeNumber.ToString() + " " + EdgeType.ToString(), contourImg));
-                ContourImg.Bmp = contourImg;
-                contourImg.Dispose();
+                _logHandle.Report(new LogBox.LogEvents.LogEventError(ex.Message));
             }
         }
 
