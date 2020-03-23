@@ -145,6 +145,18 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     <Compile Include="PeakFinders\DifferencePeakFinder.cs" />
     <Compile Include="PeakFinders\DouglasPeuckerLineApprox.cs" />
     <Compile Include="PeakFinders\SmoothingFilter.cs" />
+    <Compile Include="Plugins\Controls\PluginConfigurator.xaml.cs">
+      <DependentUpon>PluginConfigurator.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Plugins\Implementations\PluginGenerateSolutionImageSimple.cs" />
+    <Compile Include="Plugins\Implementations\PluginGenerateSolutionImageStitching.cs" />
+    <Compile Include="Plugins\Implementations\PluginInputImageMaskGrabCut.cs" />
+    <Compile Include="Plugins\Implementations\PluginInputImageMaskHsvHistogram.cs" />
+    <Compile Include="Plugins\Implementations\PluginInputImageMaskHsvSegmentation.cs" />
+    <Compile Include="Plugins\AbstractClasses\Plugin.cs" />
+    <Compile Include="Plugins\AbstractClasses\PluginGenerateSolutionImage.cs" />
+    <Compile Include="Plugins\AbstractClasses\PluginInputImageMask.cs" />
+    <Compile Include="Plugins\PluginFactory.cs" />
     <Compile Include="Structures\PolarCoordinate.cs" />
     <Compile Include="WindowTheme\AppThemeData.cs" />
     <Compile Include="GUI Elements\Converters\AbsConverter.cs" />
@@ -206,6 +218,10 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Plugins\Controls\PluginConfigurator.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Resources\Icons.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

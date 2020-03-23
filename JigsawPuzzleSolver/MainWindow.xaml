@@ -12,6 +12,7 @@
         xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
         xmlns:windowTheme="clr-namespace:JigsawPuzzleSolver.WindowTheme"
         xmlns:assemblyInfoHelper="clr-namespace:AssemblyInfoHelper;assembly=AssemblyInfoHelper"
+        xmlns:pluginControls="clr-namespace:JigsawPuzzleSolver.Plugins.Controls"
         x:Class="JigsawPuzzleSolver.MainWindow"
         mc:Ignorable="d"
         Title="Puzzle Solver" 
@@ -84,7 +85,7 @@
                             <Setter Property="VerticalAlignment" Value="Center"/>
                         </Style>
                     </Grid.Resources>
-                    
+
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="130"/>
@@ -99,7 +100,7 @@
 
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Show debug results"/>
                     <MetroControls:ToggleSwitch Grid.Row="0" Grid.Column="1" OnLabel="Show" OffLabel="Hide" VerticalAlignment="Center" Style="{StaticResource MahApps.Metro.Styles.ToggleSwitch.Win10}" IsChecked="{Binding Source={x:Static local:PuzzleSolverParameters.Instance}, Path=SolverShowDebugResults, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ToolTip="Enable this option to show debug informations in the log output.&#10;Not neccessary during normal operation."/>
-                    
+
                     <TextBlock Grid.Row="1" Grid.Column="0" Text="Compress puzzle output file"/>
                     <MetroControls:ToggleSwitch Grid.Row="1" Grid.Column="1" OnLabel="Compress" OffLabel="Normal" VerticalAlignment="Center" Style="{StaticResource MahApps.Metro.Styles.ToggleSwitch.Win10}" IsChecked="{Binding Source={x:Static local:PuzzleSolverParameters.Instance}, Path=CompressPuzzleOutputFile, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ToolTip="Enable this option to compress the output XML file that is created while saving the puzzle.&#10;The settings must correspond to the file when loading."/>
 
@@ -111,7 +112,7 @@
                             </ControlTemplate>
                         </Button.Template>
                     </Button>
-                    
+
                     <Expander Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Header="Advanced settings">
                         <Grid Margin="10,0,0,0">
                             <Grid.ColumnDefinitions>
@@ -149,6 +150,10 @@
 
                     <Button Grid.Row="4" Grid.Column="1" Margin="0,10,10,0" Command="{Binding Source={x:Static local:PuzzleSolverParameters.DefaultSettingsCommand}}" Content="Default Settings" ToolTip="Reset all settings to default values" Style="{DynamicResource AccentedSquareButtonStyle}" MetroControls:ControlsHelper.ContentCharacterCasing="Normal"/>
                 </Grid>
+            </MetroControls:Flyout>
+            
+            <MetroControls:Flyout AreAnimationsEnabled="True" Header="Plugins" Position="Right" Width="450" Margin="0,30,0,0" IsPinned="False" Theme="Inverse">
+                <pluginControls:PluginConfigurator/>
             </MetroControls:Flyout>
         </MetroControls:FlyoutsControl>
     </MetroControls:MetroWindow.Flyouts>
