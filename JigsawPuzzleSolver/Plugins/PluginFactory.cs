@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Reflection;
 using JigsawPuzzleSolver.Plugins.AbstractClasses;
 using JigsawPuzzleSolver.Plugins.Implementations;
+using JigsawPuzzleSolver.Plugins.Attributes;
 
 namespace JigsawPuzzleSolver.Plugins
 {
@@ -35,7 +36,7 @@ namespace JigsawPuzzleSolver.Plugins
                 AvailablePlugins.Add(plugin);
             }
             PluginGroupTypes = executingAssembly.GetTypes().Where(t => typeof(Plugin).IsAssignableFrom(t) && t != typeof(Plugin) && t.IsAbstract).ToList();
-            EnsureOnePluginPerGroupIsEnabled();
+            EnsureAllowedNumberOfPluginsPerGroupIsEnabled();
         }
 
 
@@ -46,28 +47,34 @@ namespace JigsawPuzzleSolver.Plugins
                 Plugin senderPlugin = sender as Plugin;
                 if(senderPlugin == null) { return; }
 
-                EnsureOnePluginPerGroupIsEnabled(true, senderPlugin);
+                EnsureAllowedNumberOfPluginsPerGroupIsEnabled(senderPlugin);
             }
         }
 
         private static bool alreadyInEnsureFunction = false;
         /// <summary>
-        /// Ensure that one or more than one (depending on the exactOne parameter) plugin per plugin group is enabled.
+        /// Ensure that one or more than one (depending on the PluginGroupAllowMultipleEnabledPluginsAttribute) plugin per plugin group is enabled.
         /// </summary>
-        /// <param name="exactOne">true -> make sure, exact one plugin per group is enabled; false -> make sure that at least one plugin per group is enabled</param>
         /// <param name="currentlyChangedPlugin">The given plugin isn't immediatelly changed back to is old value if possible</param>
-        private static void EnsureOnePluginPerGroupIsEnabled(bool exactOne = true, Plugin currentlyChangedPlugin = null)
+        private static void EnsureAllowedNumberOfPluginsPerGroupIsEnabled(Plugin currentlyChangedPlugin = null)
         {
             if (alreadyInEnsureFunction) { return; }
             alreadyInEnsureFunction = true;
 
-            foreach(Type pluginType in PluginGroupTypes)
+            foreach(Type pluginGroupType in PluginGroupTypes)
             {
-                List<Plugin> pluginsOfType = GetPluginsOfGroupType(pluginType);
+                List<Plugin> pluginsOfType = GetPluginsOfGroupType(pluginGroupType);
                 if(pluginsOfType.Count == 0) { continue; }
                 int numberEnabledPlugins = pluginsOfType.Count(p => p.IsEnabled);
 
-                if(numberEnabledPlugins < 1)    // Number of enabled plugins is too small
+                bool allowMultipleEnabled = false;
+                object[] customAttributes = pluginGroupType.GetCustomAttributes(false);
+                if(customAttributes != null && customAttributes.Length > 0 && customAttributes[0].GetType() == typeof(PluginGroupAllowMultipleEnabledPluginsAttribute))
+                {
+                    allowMultipleEnabled = ((PluginGroupAllowMultipleEnabledPluginsAttribute)customAttributes[0]).AllowMultipleEnabledPlugins;
+                }
+
+                if (numberEnabledPlugins < 1)    // Number of enabled plugins is too small
                 {
                     if (pluginsOfType.Count == 1 || currentlyChangedPlugin == null || pluginsOfType[0] != currentlyChangedPlugin)
                     {
@@ -78,7 +85,7 @@ namespace JigsawPuzzleSolver.Plugins
                         pluginsOfType[1].IsEnabled = true;
                     }
                 }
-                else if(numberEnabledPlugins > 1 && exactOne)    // exact one plugin is allowed to be enabled. Disable all others.
+                else if(numberEnabledPlugins > 1 && !allowMultipleEnabled)    // exact one plugin is allowed to be enabled. Disable all others.
                 {
                     foreach (Plugin plugin in pluginsOfType)
                     {
@@ -102,6 +109,10 @@ namespace JigsawPuzzleSolver.Plugins
         {
             return AvailablePlugins.Where(p => pluginGroupType.IsAssignableFrom(p.GetType())).ToList();
         }
+        public static List<T> GetPluginsOfGroupType<T>() where T : Plugin
+        {
+            return GetPluginsOfGroupType(typeof(T)).Cast<T>().ToList();
+        }
 
         /// <summary>
         /// Get all available and enabled plugins of the given plugin group type.
@@ -111,6 +122,10 @@ namespace JigsawPuzzleSolver.Plugins
         public static List<Plugin> GetEnabledPluginsOfGroupType(Type pluginGroupType)
         {
             return GetPluginsOfGroupType(pluginGroupType).Where(p => p.IsEnabled).ToList();
+        }
+        public static List<T> GetEnabledPluginsOfGroupType<T>() where T : Plugin
+        {
+            return GetEnabledPluginsOfGroupType(typeof(T)).Cast<T>().ToList();
         }
     }
 }

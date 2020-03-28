@@ -6,16 +6,14 @@ using System.Threading.Tasks;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using JigsawPuzzleSolver.Plugins.AbstractClasses;
+using JigsawPuzzleSolver.Plugins.Attributes;
 
 namespace JigsawPuzzleSolver.Plugins.Implementations
 {
-    public class PluginInputImageMaskHsvHistogram : PluginInputImageMask
+    [PluginName("InputImageMask HSV Histogram")]
+    [PluginDescription("Plugin for generating binary mask from input image using HSV histogram")]
+    public class PluginInputImageMaskHsvHistogram : PluginGroupInputImageMask
     {
-        public PluginInputImageMaskHsvHistogram()
-        {
-            Name = "InputImageMask HSV Histogram";
-        }
-
         public override Image<Gray, byte> getMask(Image<Rgba, byte> inputImg)
         {
             return null;

@@ -8,15 +8,25 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Emgu.CV;
 using JigsawPuzzleSolver.Plugins.AbstractClasses;
+using JigsawPuzzleSolver.Plugins.Attributes;
 
 namespace JigsawPuzzleSolver.Plugins.Implementations
 {
-    public class PluginGenerateSolutionImageSimple : PluginGenerateSolutionImage
+    [PluginName("GenerateSolutionImage Simple")]
+    [PluginDescription("Plugin for solution image generation placing pieces side by side")]
+    public class PluginGenerateSolutionImageSimple : PluginGroupGenerateSolutionImage
     {
-        public PluginGenerateSolutionImageSimple()
-        {
-            Name = "GenerateSolutionImage Simple";
-        }
+        [PluginSettingString]
+        [PluginSettingDescription("Test setting No. 1")]
+        public string TestSetting1 { get; set; }
+
+        [PluginSettingBool("Enabled", "Disabled")]
+        [PluginSettingDescription("Test setting No. 2")]
+        public bool TestSetting2 { get; set; }
+
+        [PluginSettingNumber(0.1, 0, 5)]
+        [PluginSettingDescription("Test setting No. 3")]
+        public double TestSetting3 { get; set; }
 
         public override Bitmap GenerateSolutionImage(Matrix<int> solutionLocations, int solutionID)
         {

@@ -17,6 +17,22 @@ namespace JigsawPuzzleSolver
 {
     public static class Utils
     {
+        #region Extension Methods
+
+        /// <summary>
+        /// Returns true if the type is numeric type; otherwise false
+        /// </summary>
+        /// <param name="t">Type to check if it is numeric</param>
+        /// <returns>returns true if the type is numeric type; otherwise false</returns>
+        /// see: https://stackoverflow.com/questions/1749966/c-sharp-how-to-determine-whether-a-type-is-a-number/1750024
+        public static bool IsNumeric(this Type t) => t == typeof(byte) || t == typeof(sbyte) || t == typeof(ushort) || t == typeof(uint) || t == typeof(ulong) || t == typeof(short) || t == typeof(int) || t == typeof(long) || t == typeof(float) || t == typeof(double) || t == typeof(decimal);
+
+        #endregion
+
+        //**********************************************************************************************************************************************************************************************
+        //**********************************************************************************************************************************************************************************************
+        //**********************************************************************************************************************************************************************************************
+
         #region Math utilities
 
         /// <summary>

@@ -165,11 +165,6 @@ namespace JigsawPuzzleSolver
             {
                 logBox1.LogEvent(progressValue);
             });
-
-            List<Plugins.AbstractClasses.Plugin> plugins = Plugins.PluginFactory.AvailablePlugins;
-            List<Plugins.AbstractClasses.Plugin> solutionImgPlugins = Plugins.PluginFactory.GetPluginsOfGroupType(typeof(Plugins.AbstractClasses.PluginGenerateSolutionImage));
-            //solutionImgPlugins[0].IsEnabled = true;
-            //solutionImgPlugins[1].IsEnabled = true;
         }
 
         //##############################################################################################################################################################################################

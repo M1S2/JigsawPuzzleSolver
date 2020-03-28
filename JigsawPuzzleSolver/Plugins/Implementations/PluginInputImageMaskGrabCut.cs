@@ -6,16 +6,14 @@ using System.Threading.Tasks;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using JigsawPuzzleSolver.Plugins.AbstractClasses;
+using JigsawPuzzleSolver.Plugins.Attributes;
 
 namespace JigsawPuzzleSolver.Plugins.Implementations
 {
-    public class PluginInputImageMaskGrabCut : PluginInputImageMask
+    [PluginName("InputImageMask Grab Cut")]
+    [PluginDescription("Plugin for generating binary mask from input image using GrabCut algorithm")]
+    public class PluginInputImageMaskGrabCut : PluginGroupInputImageMask
     {
-        public PluginInputImageMaskGrabCut()
-        {
-            Name = "InputImageMask Grab Cut";
-        }
-
         public override Image<Gray, byte> getMask(Image<Rgba, byte> inputImg)
         {
             return null;

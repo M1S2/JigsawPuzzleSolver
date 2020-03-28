@@ -145,17 +145,23 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     <Compile Include="PeakFinders\DifferencePeakFinder.cs" />
     <Compile Include="PeakFinders\DouglasPeuckerLineApprox.cs" />
     <Compile Include="PeakFinders\SmoothingFilter.cs" />
+    <Compile Include="Plugins\Attributes\PluginGroupAllowMultipleEnabledPluginsAttribute.cs" />
+    <Compile Include="Plugins\Attributes\PluginDescriptionAttribute.cs" />
+    <Compile Include="Plugins\Attributes\PluginNameAttribute.cs" />
+    <Compile Include="Plugins\Attributes\PluginSetting.cs" />
+    <Compile Include="Plugins\Controls\AttributeBindingConverter.cs" />
     <Compile Include="Plugins\Controls\PluginConfigurator.xaml.cs">
       <DependentUpon>PluginConfigurator.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Plugins\Controls\PluginGroupGroupDescription.cs" />
     <Compile Include="Plugins\Implementations\PluginGenerateSolutionImageSimple.cs" />
     <Compile Include="Plugins\Implementations\PluginGenerateSolutionImageStitching.cs" />
     <Compile Include="Plugins\Implementations\PluginInputImageMaskGrabCut.cs" />
     <Compile Include="Plugins\Implementations\PluginInputImageMaskHsvHistogram.cs" />
     <Compile Include="Plugins\Implementations\PluginInputImageMaskHsvSegmentation.cs" />
     <Compile Include="Plugins\AbstractClasses\Plugin.cs" />
-    <Compile Include="Plugins\AbstractClasses\PluginGenerateSolutionImage.cs" />
-    <Compile Include="Plugins\AbstractClasses\PluginInputImageMask.cs" />
+    <Compile Include="Plugins\AbstractClasses\PluginGroupGenerateSolutionImage.cs" />
+    <Compile Include="Plugins\AbstractClasses\PluginGroupInputImageMask.cs" />
     <Compile Include="Plugins\PluginFactory.cs" />
     <Compile Include="Structures\PolarCoordinate.cs" />
     <Compile Include="WindowTheme\AppThemeData.cs" />

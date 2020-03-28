@@ -30,18 +30,6 @@ namespace JigsawPuzzleSolver.Plugins.AbstractClasses
 
         //##############################################################################################################################################################################################
 
-        private string _name;
-        public string Name
-        {
-            get { return _name; }
-            set
-            {
-                string tmp_name = _name;
-                _name = value;
-                if (tmp_name != _name) { OnPropertyChanged(); }
-            }
-        }
-
         private bool _isEnabled;
         public bool IsEnabled
         {
