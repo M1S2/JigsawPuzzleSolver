@@ -9,7 +9,10 @@ using JigsawPuzzleSolver.Plugins.Attributes;
 
 namespace JigsawPuzzleSolver.Plugins.Controls
 {
-    //see: https://www.dotnetcurry.com/wpf/1211/wpf-items-control-advanced-topic
+    /// <summary>
+    /// Group Description that uses the PluginNameAttribute value to group items
+    /// </summary>
+    /// see: https://www.dotnetcurry.com/wpf/1211/wpf-items-control-advanced-topic
     public sealed class PluginGroupGroupDescription : GroupDescription
     {
         public override object GroupNameFromItem(object item, int level, CultureInfo culture)

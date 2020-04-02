@@ -5,10 +5,15 @@ using System.Text;
 using System.Threading.Tasks;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
 
 namespace JigsawPuzzleSolver.Plugins.AbstractClasses
 {
-    public abstract class Plugin : INotifyPropertyChanged
+    /// <summary>
+    /// Base class for all plugins
+    /// </summary>
+    [DataContract]
+    public abstract class Plugin : SaveableObject<Plugin>, INotifyPropertyChanged
     {
         #region INotifyPropertyChanged implementation
         /// <summary>
@@ -31,6 +36,9 @@ namespace JigsawPuzzleSolver.Plugins.AbstractClasses
         //##############################################################################################################################################################################################
 
         private bool _isEnabled;
+        /// <summary>
+        /// Is the plugin enabled or not
+        /// </summary>
         public bool IsEnabled
         {
             get { return _isEnabled; }

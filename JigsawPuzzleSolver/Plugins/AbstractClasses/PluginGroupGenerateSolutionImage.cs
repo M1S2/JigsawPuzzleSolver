@@ -9,6 +9,9 @@ using JigsawPuzzleSolver.Plugins.Attributes;
 
 namespace JigsawPuzzleSolver.Plugins.AbstractClasses
 {
+    /// <summary>
+    /// Plugin group base class for solution image generation plugins
+    /// </summary>
     [PluginGroupAllowMultipleEnabledPlugins(true)]
     [PluginName("Generate Solution Image Plugins")]
     public abstract class PluginGroupGenerateSolutionImage : Plugin

@@ -311,7 +311,12 @@ namespace JigsawPuzzleSolver
                 }
                 else { ShouldClose = true; }
 
-                if(ShouldClose) { Properties.Settings.Default.Save(); Application.Current.Shutdown(); }     // Save all application settings and shutdown the application
+                if(ShouldClose)         // Save all application settings and shutdown the application
+                {
+                    Plugins.PluginFactory.SavePluginSettings();
+                    Properties.Settings.Default.Save();
+                    Application.Current.Shutdown();
+                }     
             }
         }
 

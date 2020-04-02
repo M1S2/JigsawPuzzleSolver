@@ -36,12 +36,17 @@ namespace JigsawPuzzleSolver.Plugins.Controls
             contentCtrl.Content = BuildSettingsControlForPlugin(plugin);
         }
 
+        /// <summary>
+        /// Build a UIElement to edit all settings of the given plugin. Only setting decorated with the PluginSettings attribute (or derived types) are used.
+        /// </summary>
+        /// <param name="plugin">Plugin to build the settings editor control for</param>
+        /// <returns>UIElement to edit all plugin settings</returns>
         private UIElement BuildSettingsControlForPlugin(Plugin plugin)
         {
             List<PropertyInfo> propInfos = plugin.GetType().GetProperties().Where(p => p.GetCustomAttributes().Any(a => typeof(PluginSettingAttribute).IsAssignableFrom(a.GetType()))).ToList(); 
             if(propInfos.Count == 0) { return null; }
 
-            Expander settingsExpander = new Expander() { Header = "Settings", Margin = new Thickness(0, 10, 0, 0), IsExpanded = true, Background = (Brush)this.FindResource("GrayBrush4") };
+            Expander settingsExpander = new Expander() { Header = "Settings", Margin = new Thickness(0, 10, 0, 0), IsExpanded = false, Background = (Brush)this.FindResource("GrayBrush4") };
             StackPanel settingsPanel = new StackPanel() { Orientation = Orientation.Vertical };
             foreach (PropertyInfo propInfo in propInfos)
             {
@@ -69,8 +74,9 @@ namespace JigsawPuzzleSolver.Plugins.Controls
                     PluginSettingBoolAttribute attribute = propInfo.GetCustomAttribute<PluginSettingBoolAttribute>();
 
                     singleSettingControl = new ToggleSwitch() { Style = (Style)this.FindResource("MahApps.Metro.Styles.ToggleSwitch.Win10"), HorizontalAlignment = HorizontalAlignment.Right, OnLabel = attribute?.OnLabelText, OffLabel = attribute?.OffLabelText };
-                    BindingOperations.SetBinding(singleSettingControl, CheckBox.IsCheckedProperty, binding);
+                    BindingOperations.SetBinding(singleSettingControl, ToggleSwitch.IsCheckedProperty, binding);
                 }
+#warning Add control for other types (maybe use custom control type via new attribute)
 
                 if (singleSettingControl != null)
                 {

@@ -9,6 +9,9 @@ using JigsawPuzzleSolver.Plugins.Attributes;
 
 namespace JigsawPuzzleSolver.Plugins.AbstractClasses
 {
+    /// <summary>
+    /// Plugin group base class for input image mask generation plugins
+    /// </summary>
     [PluginGroupAllowMultipleEnabledPlugins(false)]
     [PluginName("Input Image Mask Plugins")]
     public abstract class PluginGroupInputImageMask : Plugin

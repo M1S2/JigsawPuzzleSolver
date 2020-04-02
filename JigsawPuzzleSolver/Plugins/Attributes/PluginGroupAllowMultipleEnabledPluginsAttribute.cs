@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace JigsawPuzzleSolver.Plugins.Attributes
 {
+    /// <summary>
+    /// Attribute containing the information, if multiple plugins per plugin group can be enabled. This attribute should only be assigned to plugin groups.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
     class PluginGroupAllowMultipleEnabledPluginsAttribute : Attribute
     {

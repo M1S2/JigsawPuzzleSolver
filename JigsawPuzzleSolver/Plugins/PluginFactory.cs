@@ -4,12 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Reflection;
+using System.Xml.Serialization;
+using System.IO;
 using JigsawPuzzleSolver.Plugins.AbstractClasses;
 using JigsawPuzzleSolver.Plugins.Implementations;
 using JigsawPuzzleSolver.Plugins.Attributes;
 
 namespace JigsawPuzzleSolver.Plugins
 {
+    /// <summary>
+    /// Class that can be used to get specific plugins
+    /// </summary>
     public static class PluginFactory
     {
         /// <summary>
@@ -22,23 +27,37 @@ namespace JigsawPuzzleSolver.Plugins
         /// </summary>
         public static List<Plugin> AvailablePlugins { get; set; } = new List<Plugin>();
 
+        //##############################################################################################################################################################################################
+
         /// <summary>
         /// Static constructor. Fill lists of availabe plugins and plugin group types.
         /// </summary>
         static PluginFactory()
         {
-            Assembly executingAssembly = Assembly.GetExecutingAssembly();
-            List<Type> pluginTypes = executingAssembly.GetTypes().Where(t => typeof(Plugin).IsAssignableFrom(t) && !t.IsAbstract).ToList();           
-            foreach(Type t in pluginTypes)
+            LoadPluginSettings();
+            foreach(Plugin plugin in AvailablePlugins)
             {
-                Plugin plugin = (Plugin)Activator.CreateInstance(t);
+                plugin.PropertyChanged -= Plugin_PropertyChanged;
                 plugin.PropertyChanged += Plugin_PropertyChanged;
-                AvailablePlugins.Add(plugin);
+            }
+            List<Type> availablePluginsTypes = AvailablePlugins.Select(p => p.GetType()).ToList();
+
+            Assembly executingAssembly = Assembly.GetExecutingAssembly();
+            List<Type> pluginTypes = executingAssembly.GetTypes().Where(t => typeof(Plugin).IsAssignableFrom(t) && !t.IsAbstract).ToList();
+            foreach (Type t in pluginTypes)
+            {
+                if (!availablePluginsTypes.Contains(t))
+                {
+                    Plugin plugin = (Plugin)Activator.CreateInstance(t);
+                    plugin.PropertyChanged += Plugin_PropertyChanged;
+                    AvailablePlugins.Add(plugin);
+                }
             }
             PluginGroupTypes = executingAssembly.GetTypes().Where(t => typeof(Plugin).IsAssignableFrom(t) && t != typeof(Plugin) && t.IsAbstract).ToList();
             EnsureAllowedNumberOfPluginsPerGroupIsEnabled();
         }
 
+        //##############################################################################################################################################################################################
 
         private static void Plugin_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
@@ -100,6 +119,8 @@ namespace JigsawPuzzleSolver.Plugins
             alreadyInEnsureFunction = false;
         }
 
+        //##############################################################################################################################################################################################
+
         /// <summary>
         /// Get all available plugins of the given plugin group type.
         /// </summary>
@@ -127,5 +148,32 @@ namespace JigsawPuzzleSolver.Plugins
         {
             return GetEnabledPluginsOfGroupType(typeof(T)).Cast<T>().ToList();
         }
+
+        //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Save plugin settings to application settings
+        /// </summary>
+        public static void SavePluginSettings()
+        {
+            Properties.Settings.Default.PluginSettings = AvailablePlugins.SaveObjectToString(false);
+            Properties.Settings.Default.Save();
+        }
+
+        /// <summary>
+        /// Load plugin settings from application settings
+        /// </summary>
+        public static void LoadPluginSettings()
+        {
+            if (!string.IsNullOrEmpty(Properties.Settings.Default.PluginSettings))
+            {
+                AvailablePlugins = SaveHelper.LoadObjectFromString<List<Plugin>>(Properties.Settings.Default.PluginSettings, false);
+            }
+            else
+            {
+                AvailablePlugins = new List<Plugin>();
+            }
+        }
+
     }
 }
