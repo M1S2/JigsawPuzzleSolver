@@ -129,7 +129,7 @@ namespace JigsawPuzzleSolver
                 {
                     _settingsPieceBackgroundCommand = new RelayCommand(param =>
                     {
-                        GUI_Elements.PieceBackgroundColorPicker.PieceBackgroundColorPickerWindow window = new GUI_Elements.PieceBackgroundColorPicker.PieceBackgroundColorPickerWindow(PuzzleHandle?.PuzzlePiecesFolderPath, PuzzleSolverParameters.Instance.PieceBackgroundColor);
+                        Plugins.Controls.PieceBackgroundColorPickerWindow window = new Plugins.Controls.PieceBackgroundColorPickerWindow(PuzzleHandle?.PuzzlePiecesFolderPath, PuzzleSolverParameters.Instance.PieceBackgroundColor);
                         bool? windowResult = window.ShowDialog();
                         if (windowResult.HasValue && windowResult.Value == true)
                         {

@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using Emgu.CV;
 using JigsawPuzzleSolver.Plugins.AbstractClasses;
 using JigsawPuzzleSolver.Plugins.Attributes;
+using JigsawPuzzleSolver.Plugins.Controls;
 
 namespace JigsawPuzzleSolver.Plugins.Implementations
 {
@@ -27,6 +28,10 @@ namespace JigsawPuzzleSolver.Plugins.Implementations
         [PluginSettingNumber(0.1, 0, 5)]
         [PluginSettingDescription("Test setting No. 3")]
         public double TestSetting3 { get; set; }
+
+        [PluginSettingCustomControl(typeof(PluginSettingHsvSegmentationColorPicker))]
+        [PluginSettingDescription("Test setting No. 4")]
+        public Color TestSetting4 { get; set; }
 
         public override Bitmap GenerateSolutionImage(Matrix<int> solutionLocations, int solutionID)
         {

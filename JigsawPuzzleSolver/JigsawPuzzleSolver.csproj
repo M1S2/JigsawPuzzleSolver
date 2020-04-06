@@ -139,12 +139,13 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     <Compile Include="GUI Elements\Converters\ColorToBrushConverter.cs" />
     <Compile Include="GUI Elements\Converters\IconPackToGeometryDrawingConverter.cs" />
     <Compile Include="GUI Elements\Converters\PuzzleStateToIconConverter.cs" />
-    <Compile Include="GUI Elements\PieceBackgroundColorPicker\PieceBackgroundColorPickerWindow.xaml.cs">
+    <Compile Include="Plugins\Controls\PieceBackgroundColorPickerWindow.xaml.cs">
       <DependentUpon>PieceBackgroundColorPickerWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="PeakFinders\DifferencePeakFinder.cs" />
     <Compile Include="PeakFinders\DouglasPeuckerLineApprox.cs" />
     <Compile Include="PeakFinders\SmoothingFilter.cs" />
+    <Compile Include="Plugins\AbstractClasses\PluginSettingsBaseUserControl.cs" />
     <Compile Include="Plugins\Attributes\PluginGroupAllowMultipleEnabledPluginsAttribute.cs" />
     <Compile Include="Plugins\Attributes\PluginDescriptionAttribute.cs" />
     <Compile Include="Plugins\Attributes\PluginNameAttribute.cs" />
@@ -154,6 +155,9 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
       <DependentUpon>PluginConfigurator.xaml</DependentUpon>
     </Compile>
     <Compile Include="Plugins\Controls\PluginGroupGroupDescription.cs" />
+    <Compile Include="Plugins\Controls\PluginSettingHsvSegmentationColorPicker.xaml.cs">
+      <DependentUpon>PluginSettingHsvSegmentationColorPicker.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Plugins\Implementations\PluginGenerateSolutionImageSimple.cs" />
     <Compile Include="Plugins\Implementations\PluginGenerateSolutionImageStitching.cs" />
     <Compile Include="Plugins\Implementations\PluginInputImageMaskGrabCut.cs" />
@@ -196,7 +200,7 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     <Compile Include="WindowTheme\WindowThemeUserControl.xaml.cs">
       <DependentUpon>WindowThemeUserControl.xaml</DependentUpon>
     </Compile>
-    <Page Include="GUI Elements\PieceBackgroundColorPicker\PieceBackgroundColorPickerWindow.xaml">
+    <Page Include="Plugins\Controls\PieceBackgroundColorPickerWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -225,6 +229,10 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
       <SubType>Code</SubType>
     </Compile>
     <Page Include="Plugins\Controls\PluginConfigurator.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Plugins\Controls\PluginSettingHsvSegmentationColorPicker.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -19,8 +19,9 @@ using CroppingImageLibrary;
 using MahApps.Metro.Controls;
 using Emgu.CV;
 using Emgu.CV.Structure;
+using JigsawPuzzleSolver.GUI_Elements;
 
-namespace JigsawPuzzleSolver.GUI_Elements.PieceBackgroundColorPicker
+namespace JigsawPuzzleSolver.Plugins.Controls
 {
     //https://www.codeproject.com/Articles/131708/WPF-Color-Picker-Construction-Kit
 

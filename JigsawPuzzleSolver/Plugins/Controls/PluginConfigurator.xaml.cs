@@ -54,9 +54,22 @@ namespace JigsawPuzzleSolver.Plugins.Controls
                 singleSettingPanel.Children.Add(new TextBlock(new Run(propInfo.Name)) { Width = 100, VerticalAlignment = VerticalAlignment.Center });
 
                 UIElement singleSettingControl = null;
-                Binding binding = new Binding(propInfo.Name);
+                Binding binding = new Binding(propInfo.Name)
+                {
+                    Mode = BindingMode.TwoWay,
+                    UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
+                };
 
-                if (propInfo.PropertyType == typeof(string) || propInfo.PropertyType == typeof(String))
+                PluginSettingCustomControlAttribute customControlAttribute = propInfo.GetCustomAttribute<PluginSettingCustomControlAttribute>();
+                if(customControlAttribute != null)
+                {
+                    if (typeof(PluginSettingsBaseUserControl).IsAssignableFrom(customControlAttribute.ControlType))
+                    {
+                        singleSettingControl = (PluginSettingsBaseUserControl)Activator.CreateInstance(customControlAttribute.ControlType);
+                        BindingOperations.SetBinding(singleSettingControl, PluginSettingsBaseUserControl.CustomPropProperty, binding);
+                    }
+                }
+                else if (propInfo.PropertyType == typeof(string) || propInfo.PropertyType == typeof(String))
                 {
                     singleSettingControl = new TextBox();
                     BindingOperations.SetBinding(singleSettingControl, TextBox.TextProperty, binding);
@@ -76,7 +89,6 @@ namespace JigsawPuzzleSolver.Plugins.Controls
                     singleSettingControl = new ToggleSwitch() { Style = (Style)this.FindResource("MahApps.Metro.Styles.ToggleSwitch.Win10"), HorizontalAlignment = HorizontalAlignment.Right, OnLabel = attribute?.OnLabelText, OffLabel = attribute?.OffLabelText };
                     BindingOperations.SetBinding(singleSettingControl, ToggleSwitch.IsCheckedProperty, binding);
                 }
-#warning Add control for other types (maybe use custom control type via new attribute)
 
                 if (singleSettingControl != null)
                 {

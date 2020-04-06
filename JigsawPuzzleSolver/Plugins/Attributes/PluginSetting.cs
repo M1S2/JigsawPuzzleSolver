@@ -32,6 +32,22 @@ namespace JigsawPuzzleSolver.Plugins.Attributes
     //##############################################################################################################################################################################################
 
     /// <summary>
+    /// Attribute containing the control type for a plugin setting
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Property)]
+    public class PluginSettingCustomControlAttribute : PluginSettingAttribute
+    {
+        public Type ControlType { get; set; }
+
+        public PluginSettingCustomControlAttribute(Type controlType)
+        {
+            ControlType = controlType;
+        }
+    }
+
+    //##############################################################################################################################################################################################
+
+    /// <summary>
     /// Attribute containing one string setting for a plugin
     /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
