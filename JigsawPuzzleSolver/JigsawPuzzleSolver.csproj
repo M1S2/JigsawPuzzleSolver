@@ -139,6 +139,9 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     <Compile Include="GUI Elements\Converters\ColorToBrushConverter.cs" />
     <Compile Include="GUI Elements\Converters\IconPackToGeometryDrawingConverter.cs" />
     <Compile Include="GUI Elements\Converters\PuzzleStateToIconConverter.cs" />
+    <Compile Include="Plugins\AbstractClasses\PluginGroupGeneralSettings.cs" />
+    <Compile Include="Plugins\AbstractClasses\PluginGroupFindPieceCorners.cs" />
+    <Compile Include="Plugins\Attributes\PluginGroupOrderIndex.cs" />
     <Compile Include="Plugins\Controls\PieceBackgroundColorPickerWindow.xaml.cs">
       <DependentUpon>PieceBackgroundColorPickerWindow.xaml</DependentUpon>
     </Compile>
@@ -158,8 +161,12 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     <Compile Include="Plugins\Controls\PluginSettingHsvSegmentationColorPicker.xaml.cs">
       <DependentUpon>PluginSettingHsvSegmentationColorPicker.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Plugins\Implementations\PluginGeneralSettings.cs" />
     <Compile Include="Plugins\Implementations\PluginGenerateSolutionImageSimple.cs" />
     <Compile Include="Plugins\Implementations\PluginGenerateSolutionImageStitching.cs" />
+    <Compile Include="Plugins\Implementations\PluginPieceCornersPolarCoordinates.cs" />
+    <Compile Include="Plugins\Implementations\PluginPieceCornersMaxRectangle.cs" />
+    <Compile Include="Plugins\Implementations\PluginPieceCornersGFTT.cs" />
     <Compile Include="Plugins\Implementations\PluginInputImageMaskGrabCut.cs" />
     <Compile Include="Plugins\Implementations\PluginInputImageMaskHsvHistogram.cs" />
     <Compile Include="Plugins\Implementations\PluginInputImageMaskHsvSegmentation.cs" />

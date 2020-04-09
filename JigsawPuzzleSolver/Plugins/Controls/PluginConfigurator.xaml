@@ -5,16 +5,22 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:JigsawPuzzleSolver.Plugins.Controls"
              xmlns:MetroControls="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
              xmlns:plug="clr-namespace:JigsawPuzzleSolver.Plugins"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
 
     <UserControl.Resources>
         <local:AttributeBindingConverter x:Key="attrBindingConverter"/>
+        <BooleanToVisibilityConverter x:Key="boolVisibilityConverter"/>
+
         <CollectionViewSource x:Key="pluginsSource" Source="{Binding Source={x:Static plug:PluginFactory.AvailablePlugins}}">
             <CollectionViewSource.GroupDescriptions>
                 <local:PluginGroupGroupDescription/>
             </CollectionViewSource.GroupDescriptions>
+            <!--<CollectionViewSource.SortDescriptions>
+                <scm:SortDescription PropertyName=""/>
+            </CollectionViewSource.SortDescriptions>-->
         </CollectionViewSource>
     </UserControl.Resources>
 
@@ -24,14 +30,18 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <Border CornerRadius="5" Margin="5" BorderThickness="1" BorderBrush="{DynamicResource AccentBaseColorBrush}">
-                            <StackPanel Margin="5" Orientation="Vertical">
-                                <DockPanel LastChildFill="False">
-                                    <TextBlock FontSize="14" Text="{Binding ., Converter={StaticResource attrBindingConverter}, ConverterParameter=PluginNameAttribute.Name}"/>
-                                    <MetroControls:ToggleSwitch DockPanel.Dock="Right" OnLabel="Enabled" OffLabel="Disabled" VerticalAlignment="Center" Style="{StaticResource MahApps.Metro.Styles.ToggleSwitch.Win10}" IsChecked="{Binding IsEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                </DockPanel>
-                                <TextBlock Margin="0,5,0,5" Text="{Binding ., Converter={StaticResource attrBindingConverter}, ConverterParameter=PluginDescriptionAttribute.Description}" Foreground="{DynamicResource GrayBrush3}"/>
-                                <ContentControl Tag="{Binding}" Loaded="ContentControl_Loaded" />
-                            </StackPanel>
+                            <Expander Margin="5" IsExpanded="False" Background="{DynamicResource WindowBackgroundBrush}" BorderThickness="0">
+                                <Expander.Header>
+                                    <DockPanel LastChildFill="False">
+                                        <TextBlock FontSize="14" Text="{Binding ., Converter={StaticResource attrBindingConverter}, ConverterParameter=PluginNameAttribute.Name}"/>
+                                        <MetroControls:ToggleSwitch DockPanel.Dock="Right" OnLabel="Enabled" OffLabel="Disabled" VerticalAlignment="Center" Style="{StaticResource MahApps.Metro.Styles.ToggleSwitch.Win10}" IsChecked="{Binding IsEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding MoreThanOnePluginInPluginGroup, Converter={StaticResource boolVisibilityConverter}}" />
+                                    </DockPanel>
+                                </Expander.Header>
+                                <StackPanel Margin="5" Orientation="Vertical">
+                                    <TextBlock Margin="0,5,0,5" Text="{Binding ., Converter={StaticResource attrBindingConverter}, ConverterParameter=PluginDescriptionAttribute.Description}" Foreground="{DynamicResource GrayBrush3}"/>
+                                    <ContentControl Tag="{Binding}" Loaded="ContentControl_Loaded" />
+                                </StackPanel>
+                            </Expander>
                         </Border>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>

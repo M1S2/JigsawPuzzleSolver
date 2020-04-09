@@ -19,8 +19,12 @@ namespace JigsawPuzzleSolver.Plugins.Controls
         {
             Type pluginGroupType = item.GetType().BaseType;
             object nameAttribute = pluginGroupType.GetCustomAttributes(typeof(PluginNameAttribute), false).FirstOrDefault();
-            if(nameAttribute == null) { return ""; }
-            else { return ((PluginNameAttribute)nameAttribute).Name; }
+            object groupOrderIndexAttribute = pluginGroupType.GetCustomAttributes(typeof(PluginGroupOrderIndex), false).FirstOrDefault();
+            if (nameAttribute == null || groupOrderIndexAttribute == null) { return ""; }
+            else
+            {
+                return ((PluginGroupOrderIndex)groupOrderIndexAttribute).OrderIndex.ToString() + ". " + ((PluginNameAttribute)nameAttribute).Name;
+             }
         }
     }
 }

@@ -19,6 +19,9 @@ using Emgu.CV.Util;
 using Emgu.CV.Cvb;
 using LogBox.LogEvents;
 using ImageGallery.LocalDriveBitmaps;
+using JigsawPuzzleSolver.Plugins;
+using JigsawPuzzleSolver.Plugins.AbstractClasses;
+using JigsawPuzzleSolver.Plugins.Attributes;
 
 namespace JigsawPuzzleSolver
 {
@@ -294,156 +297,10 @@ namespace JigsawPuzzleSolver
 
         //##############################################################################################################################################################################################
 
-        /*
         /// <summary>
-        /// Perform GrabCut segmentation on input image to get a mask for the pieces (foreground).
+        /// Extract all pieces from the source image. 
         /// </summary>
-        /// <param name="inputImg">Input image for segmentation</param>
-        /// <returns>Mask for foreground</returns>
-        private Image<Gray, byte> getMaskGrabCut(Image<Rgba, byte> inputImg)
-        {
-            Image<Gray, byte> mask = inputImg.Convert<Rgb, byte>().GrabCut(new Rectangle(1, 1, inputImg.Width - 1, inputImg.Height - 1), 2);
-            mask = mask.ThresholdBinary(new Gray(2), new Gray(255));            // Change the mask. All values bigger than 2 get mapped to 255. All values equal or smaller than 2 get mapped to 0.
-            return mask;
-        }*/
-
-
-        /// <summary>
-        /// Calculate a mask for the pieces.
-        /// </summary>
-        /// <param name="inputImg">Color input image</param>
-        /// <returns>Mask image</returns>
-        private Image<Gray, byte> getMaskHsvSegmentation(Image<Rgba, byte> inputImg)
-        {
-            int hDiff = 20;
-            int sDiff = 30;
-            int vDiff = 30;
-
-            Color pieceBgColor = PuzzleSolverParameters.Instance.PieceBackgroundColor;
-
-            Image<Gray, byte> mask;
-            using (Image<Hsv, byte> hsvSourceImg = inputImg.Convert<Hsv, byte>())
-            {
-                double h = 0, s = 0, v = 0;
-                Utils.ColorToHSV(pieceBgColor, out h, out s, out v);
-
-                mask = hsvSourceImg.InRange(new Hsv(h - hDiff, s - sDiff, v - vDiff), new Hsv(h + hDiff, s + sDiff, v + vDiff));
-
-                // close small black gaps with morphological closing operation
-                Mat kernel = CvInvoke.GetStructuringElement(ElementShape.Rectangle, new Size(5, 5), new Point(-1, -1));
-                CvInvoke.MorphologyEx(mask, mask, MorphOp.Close, kernel, new Point(-1, -1), 5, BorderType.Default, new MCvScalar(0));
-            }
-            return mask;
-        }
-
-        /// <summary>
-        /// Calculate a mask for the pieces. The function calculates a histogram to find the piece background color. 
-        /// Everything within a specific HSV range around the piece background color is regarded as foreground. The rest is regarded as background.
-        /// </summary>
-        /// <param name="inputImg">Color input image</param>
-        /// <returns>Mask image</returns>
-        /// see: https://docs.opencv.org/2.4/modules/imgproc/doc/histograms.html?highlight=calchist
-        private Image<Gray, byte> getMaskHsvSegmentationHistogram(Image<Rgba, byte> inputImg)
-        {
-            Image<Gray, byte> mask;
-
-            using (Image<Hsv, byte> hsvSourceImg = inputImg.Convert<Hsv, byte>())       //Convert input image to HSV color space
-            {
-                Mat hsvImgMat = new Mat();
-                hsvSourceImg.Mat.ConvertTo(hsvImgMat, DepthType.Cv32F);
-                VectorOfMat vm = new VectorOfMat(hsvImgMat);
-
-                // Calculate histograms for each channel of the HSV image (H, S, V)
-                Mat histOutH = new Mat(), histOutS = new Mat(), histOutV = new Mat();
-                int hbins = 32, sbins = 32, vbins = 32;
-                CvInvoke.CalcHist(vm, new int[] { 0 }, new Mat(), histOutH, new int[] { hbins }, new float[] { 0, 179 }, false);
-                CvInvoke.CalcHist(vm, new int[] { 1 }, new Mat(), histOutS, new int[] { sbins }, new float[] { 0, 255 }, false);
-                CvInvoke.CalcHist(vm, new int[] { 2 }, new Mat(), histOutV, new int[] { vbins }, new float[] { 0, 255 }, false);
-
-                hsvImgMat.Dispose();
-                vm.Dispose();
-
-                // Draw the histograms for debugging purposes
-                if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
-                {
-                    _logHandle.Report(new LogEventImage("Hist H", Utils.DrawHist(histOutH, hbins, 30, 1024, new MCvScalar(255, 0, 0)).Bitmap));
-                    _logHandle.Report(new LogEventImage("Hist S", Utils.DrawHist(histOutS, sbins, 30, 1024, new MCvScalar(0, 255, 0)).Bitmap));
-                    _logHandle.Report(new LogEventImage("Hist V", Utils.DrawHist(histOutV, vbins, 30, 1024, new MCvScalar(0, 0, 255)).Bitmap));
-                }
-
-                //#warning Use border color
-                //                int borderHeight = 10;
-                //                Image<Hsv, byte> borderImg = hsvSourceImg.Copy(new Rectangle(0, hsvSourceImg.Height - borderHeight, hsvSourceImg.Width, borderHeight));
-                //                MCvScalar meanBorderColorScalar = CvInvoke.Mean(borderImg);
-                //                Hsv meanBorderColor = new Hsv(meanBorderColorScalar.V0, meanBorderColorScalar.V1, meanBorderColorScalar.V2);
-                //                if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
-                //                {
-                //                    Image<Hsv, byte> borderColorImg = new Image<Hsv, byte>(12, 12);
-                //                    borderColorImg.SetValue(meanBorderColor);
-                //                    _logHandle.Report(new LogBox.LogEventImage("HSV Border Color (" + meanBorderColor.Hue + " ; " + meanBorderColor.Satuation + "; " + meanBorderColor.Value + ")", borderColorImg.Bitmap));
-                //                }
-
-#warning Make this to settings (mainHueSegment)
-                int mainHueSegment = 90;    // Is the piece background rather red (0), green (60) or blue (120) ? 
-                int hDiffHist = 15;
-                int hDiff = 20;
-                int sDiff = 20; //40;
-                int vDiff = 20; //40;
-
-                // Find the peaks in the histograms and use them as piece background color. Black and white areas are ignored.
-                Hsv pieceBackgroundColor = new Hsv
-                {
-                    Hue = Utils.HighestBinValInRange(histOutH, mainHueSegment - hDiffHist, mainHueSegment + hDiffHist, 179), //25, 179, 179);
-                    Satuation = Utils.HighestBinValInRange(histOutS, 50, 205, 255), //50, 255, 255);
-                    Value = Utils.HighestBinValInRange(histOutV, 75, 205, 255) //75, 255, 255);
-                };
-
-                histOutH.Dispose();
-                histOutS.Dispose();
-                histOutV.Dispose();
-
-
-                //#warning Test extracting Piece Background Color from part of input image
-                //                Image<Hsv, byte> roiImg = hsvSourceImg.Copy(new Rectangle(200, 225, 150, 150));     //new Rectangle(350, 150, 150, 150));
-                //                _logHandle.Report(new LogEventImage("HSV ROI Img", roiImg.Bitmap));
-                //                MCvScalar meanRoiColorScalar = CvInvoke.Mean(roiImg);
-                //                Hsv meanRoiColor = new Hsv(meanRoiColorScalar.V0, meanRoiColorScalar.V1, meanRoiColorScalar.V2);
-                //                pieceBackgroundColor = meanRoiColor;
-
-
-                // Show the found piece background color
-                if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
-                {
-                    Image<Hsv, byte> pieceBgColorImg = new Image<Hsv, byte>(4, 12);
-                    Image<Hsv, byte> lowPieceBgColorImg = new Image<Hsv, byte>(4, 12);
-                    Image<Hsv, byte> highPieceBgColorImg = new Image<Hsv, byte>(4, 12);
-                    pieceBgColorImg.SetValue(pieceBackgroundColor);
-                    lowPieceBgColorImg.SetValue(new Hsv(pieceBackgroundColor.Hue - hDiff, pieceBackgroundColor.Satuation - sDiff, pieceBackgroundColor.Value - vDiff));
-                    highPieceBgColorImg.SetValue(new Hsv(pieceBackgroundColor.Hue + hDiff, pieceBackgroundColor.Satuation + sDiff, pieceBackgroundColor.Value + vDiff));
-
-                    _logHandle.Report(new LogEventImage("HSV Piece Bg Color (" + pieceBackgroundColor.Hue + " ; " + pieceBackgroundColor.Satuation + "; " + pieceBackgroundColor.Value + ")", Utils.Combine2ImagesHorizontal(Utils.Combine2ImagesHorizontal(lowPieceBgColorImg.Convert<Rgb, byte>(), pieceBgColorImg.Convert<Rgb, byte>(), 0), highPieceBgColorImg.Convert<Rgb, byte>(), 0).Bitmap));
-
-                    pieceBgColorImg.Dispose();
-                    lowPieceBgColorImg.Dispose();
-                    highPieceBgColorImg.Dispose();
-                }
-
-                // do HSV segmentation and keep only the meanColor areas with some hysteresis as pieces
-                mask = hsvSourceImg.InRange(new Hsv(pieceBackgroundColor.Hue - hDiff, pieceBackgroundColor.Satuation - sDiff, pieceBackgroundColor.Value - vDiff), new Hsv(pieceBackgroundColor.Hue + hDiff, pieceBackgroundColor.Satuation + sDiff, pieceBackgroundColor.Value + vDiff));
-
-                // close small black gaps with morphological closing operation
-                Mat kernel = CvInvoke.GetStructuringElement(ElementShape.Rectangle, new Size(5, 5), new Point(-1, -1));
-                CvInvoke.MorphologyEx(mask, mask, MorphOp.Close, kernel, new Point(-1, -1), 5, BorderType.Default, new MCvScalar(0));
-            }
-            return mask;
-        }
-
-        //**********************************************************************************************************************************************************************************************
-
-        /// <summary>
-        /// Extract all pieces from the source image using HSV color space for segmentation. 
-        /// </summary>
-        private void extract_pieces_HSV_segmentation()
+        private void extract_pieces()
         {
             try
             {
@@ -474,25 +331,25 @@ namespace JigsawPuzzleSolver
 
                 int loopCount = 0;
 
-                //For each input image
                 ParallelOptions parallelOptions = new ParallelOptions
                 {
                     CancellationToken = _cancelToken,
-                    MaxDegreeOfParallelism = (PuzzleSolverParameters.Instance.UseParallelLoops ? Environment.ProcessorCount : 1)
+                    MaxDegreeOfParallelism = (PluginFactory.GetGeneralSettingsPlugin().UseParallelLoops ? Environment.ProcessorCount : 1)
                 };
+                //For each input image
                 Parallel.For(0, imageFilesInfo.Count, parallelOptions, (i) =>
                 {
-                    //_logHandle.Report(new LogEventInfo("!!!MEMORY: Before sourceImg read " + (System.Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64 / 1000000).ToString()));
-
                     using (Image<Rgba, byte> sourceImg = new Image<Rgba, byte>(imageFilesInfo[i].FullName)) //.LimitImageSize(1000, 1000))
                     {
-                        //CvInvoke.CvtColor(sourceImg, sourceImg, ColorConversion.Bgr2Rgba);               // Images are read in BGR model (not RGB)
                         CvInvoke.MedianBlur(sourceImg, sourceImg, 5);
-
-                        using (Image<Gray, byte> mask = getMaskHsvSegmentation(sourceImg))    //getMaskHsvSegmentationHistogram(sourceImg))    //getMaskGrabCut(sourceImg))
+                        
+                        // Get the (first) enabled Plugin for input image mask generation
+                        PluginGroupInputImageMask pluginInputImageMask = PluginFactory.GetEnabledPluginsOfGroupType<PluginGroupInputImageMask>().FirstOrDefault();
+                        
+                        using (Image<Gray, byte> mask = pluginInputImageMask.GetMask(sourceImg))
                         {
                             _logHandle.Report(new LogEventInfo("Extracting Pieces from source image " + i.ToString()));
-                            if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
+                            if (PluginFactory.GetGeneralSettingsPlugin().SolverShowDebugResults)
                             {
                                 _logHandle.Report(new LogEventImage("Source image " + i.ToString(), sourceImg.Bitmap));
                                 _logHandle.Report(new LogEventImage("Mask " + i.ToString(), mask.Bitmap));
@@ -502,7 +359,7 @@ namespace JigsawPuzzleSolver
                             CvBlobs blobs = new CvBlobs();
                             blobDetector.Detect(mask, blobs);
 
-                            foreach (CvBlob blob in blobs.Values.Where(b => b.BoundingBox.Width >= PuzzleSolverParameters.Instance.PuzzleMinPieceSize && b.BoundingBox.Height >= PuzzleSolverParameters.Instance.PuzzleMinPieceSize))
+                            foreach (CvBlob blob in blobs.Values.Where(b => b.BoundingBox.Width >= PluginFactory.GetGeneralSettingsPlugin().PuzzleMinPieceSize && b.BoundingBox.Height >= PluginFactory.GetGeneralSettingsPlugin().PuzzleMinPieceSize))
                             {
                                 if (_cancelToken.IsCancellationRequested) { _cancelToken.ThrowIfCancellationRequested(); }
 
@@ -562,7 +419,7 @@ namespace JigsawPuzzleSolver
                             Interlocked.Add(ref loopCount, 1);
                             CurrentSolverStepPercentageFinished = (loopCount / (double)imageFilesInfo.Count) * 100;
 
-                            if (PuzzleSolverParameters.Instance.SolverShowDebugResults) { _logHandle.Report(new LogEventImage("Source Img " + i.ToString() + " Pieces", sourceImg.Bitmap)); }
+                            if (PluginFactory.GetGeneralSettingsPlugin().SolverShowDebugResults) { _logHandle.Report(new LogEventImage("Source Img " + i.ToString() + " Pieces", sourceImg.Bitmap)); }
                             InputImages.Add(new ImageDescribedLight(Path.GetFileName(imageFilesInfo[i].FullName), PuzzlePiecesFolderPath + @"\Results\InputImagesMarked\" + Path.GetFileName(imageFilesInfo[i].FullName), sourceImg.Bitmap)); //sourceImg.LimitImageSize(1000, 1000).Bitmap));
                             blobs.Dispose();
                             blobDetector.Dispose();
@@ -589,34 +446,7 @@ namespace JigsawPuzzleSolver
                 CurrentSolverStepPercentageFinished = 100;
             }
         }
-
-        //**********************************************************************************************************************************************************************************************
-
-        /*
-        /// <summary>
-        /// Create an image for all pieces with all edges drawn 
-        /// </summary>
-        private void print_edges()
-        {
-            for (int i = 0; i < pieces.Count; i++)
-            {
-                for (int j = 0; j < 4; j++)
-                {
-                    Mat m = Mat.Zeros(500, 500, DepthType.Cv8U, 1);
-
-                    VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint();
-                    VectorOfPoint contour = pieces[i].Edges[j].GetTranslatedContour(200, 0);
-                    if(contour.Size == 0) { continue; }
-                    contours.Push(contour);
-
-                    CvInvoke.DrawContours(m, contours, -1, new MCvScalar(255), 2);
-                    CvInvoke.PutText(m, pieces[i].Edges[j].EdgeType.ToString(), new Point(300, 300), FontFace.HersheyComplexSmall, 2, new MCvScalar(255), 1, LineType.AntiAlias);
-
-                    _logHandle.Report(new LogBox.LogEventImage("Contour " + pieces[i].PieceID + " Edge " + j.ToString(), m.Bitmap));
-                }
-            }
-        }
-        */
+        
         //**********************************************************************************************************************************************************************************************
 
         /// <summary>
@@ -640,7 +470,7 @@ namespace JigsawPuzzleSolver
                 ParallelOptions parallelOptions = new ParallelOptions
                 {
                     CancellationToken = _cancelToken,
-                    MaxDegreeOfParallelism = (PuzzleSolverParameters.Instance.UseParallelLoops ? Environment.ProcessorCount : 1)
+                    MaxDegreeOfParallelism = (PluginFactory.GetGeneralSettingsPlugin().UseParallelLoops ? Environment.ProcessorCount : 1)
                 };
                 Parallel.For(0, no_edges, parallelOptions, (i) =>
                 {
@@ -676,7 +506,7 @@ namespace JigsawPuzzleSolver
 
                 matches.Sort(new MatchScoreComparer(ScoreOrders.LOWEST_FIRST)); // Sort the matches to get the best scores first. The puzzle is solved by the order of the MatchScores
 
-                if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
+                if (PluginFactory.GetGeneralSettingsPlugin().SolverShowDebugResults)
                 {
                     foreach (MatchScore matchScore in matches)
                     {
@@ -702,7 +532,7 @@ namespace JigsawPuzzleSolver
             await Task.Run(() =>
             {
                 _logHandle.Report(new LogEventInfo("Puzzle solving started."));
-                extract_pieces_HSV_segmentation();
+                extract_pieces();
             }, _cancelToken);
         }
 
@@ -727,8 +557,8 @@ namespace JigsawPuzzleSolver
                     int pr_index = newSet.locations[r, c + 1];
                     if (pl_index != -1 && pr_index != -1)
                     {
-                        Edge el = Pieces[pr_index].Edges[mod(0 - newSet.rotations[r, c + 1], 4)];   //Get left edge of piece right
-                        Edge er = Pieces[pl_index].Edges[mod(2 - newSet.rotations[r, c], 4)];       //Get right edge of piece left
+                        Edge el = Pieces[pr_index].Edges[Utils.ModuloWithNegative(0 - newSet.rotations[r, c + 1], 4)];   //Get left edge of piece right
+                        Edge er = Pieces[pl_index].Edges[Utils.ModuloWithNegative(2 - newSet.rotations[r, c], 4)];       //Get right edge of piece left
                         
                         if(el.EdgeType == er.EdgeType || el.EdgeType == EdgeTypes.LINE || er.EdgeType == EdgeTypes.LINE)
                         {
@@ -752,8 +582,8 @@ namespace JigsawPuzzleSolver
                     int pb_index = newSet.locations[r + 1, c];
                     if (pt_index != -1 && pb_index != -1)
                     {
-                        Edge et = Pieces[pb_index].Edges[mod(3 - newSet.rotations[r + 1, c], 4)];   //Get top edge of piece bottom
-                        Edge eb = Pieces[pt_index].Edges[mod(1 - newSet.rotations[r, c], 4)];       //Get bottom edge of piece top
+                        Edge et = Pieces[pb_index].Edges[Utils.ModuloWithNegative(3 - newSet.rotations[r + 1, c], 4)];   //Get top edge of piece bottom
+                        Edge eb = Pieces[pt_index].Edges[Utils.ModuloWithNegative(1 - newSet.rotations[r, c], 4)];       //Get bottom edge of piece top
 
                         if (et.EdgeType == eb.EdgeType || et.EdgeType == EdgeTypes.LINE || eb.EdgeType == EdgeTypes.LINE)
                         {
@@ -764,19 +594,6 @@ namespace JigsawPuzzleSolver
             }
 
             return true;
-        }
-
-        /// <summary>
-        /// Modulo x % m including negative numbers for x
-        /// </summary>
-        /// <param name="x">x % m</param>
-        /// <param name="m">x % m</param>
-        /// <returns>x % m including negative numbers for x</returns>
-        /// see: https://stackoverflow.com/questions/1082917/mod-of-negative-number-is-melting-my-brain
-        int mod(int x, int m)
-        {
-            int r = x % m;
-            return r < 0 ? r + m : r;
         }
 
         //**********************************************************************************************************************************************************************************************
@@ -840,11 +657,19 @@ namespace JigsawPuzzleSolver
                         Solutions.Add(solution);
                         SolutionsRotations.Add(solution_rotations);
 
-                        Bitmap solutionImg = GenerateSolutionImage2(solution, setNo);
-                        PuzzleSolutionImages.Add(new ImageDescribedLight("Solution #" + setNo.ToString(), PuzzlePiecesFolderPath + @"\Results\Solutions\Solution#" + setNo.ToString() + ".png", solutionImg));
+                        // Get the enabled Plugins for solution image generation
+                        List<PluginGroupGenerateSolutionImage> pluginsGenerateSolutionImage = PluginFactory.GetEnabledPluginsOfGroupType<PluginGroupGenerateSolutionImage>();
 
-                        if (PuzzleSolverParameters.Instance.SolverShowDebugResults) { _logHandle.Report(new LogEventImage("Solution #" + setNo.ToString(), solutionImg)); }
-                        solutionImg.Dispose();
+                        foreach (PluginGroupGenerateSolutionImage plugin in pluginsGenerateSolutionImage)
+                        {
+                            PluginNameAttribute nameAttribute = plugin.GetType().GetCustomAttributes(false).Where(a => a.GetType() == typeof(PluginNameAttribute)).FirstOrDefault() as PluginNameAttribute;
+
+                            Bitmap solutionImg = plugin.GenerateSolutionImage(solution, setNo, Pieces.ToList());
+                            PuzzleSolutionImages.Add(new ImageDescribedLight("Solution #" + setNo.ToString() + " (" + nameAttribute.Name + ")", PuzzlePiecesFolderPath + @"\Results\Solutions\Solution#" + setNo.ToString() + ".png", solutionImg));
+
+                            if (PluginFactory.GetGeneralSettingsPlugin().SolverShowDebugResults) { _logHandle.Report(new LogEventImage("Solution #" + setNo.ToString() + " (" + nameAttribute.Name + ")", solutionImg)); }
+                            solutionImg.Dispose();
+                        }
                         setNo++;
                     }
                 }
@@ -861,164 +686,6 @@ namespace JigsawPuzzleSolver
                 }
             }, _cancelToken);
         }
-
-        //**********************************************************************************************************************************************************************************************
-
-#region Generate Solution Image
-
-        //private Bitmap GenerateSolutionImage(Matrix<int> solutionLocations, int solutionID)
-        //{ 
-        //    if (!Solved) { return null; }
-
-        //    int border = 10;
-        //    float out_image_width = 0, out_image_height = 0;
-
-        //    for (int i = 0; i < solutionLocations.Size.Width; i++)           // Calculate output image size
-        //    {
-        //        for (int j = 0; j < solutionLocations.Size.Height; j++)
-        //        {
-        //            int piece_number = solutionLocations[j, i];
-        //            if (piece_number == -1) { continue; }
-
-        //            float piece_size_x = (float)Utils.Distance(Pieces[piece_number].GetCorner(0), Pieces[piece_number].GetCorner(3));
-        //            float piece_size_y = (float)Utils.Distance(Pieces[piece_number].GetCorner(0), Pieces[piece_number].GetCorner(1));
-
-        //            out_image_width += piece_size_x;
-        //            out_image_height += piece_size_y;
-        //        }
-        //    }
-        //    out_image_width = (out_image_width / solutionLocations.Size.Height) * 1.5f + border;
-        //    out_image_height = (out_image_height / solutionLocations.Size.Width) * 1.5f + border;
-            
-        //    // Use get affine to map points...
-        //    Image<Rgb, byte> final_out_image = new Image<Rgb, byte>((int)out_image_width, (int)out_image_height);
-            
-        //    PointF[,] points = new PointF[solutionLocations.Size.Width + 1, solutionLocations.Size.Height +1];
-        //    bool failed = false;
-            
-        //    for (int i = 0; i < solutionLocations.Size.Width; i++)
-        //    {
-        //        for (int j = 0; j < solutionLocations.Size.Height; j++)
-        //        {
-        //            int piece_number = solutionLocations[j, i];
-
-        //            if (piece_number == -1)
-        //            {
-        //                failed = true;
-        //                break;
-        //            }
-        //            float piece_size_x = (float)Utils.Distance(Pieces[piece_number].GetCorner(0), Pieces[piece_number].GetCorner(3));
-        //            float piece_size_y = (float)Utils.Distance(Pieces[piece_number].GetCorner(0), Pieces[piece_number].GetCorner(1));
-        //            VectorOfPointF src = new VectorOfPointF();
-        //            VectorOfPointF dst = new VectorOfPointF();
-
-        //            if (i == 0 && j == 0)
-        //            {
-        //                points[i, j] = new PointF(border, border);
-        //            }
-        //            if (i == 0)
-        //            {
-        //                points[i, j + 1] = new PointF(border, points[i, j].Y + border + piece_size_y); //new PointF(points[i, j].X + border + x_dist, border);
-        //            }
-        //            if (j == 0)
-        //            {
-        //                points[i + 1, j] = new PointF(points[i, j].X + border + piece_size_x, border); //new PointF(border, points[i, j].Y + border + y_dist);
-        //            }
-
-        //            dst.Push(points[i, j]);
-        //            //dst.Push(points[i + 1, j]);
-        //            //dst.Push(points[i, j + 1]);
-        //            dst.Push(points[i, j + 1]);
-        //            dst.Push(points[i + 1, j]);
-        //            src.Push(Pieces[piece_number].GetCorner(0));
-        //            src.Push(Pieces[piece_number].GetCorner(1));
-        //            src.Push(Pieces[piece_number].GetCorner(3));
-
-        //            //true means use affine transform
-        //            Mat a_trans_mat = CvInvoke.EstimateRigidTransform(src, dst, true);
-
-        //            Matrix<double> A = new Matrix<double>(a_trans_mat.Rows, a_trans_mat.Cols);
-        //            a_trans_mat.CopyTo(A);
-                    
-        //            PointF l_r_c = Pieces[piece_number].GetCorner(2);       //Lower right corner of each piece
-
-        //            //Doing my own matrix multiplication
-        //            points[i + 1, j + 1] = new PointF((float)(A[0, 0] * l_r_c.X + A[0, 1] * l_r_c.Y + A[0, 2]), (float)(A[1, 0] * l_r_c.X + A[1, 1] * l_r_c.Y + A[1, 2]));
-
-        //            Mat layer = new Mat();
-        //            Mat layer_mask = new Mat();
-
-        //            CvInvoke.WarpAffine(new Image<Rgb, byte>(Pieces[piece_number].PieceImgColor), layer, a_trans_mat, new Size((int)out_image_width, (int)out_image_height), Inter.Linear, Warp.Default, BorderType.Transparent);
-        //            CvInvoke.WarpAffine(new Image<Gray, byte>(Pieces[piece_number].PieceImgBw), layer_mask, a_trans_mat, new Size((int)out_image_width, (int)out_image_height), Inter.Nearest, Warp.Default, BorderType.Transparent);
-
-        //            layer.CopyTo(final_out_image, layer_mask);
-        //        }
-
-        //        if (failed)
-        //        {
-        //            _logHandle.Report(new LogBox.LogEventError("Failed to generate solution " + solutionID + " image. Only partial image generated."));
-        //            break;
-        //        }
-        //    }
-
-        //    return final_out_image.Clone().Bitmap;
-        //}
-
-        //**********************************************************************************************************************************************************************************************
-
-        private Bitmap GenerateSolutionImage2(Matrix<int> solutionLocations, int solutionID)
-        {
-            if (!Solved) { return null; }
-            
-            int out_image_width = 0, out_image_height = 0;
-            int max_piece_width = 0, max_piece_height = 0;
-
-            for (int i = 0; i < solutionLocations.Size.Width; i++)           // Calculate output image size
-            {
-                for (int j = 0; j < solutionLocations.Size.Height; j++)
-                {
-                    int piece_number = solutionLocations[j, i];
-                    if (piece_number == -1) { continue; }
-
-                    Bitmap colorImg = Pieces[piece_number].PieceImgColor.Bmp;
-                    max_piece_width = Math.Max(max_piece_width, colorImg.Width);
-                    max_piece_height = Math.Max(max_piece_height, colorImg.Height);
-                    colorImg.Dispose();
-                }
-            }
-            max_piece_height += 150;
-            out_image_width = max_piece_width * solutionLocations.Size.Width;
-            out_image_height = max_piece_height * solutionLocations.Size.Height;
-
-            Bitmap outImg = new Bitmap(out_image_width, out_image_height);
-            Graphics g = Graphics.FromImage(outImg);
-            g.Clear(Color.White);
-            Pen redPen = new Pen(Color.Red, 4);
-            StringFormat stringFormat = new StringFormat() { Alignment = StringAlignment.Near, LineAlignment = StringAlignment.Near };
-
-            for (int i = 0; i < solutionLocations.Size.Width; i++)
-            {
-                for (int j = 0; j < solutionLocations.Size.Height; j++)
-                {
-                    int piece_number = solutionLocations[j, i];
-                    if (piece_number == -1) { continue; }
-
-                    Bitmap colorImg = Pieces[piece_number].PieceImgColor.Bmp;
-                    g.DrawImage(colorImg, i * max_piece_width, j * max_piece_height + 150);
-                    Rectangle pieceRect = new Rectangle(i * max_piece_width, j * max_piece_height, max_piece_width, max_piece_height);
-                    g.DrawRectangle(redPen, pieceRect);
-                    g.DrawString(Pieces[piece_number].PieceID + Environment.NewLine + Path.GetFileName(Pieces[piece_number].PieceSourceFileName), new Font("Arial", 20), new SolidBrush(Color.Blue), pieceRect, stringFormat);
-                    colorImg.Dispose();
-                }
-            }
-            redPen.Dispose();
-
-            Bitmap outImgSmall = outImg.LimitImageSize(solutionLocations.Size.Width * 200, solutionLocations.Size.Height * 200);
-            outImg.Dispose();
-            return outImgSmall;
-        }
-
-#endregion
 
     }
 }

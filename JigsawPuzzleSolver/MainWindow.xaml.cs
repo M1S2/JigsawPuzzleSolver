@@ -29,6 +29,7 @@ using MahApps.Metro.Controls.Dialogs;
 using JigsawPuzzleSolver.GUI_Elements;
 using JigsawPuzzleSolver.WindowTheme;
 using LogBox.LogEvents;
+using JigsawPuzzleSolver.Plugins;
 
 namespace JigsawPuzzleSolver
 {
@@ -120,27 +121,6 @@ namespace JigsawPuzzleSolver
             }
         }
 
-        private ICommand _settingsPieceBackgroundCommand;
-        public ICommand SettingsPieceBackgroundCommand
-        {
-            get
-            {
-                if (_settingsPieceBackgroundCommand == null)
-                {
-                    _settingsPieceBackgroundCommand = new RelayCommand(param =>
-                    {
-                        Plugins.Controls.PieceBackgroundColorPickerWindow window = new Plugins.Controls.PieceBackgroundColorPickerWindow(PuzzleHandle?.PuzzlePiecesFolderPath, PuzzleSolverParameters.Instance.PieceBackgroundColor);
-                        bool? windowResult = window.ShowDialog();
-                        if (windowResult.HasValue && windowResult.Value == true)
-                        {
-                            PuzzleSolverParameters.Instance.PieceBackgroundColor = window.SelectedBackgroundColor;
-                        }
-                    });
-                }
-                return _settingsPieceBackgroundCommand;
-            }
-        }
-
         #endregion
 
         //##############################################################################################################################################################################################
@@ -165,6 +145,7 @@ namespace JigsawPuzzleSolver
             {
                 logBox1.LogEvent(progressValue);
             });
+            Plugins.PluginFactory.LogHandle = logHandle;
         }
 
         //##############################################################################################################################################################################################
@@ -190,16 +171,16 @@ namespace JigsawPuzzleSolver
 
         private void OpenNewPuzzle()
         {
-            System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
+            /*System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
             folderBrowserDialog1.Description = "Select a folder containing all scanned puzzle piece images.";
             if(PuzzleHandle != null) { folderBrowserDialog1.SelectedPath = PuzzleHandle.PuzzlePiecesFolderPath; }
             if(folderBrowserDialog1.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 OpenNewPuzzle(folderBrowserDialog1.SelectedPath);
-            }
+            }*/
 
-//#warning Only for faster testing !!!
-            //OpenNewPuzzle(@"..\..\..\Test_Pictures\ScannedImages\4");
+#warning Only for faster testing !!!
+            OpenNewPuzzle(@"..\..\..\Test_Pictures\ScannedImages\4");
         }
 
         private void OpenNewPuzzle(string piecesFolderPath)
@@ -227,7 +208,7 @@ namespace JigsawPuzzleSolver
                     PuzzleSavingState = PuzzleSavingStates.SAVING;
                     logHandle.Report(new LogEventInfo("Saving puzzle to \"" + PuzzleHandle.PuzzleXMLOutputPath + "\""));
                     PuzzleHandle.PuzzleXMLOutputPath = saveFileDialog.FileName;
-                    await Task.Run(() => { PuzzleHandle.Save(PuzzleHandle.PuzzleXMLOutputPath, PuzzleSolverParameters.Instance.CompressPuzzleOutputFile); });
+                    await Task.Run(() => { PuzzleHandle.Save(PuzzleHandle.PuzzleXMLOutputPath, PluginFactory.GetGeneralSettingsPlugin().CompressPuzzleOutputFile); });
                     PuzzleSavingState = PuzzleSavingStates.SAVED;
                     logHandle.Report(new LogEventInfo("Saving puzzle ready."));
                     CommandManager.InvalidateRequerySuggested();
@@ -273,7 +254,7 @@ namespace JigsawPuzzleSolver
                 PuzzleSavingState = PuzzleSavingStates.LOADING;
                 logHandle.Report(new LogEventInfo("Loading puzzle from \"" + puzzleFileName + "\""));
                 PuzzleHandle = new Puzzle() { PuzzleXMLOutputPath = puzzleFileName };      // Neccessary to show the path while loading (when PuzzleHandle is null, no path is displayed)
-                PuzzleHandle = await Task.Run(() => { return Puzzle.Load(puzzleFileName, PuzzleSolverParameters.Instance.CompressPuzzleOutputFile); });
+                PuzzleHandle = await Task.Run(() => { return Puzzle.Load(puzzleFileName, PluginFactory.GetGeneralSettingsPlugin().CompressPuzzleOutputFile); });
                 PuzzleHandle.PuzzleXMLOutputPath = puzzleFileName;
                 PuzzleSavingState = PuzzleSavingStates.LOADED;
                 logHandle.Report(new LogEventInfo("Loading puzzle ready."));

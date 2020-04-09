@@ -44,14 +44,27 @@ namespace JigsawPuzzleSolver.Plugins.Controls
         private UIElement BuildSettingsControlForPlugin(Plugin plugin)
         {
             List<PropertyInfo> propInfos = plugin.GetType().GetProperties().Where(p => p.GetCustomAttributes().Any(a => typeof(PluginSettingAttribute).IsAssignableFrom(a.GetType()))).ToList(); 
-            if(propInfos.Count == 0) { return null; }
+            if(propInfos.Count == 0)
+            {
+                return new TextBlock(new Run("There are no settings for this plugin.")) { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(5), Foreground = (Brush)this.FindResource("GrayBrush4"), FontStyle = FontStyles.Italic };
+            }
 
-            Expander settingsExpander = new Expander() { Header = "Settings", Margin = new Thickness(0, 10, 0, 0), IsExpanded = false, Background = (Brush)this.FindResource("GrayBrush4") };
+            Expander settingsExpander = new Expander() { Margin = new Thickness(0, 10, 0, 0), IsExpanded = true, Background = (Brush)this.FindResource("GrayBrush4") };
+
+            //Generate Header for settingsExpander (containing TextBlock "Settings" and Button "Reset Settings")
+            DockPanel settingsExpanderHeaderDockPanel = new DockPanel() { LastChildFill = false };
+            settingsExpanderHeaderDockPanel.Children.Add(new TextBlock(new Run("Settings")) { VerticalAlignment = VerticalAlignment.Center });
+            Button resetButton = new Button() { Content = "Reset Settings", Style = (Style)this.FindResource("SquareButtonStyle") };
+            resetButton.Click += new RoutedEventHandler(delegate (object o, RoutedEventArgs a) { plugin.ResetPluginSettingsToDefault(); });
+            DockPanel.SetDock(resetButton, Dock.Right);
+            settingsExpanderHeaderDockPanel.Children.Add(resetButton);
+            settingsExpander.Header = settingsExpanderHeaderDockPanel;
+
             StackPanel settingsPanel = new StackPanel() { Orientation = Orientation.Vertical };
             foreach (PropertyInfo propInfo in propInfos)
             {
-                DockPanel singleSettingPanel = new DockPanel() { LastChildFill = true, Margin = new Thickness(0, 5, 0, 5) };
-                singleSettingPanel.Children.Add(new TextBlock(new Run(propInfo.Name)) { Width = 100, VerticalAlignment = VerticalAlignment.Center });
+                DockPanel singleSettingPanel = new DockPanel() { LastChildFill = false, Margin = new Thickness(0, 5, 0, 5) };
+                singleSettingPanel.Children.Add(new TextBlock(new Run(propInfo.Name)) { Width = 250, VerticalAlignment = VerticalAlignment.Center });
 
                 UIElement singleSettingControl = null;
                 Binding binding = new Binding(propInfo.Name)

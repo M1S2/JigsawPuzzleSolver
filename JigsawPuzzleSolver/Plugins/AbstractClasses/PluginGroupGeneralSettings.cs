@@ -10,13 +10,13 @@ using JigsawPuzzleSolver.Plugins.Attributes;
 namespace JigsawPuzzleSolver.Plugins.AbstractClasses
 {
     /// <summary>
-    /// Plugin group base class for input image mask generation plugins
+    /// Plugin group base class for general settings
     /// </summary>
     [PluginGroupAllowMultipleEnabledPlugins(false)]
-    [PluginGroupOrderIndex(2)]
-    [PluginName("Input Image Mask Plugins")]
-    public abstract class PluginGroupInputImageMask : Plugin
+    [PluginGroupOrderIndex(1)]
+    [PluginName("General Settings Plugins")]
+    public abstract class PluginGroupGeneralSettings : Plugin
     {
-        public abstract Image<Gray, byte> GetMask(Image<Rgba, byte> inputImg);
+
     }
 }

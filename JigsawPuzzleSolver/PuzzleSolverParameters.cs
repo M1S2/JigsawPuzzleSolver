@@ -44,8 +44,9 @@ namespace JigsawPuzzleSolver
         }
         #endregion
 
-        //##############################################################################################################################################################################################
+//##############################################################################################################################################################################################
 
+#if false
         private bool _solverShowDebugResults;
         /// <summary>
         /// Enable this option to show debug informations in the log output. Not neccessary during normal operation.
@@ -78,6 +79,7 @@ namespace JigsawPuzzleSolver
             set { _puzzleMinPieceSize = value; OnPropertyChanged(); }
         }
 
+#endif
         private double _puzzleSolverKeepMatchesThreshold;
         /// <summary>
         /// Only the best matching piece pairs should be kept. This parameter is used to discard too bad pairs. The higher this value is the more pairs are kept.
@@ -90,6 +92,7 @@ namespace JigsawPuzzleSolver
 
         //**********************************************************************************************************************************************************************************************
 
+#if false
         /// <summary>
         /// Background color of the pieces
         /// </summary>
@@ -119,7 +122,7 @@ namespace JigsawPuzzleSolver
             get { return _pieceFindCornersPeakDismissPercentage; }
             set { _pieceFindCornersPeakDismissPercentage = value; OnPropertyChanged(); }
         }
-
+#endif
         //**********************************************************************************************************************************************************************************************
 
         private double _edgeCompareWindowSizePercent;
@@ -144,6 +147,7 @@ namespace JigsawPuzzleSolver
 
         //**********************************************************************************************************************************************************************************************
 
+#if false
         private bool _useParallelLoops;
         /// <summary>
         /// Enable this option to use multiple threads for processing. If the option is disabled only one thread is used.
@@ -153,20 +157,27 @@ namespace JigsawPuzzleSolver
             get { return _useParallelLoops; }
             set { _useParallelLoops = value; OnPropertyChanged(); }
         }
+#endif
 
         //##############################################################################################################################################################################################
 
         public PuzzleSolverParameters()
         {
+#if false
             SolverShowDebugResults = false;
             CompressPuzzleOutputFile = true;
             PuzzleMinPieceSize = 50;
             PieceBackgroundColor = System.Drawing.Color.FromArgb(255, 103, 141, 156);
+#endif
             PuzzleSolverKeepMatchesThreshold = 5; //2.5f;
+#if false
             PieceFindCornersPeakDismissPercentage = 0.1;
+#endif
             EdgeCompareWindowSizePercent = 0.003; //0.002; //0.01; //0.15;
             EdgeCompareEndpointDiffIgnoreThreshold = 15;
+#if false
             UseParallelLoops = true;
+#endif
         }
 
         //**********************************************************************************************************************************************************************************************
@@ -178,15 +189,21 @@ namespace JigsawPuzzleSolver
         {
             PuzzleSolverParameters tmpParams = new PuzzleSolverParameters();
 
+#if false
             Instance.SolverShowDebugResults = tmpParams.SolverShowDebugResults;
             Instance.CompressPuzzleOutputFile = tmpParams.CompressPuzzleOutputFile;
             Instance.PuzzleMinPieceSize = tmpParams.PuzzleMinPieceSize;
             Instance.PieceBackgroundColor = tmpParams.PieceBackgroundColor;
+#endif
             Instance.PuzzleSolverKeepMatchesThreshold = tmpParams.PuzzleSolverKeepMatchesThreshold;
+#if false
             Instance.PieceFindCornersPeakDismissPercentage = tmpParams.PieceFindCornersPeakDismissPercentage;
+#endif
             Instance.EdgeCompareWindowSizePercent = tmpParams.EdgeCompareWindowSizePercent;
             Instance.EdgeCompareEndpointDiffIgnoreThreshold = tmpParams.EdgeCompareEndpointDiffIgnoreThreshold;
+#if false
             Instance.UseParallelLoops = tmpParams.UseParallelLoops;
+#endif
         }
 
         private static System.Windows.Input.ICommand _defaultSettingsCommand;

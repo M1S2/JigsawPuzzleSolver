@@ -15,6 +15,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using LogBox.LogEvents;
 using ImageGallery.LocalDriveBitmaps;
+using JigsawPuzzleSolver.Plugins;
 
 namespace JigsawPuzzleSolver
 {
@@ -75,7 +76,7 @@ namespace JigsawPuzzleSolver
             PieceID = pieceID;
             EdgeNumber = edgeNumber;
             contour = edgeContour;
-            if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
+            if (PluginFactory.GetGeneralSettingsPlugin().SolverShowDebugResults)
             {
                 PieceImgColor = pieceImgColor;
                 ContourImg = new LocalDriveBitmap(System.IO.Path.GetDirectoryName(PieceImgColor.LocalFilePath) + @"\Edges\" + PieceID + "_Edge#" + edgeNumber.ToString() + ".png", null);
@@ -135,7 +136,7 @@ namespace JigsawPuzzleSolver
                     }
                 }
 
-                if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
+                if (PluginFactory.GetGeneralSettingsPlugin().SolverShowDebugResults)
                 {
                     Bitmap contourImg = PieceImgColor.Bmp;
                     for (int i = 0; i < contour.Size; i++)
@@ -264,7 +265,7 @@ namespace JigsawPuzzleSolver
                 }
                 double matchResult = cost / total_length;
 
-                if (PuzzleSolverParameters.Instance.SolverShowDebugResults)
+                if (PluginFactory.GetGeneralSettingsPlugin().SolverShowDebugResults)
                 {
                     Image<Rgb, byte> contourOverlay = new Image<Rgb, byte>(500, 500);
                     VectorOfPoint contour1 = GetTranslatedContour(100, 0);

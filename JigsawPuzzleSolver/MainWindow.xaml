@@ -152,7 +152,7 @@
                 </Grid>
             </MetroControls:Flyout>
             
-            <MetroControls:Flyout AreAnimationsEnabled="True" Header="Plugins" Position="Right" Width="450" Margin="0,30,0,0" IsPinned="False" Theme="Inverse">
+            <MetroControls:Flyout AreAnimationsEnabled="True" Header="Plugins" Position="Right" Width="650" Margin="0,30,0,0" IsPinned="False" Theme="Inverse">
                 <pluginControls:PluginConfigurator/>
             </MetroControls:Flyout>
         </MetroControls:FlyoutsControl>

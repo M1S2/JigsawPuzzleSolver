@@ -13,9 +13,10 @@ namespace JigsawPuzzleSolver.Plugins.AbstractClasses
     /// Plugin group base class for solution image generation plugins
     /// </summary>
     [PluginGroupAllowMultipleEnabledPlugins(true)]
+    [PluginGroupOrderIndex(4)]
     [PluginName("Generate Solution Image Plugins")]
     public abstract class PluginGroupGenerateSolutionImage : Plugin
     {
-        public abstract Bitmap GenerateSolutionImage(Matrix<int> solutionLocations, int solutionID);
+        public abstract Bitmap GenerateSolutionImage(Matrix<int> solutionLocations, int solutionID, List<Piece> Pieces);
     }
 }

@@ -148,6 +148,7 @@ namespace JigsawPuzzleSolver.GUI_Elements
             ScrollLogEntries = false;
             cancelTokenSource = new CancellationTokenSource();
             PuzzleHandle.SetCancelToken(cancelTokenSource.Token);
+            Plugins.PluginFactory.CancelToken = cancelTokenSource.Token;
 
             stopWatchDispatcherTimer.Start();
             StopWatchSolver.Restart();

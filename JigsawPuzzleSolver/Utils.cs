@@ -168,6 +168,21 @@ namespace JigsawPuzzleSolver
             return rangeLowerPositive <= anglePositive || anglePositive <= rangeUpperPositive;
         }
 
+        //**********************************************************************************************************************************************************************************************
+
+        /// <summary>
+        /// Modulo x % m including negative numbers for x
+        /// </summary>
+        /// <param name="x">x % m</param>
+        /// <param name="m">x % m</param>
+        /// <returns>x % m including negative numbers for x</returns>
+        /// see: https://stackoverflow.com/questions/1082917/mod-of-negative-number-is-melting-my-brain
+        public static int ModuloWithNegative(int x, int m)
+        {
+            int r = x % m;
+            return r < 0 ? r + m : r;
+        }
+
         #endregion
 
         //**********************************************************************************************************************************************************************************************

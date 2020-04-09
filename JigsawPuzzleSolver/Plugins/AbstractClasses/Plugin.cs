@@ -39,6 +39,7 @@ namespace JigsawPuzzleSolver.Plugins.AbstractClasses
         /// <summary>
         /// Is the plugin enabled or not
         /// </summary>
+        [DataMember]
         public bool IsEnabled
         {
             get { return _isEnabled; }
@@ -49,5 +50,24 @@ namespace JigsawPuzzleSolver.Plugins.AbstractClasses
                 if (tmp_is_enabled != _isEnabled) { OnPropertyChanged(); }
             }
         }
+
+        /// <summary>
+        /// true, if more than one plugin is in the corresponding plugin group
+        /// </summary>
+        public bool MoreThanOnePluginInPluginGroup
+        {
+            get
+            {
+                Type pluginGroupType = this.GetType().BaseType;
+                return PluginFactory.GetPluginsOfGroupType(pluginGroupType).Count > 1;
+            }
+        }
+
+        //##############################################################################################################################################################################################
+
+        /// <summary>
+        /// Reset the plugin settings to default values
+        /// </summary>
+        public abstract void ResetPluginSettingsToDefault();
     }
 }

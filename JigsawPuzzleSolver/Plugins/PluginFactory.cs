@@ -9,6 +9,8 @@ using System.IO;
 using JigsawPuzzleSolver.Plugins.AbstractClasses;
 using JigsawPuzzleSolver.Plugins.Implementations;
 using JigsawPuzzleSolver.Plugins.Attributes;
+using LogBox.LogEvents;
+using System.Threading;
 
 namespace JigsawPuzzleSolver.Plugins
 {
@@ -26,6 +28,16 @@ namespace JigsawPuzzleSolver.Plugins
         /// List with instances of all available plugins
         /// </summary>
         public static List<Plugin> AvailablePlugins { get; set; } = new List<Plugin>();
+
+        /// <summary>
+        /// LogHandle to output messages in the assigned log location
+        /// </summary>
+        public static IProgress<LogEvent> LogHandle { get; set; }
+
+        /// <summary>
+        /// Cancellation Token to stop some long running operation
+        /// </summary>
+        public static CancellationToken CancelToken { get; set; }
 
         //##############################################################################################################################################################################################
 
@@ -53,6 +65,7 @@ namespace JigsawPuzzleSolver.Plugins
                     AvailablePlugins.Add(plugin);
                 }
             }
+            AvailablePlugins = AvailablePlugins.OrderBy(p => p.GetType().BaseType.GetCustomAttribute<PluginGroupOrderIndex>().OrderIndex).ToList();
             PluginGroupTypes = executingAssembly.GetTypes().Where(t => typeof(Plugin).IsAssignableFrom(t) && t != typeof(Plugin) && t.IsAbstract).ToList();
             EnsureAllowedNumberOfPluginsPerGroupIsEnabled();
         }
@@ -147,6 +160,15 @@ namespace JigsawPuzzleSolver.Plugins
         public static List<T> GetEnabledPluginsOfGroupType<T>() where T : Plugin
         {
             return GetEnabledPluginsOfGroupType(typeof(T)).Cast<T>().ToList();
+        }
+
+        /// <summary>
+        /// Return the GeneralSettings plugin to access the settings faster
+        /// </summary>
+        /// <returns>Returns PluginGeneralSettings</returns>
+        public static PluginGeneralSettings GetGeneralSettingsPlugin()
+        {
+            return AvailablePlugins.Where(p => p.GetType() == typeof(PluginGeneralSettings)).FirstOrDefault() as PluginGeneralSettings;
         }
 
         //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
