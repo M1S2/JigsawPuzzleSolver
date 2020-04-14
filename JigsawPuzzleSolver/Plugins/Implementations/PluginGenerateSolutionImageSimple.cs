@@ -11,6 +11,7 @@ using JigsawPuzzleSolver.Plugins.AbstractClasses;
 using JigsawPuzzleSolver.Plugins.Attributes;
 using JigsawPuzzleSolver.Plugins.Controls;
 using System.IO;
+using MahApps.Metro.IconPacks;
 
 namespace JigsawPuzzleSolver.Plugins.Implementations
 {
@@ -18,6 +19,10 @@ namespace JigsawPuzzleSolver.Plugins.Implementations
     [PluginDescription("Plugin for solution image generation placing pieces side by side")]
     public class PluginGenerateSolutionImageSimple : PluginGroupGenerateSolutionImage
     {
+        public override PackIconBase PluginIcon => new PackIconFontAwesome() { Kind = PackIconFontAwesomeKind.ThSolid };
+
+        //##############################################################################################################################################################################################
+
         private int _outputWidthPerPiece;
         [PluginSettingNumber(1, 0, 2000)]
         [PluginSettingDescription("Width of each piece in the output image. Overall Width of the solution image is width per piece times number of pieces in X direction.")]

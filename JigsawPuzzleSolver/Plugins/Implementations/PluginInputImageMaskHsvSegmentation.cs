@@ -10,6 +10,7 @@ using Emgu.CV.Structure;
 using JigsawPuzzleSolver.Plugins.AbstractClasses;
 using JigsawPuzzleSolver.Plugins.Attributes;
 using JigsawPuzzleSolver.Plugins.Controls;
+using MahApps.Metro.IconPacks;
 
 namespace JigsawPuzzleSolver.Plugins.Implementations
 {
@@ -17,6 +18,10 @@ namespace JigsawPuzzleSolver.Plugins.Implementations
     [PluginDescription("Plugin for generating binary mask from input image using HSV segmentation")]
     public class PluginInputImageMaskHsvSegmentation : PluginGroupInputImageMask
     {
+        public override PackIconBase PluginIcon => new PackIconMaterial() { Kind = PackIconMaterialKind.Palette };
+
+        //##############################################################################################################################################################################################
+
         private Color _pieceBackgroundColor;
         [PluginSettingCustomControl(typeof(PluginSettingHsvSegmentationColorPicker))]
         [PluginSettingDescription("Background color of pieces")]

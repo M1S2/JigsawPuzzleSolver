@@ -12,6 +12,7 @@ using Emgu.CV.Util;
 using JigsawPuzzleSolver.Plugins.AbstractClasses;
 using JigsawPuzzleSolver.Plugins.Attributes;
 using LogBox.LogEvents;
+using MahApps.Metro.IconPacks;
 
 namespace JigsawPuzzleSolver.Plugins.Implementations
 {
@@ -19,6 +20,10 @@ namespace JigsawPuzzleSolver.Plugins.Implementations
     [PluginDescription("Plugin for finding piece corners using polar coordinates algorithm")]
     public class PluginPieceCornersPolarCoordinates : PluginGroupFindPieceCorners
     {
+        public override PackIconBase PluginIcon => new PackIconMaterial() { Kind = PackIconMaterialKind.ChartDonut };
+
+        //##############################################################################################################################################################################################
+
         private double _pieceFindCornersPeakDismissPercentage;
         [PluginSettingNumber(1, 0, 100)]
         [PluginSettingDescription("This setting is used to find the corners of the pieces using polar coordinates. The peaks under this threshold are dismissed.")]

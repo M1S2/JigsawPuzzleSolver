@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
+using MahApps.Metro.IconPacks;
 
 namespace JigsawPuzzleSolver.Plugins.AbstractClasses
 {
@@ -62,6 +63,11 @@ namespace JigsawPuzzleSolver.Plugins.AbstractClasses
                 return PluginFactory.GetPluginsOfGroupType(pluginGroupType).Count > 1;
             }
         }
+
+        /// <summary>
+        /// Icon for the plugin
+        /// </summary>
+        public virtual PackIconBase PluginIcon { get; }
 
         //##############################################################################################################################################################################################
 

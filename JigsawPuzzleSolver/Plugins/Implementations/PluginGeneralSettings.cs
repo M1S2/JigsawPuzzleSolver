@@ -10,6 +10,7 @@ using Emgu.CV;
 using JigsawPuzzleSolver.Plugins.AbstractClasses;
 using JigsawPuzzleSolver.Plugins.Attributes;
 using JigsawPuzzleSolver.Plugins.Controls;
+using MahApps.Metro.IconPacks;
 
 namespace JigsawPuzzleSolver.Plugins.Implementations
 {
@@ -17,6 +18,10 @@ namespace JigsawPuzzleSolver.Plugins.Implementations
     [PluginDescription("Plugin holding general settings")]
     public class PluginGeneralSettings : PluginGroupGeneralSettings
     {
+        public override PackIconBase PluginIcon => new PackIconMaterial() { Kind = PackIconMaterialKind.Settings };
+
+        //##############################################################################################################################################################################################
+
         private bool _solverShowDebugResults;
         [PluginSettingBool("Show", "Hide")]
         [PluginSettingDescription("Enable this option to show debug informations in the log output. Not neccessary during normal operation.")]
@@ -53,6 +58,15 @@ namespace JigsawPuzzleSolver.Plugins.Implementations
             set { _puzzleMinPieceSize = value; OnPropertyChanged(); }
         }
 
+        private double _puzzleSolverKeepMatchesThreshold;
+        [PluginSettingNumber(1, 0, 500000000)]
+        [PluginSettingDescription("Only the best matching piece pairs should be kept. This parameter is used to discard too bad pairs. The higher this value is the more pairs are kept.")]
+        public double PuzzleSolverKeepMatchesThreshold
+        {
+            get { return _puzzleSolverKeepMatchesThreshold; }
+            set { _puzzleSolverKeepMatchesThreshold = value; OnPropertyChanged(); }
+        }
+
         //##############################################################################################################################################################################################
 
         /// <summary>
@@ -64,6 +78,7 @@ namespace JigsawPuzzleSolver.Plugins.Implementations
             CompressPuzzleOutputFile = true;
             UseParallelLoops = false;
             PuzzleMinPieceSize = 50;
+            PuzzleSolverKeepMatchesThreshold = 5;
         }
     }
 }

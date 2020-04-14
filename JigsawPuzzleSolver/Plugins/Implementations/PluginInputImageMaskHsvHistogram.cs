@@ -11,6 +11,7 @@ using Emgu.CV.Util;
 using JigsawPuzzleSolver.Plugins.AbstractClasses;
 using JigsawPuzzleSolver.Plugins.Attributes;
 using LogBox.LogEvents;
+using MahApps.Metro.IconPacks;
 
 namespace JigsawPuzzleSolver.Plugins.Implementations
 {
@@ -18,6 +19,10 @@ namespace JigsawPuzzleSolver.Plugins.Implementations
     [PluginDescription("Plugin for generating binary mask from input image using HSV histogram")]
     public class PluginInputImageMaskHsvHistogram : PluginGroupInputImageMask
     {
+        public override PackIconBase PluginIcon => new PackIconMaterialLight() { Kind = PackIconMaterialLightKind.ChartHistogram };
+
+        //##############################################################################################################################################################################################
+
         private int _mainHueSegment;
         [PluginSettingNumber(1, 0, 179)]
         [PluginSettingDescription("Is the piece background rather red (0), green (60) or blue (120)?")]

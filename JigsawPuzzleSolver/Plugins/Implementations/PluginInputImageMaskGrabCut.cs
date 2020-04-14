@@ -8,6 +8,7 @@ using Emgu.CV;
 using Emgu.CV.Structure;
 using JigsawPuzzleSolver.Plugins.AbstractClasses;
 using JigsawPuzzleSolver.Plugins.Attributes;
+using MahApps.Metro.IconPacks;
 
 namespace JigsawPuzzleSolver.Plugins.Implementations
 {
@@ -15,6 +16,10 @@ namespace JigsawPuzzleSolver.Plugins.Implementations
     [PluginDescription("Plugin for generating binary mask from input image using GrabCut algorithm")]
     public class PluginInputImageMaskGrabCut : PluginGroupInputImageMask
     {
+        public override PackIconBase PluginIcon => new PackIconMaterial() { Kind = PackIconMaterialKind.ContentCut };
+
+        //##############################################################################################################################################################################################
+
         /// <summary>
         /// Reset the plugin settings to default values
         /// </summary>

@@ -16,6 +16,7 @@ using System.Reflection;
 using JigsawPuzzleSolver.Plugins.AbstractClasses;
 using JigsawPuzzleSolver.Plugins.Attributes;
 using MahApps.Metro.Controls;
+using MahApps.Metro.IconPacks;
 
 namespace JigsawPuzzleSolver.Plugins.Controls
 {
@@ -53,7 +54,9 @@ namespace JigsawPuzzleSolver.Plugins.Controls
 
             //Generate Header for settingsExpander (containing TextBlock "Settings" and Button "Reset Settings")
             DockPanel settingsExpanderHeaderDockPanel = new DockPanel() { LastChildFill = false };
+            settingsExpanderHeaderDockPanel.Children.Add(new PackIconFontAwesome() { Kind = PackIconFontAwesomeKind.WrenchSolid, Width = 20, Height = 20, Margin = new Thickness(10, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center });
             settingsExpanderHeaderDockPanel.Children.Add(new TextBlock(new Run("Settings")) { VerticalAlignment = VerticalAlignment.Center });
+
             Button resetButton = new Button() { Content = "Reset Settings", Style = (Style)this.FindResource("SquareButtonStyle") };
             resetButton.Click += new RoutedEventHandler(delegate (object o, RoutedEventArgs a) { plugin.ResetPluginSettingsToDefault(); });
             DockPanel.SetDock(resetButton, Dock.Right);

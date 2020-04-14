@@ -28,7 +28,6 @@
             <converters:PuzzleSavingStateToIconConverter x:Key="SavingStateConverter"/>
             <converters:DivisionConverter x:Key="DivConverter"/>
             <converters:PuzzleStateToProgressBarStateConverter x:Key="ProgressBarStateConverter"/>
-            <converters:IconPackToGeometryDrawingConverter x:Key="IconPackGeometryDrawingConverter"/>
             <converters:PuzzleStateToIconConverter x:Key="PuzzleStateIconConverter"/>
             <converters:ColorToBrushConverter x:Key="colorBrushConverter"/>
 
@@ -152,7 +151,7 @@
                 </Grid>
             </MetroControls:Flyout>
             
-            <MetroControls:Flyout AreAnimationsEnabled="True" Header="Plugins" Position="Right" Width="650" Margin="0,30,0,0" IsPinned="False" Theme="Inverse">
+            <MetroControls:Flyout AreAnimationsEnabled="True" Header="Plugins" Position="Right" Width="650" Margin="0,30,0,30" IsPinned="False" Theme="Inverse">
                 <pluginControls:PluginConfigurator/>
             </MetroControls:Flyout>
         </MetroControls:FlyoutsControl>

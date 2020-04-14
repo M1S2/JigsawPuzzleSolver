@@ -10,6 +10,7 @@ using JigsawPuzzleSolver.Plugins.Attributes;
 using Emgu.CV.Structure;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Util;
+using MahApps.Metro.IconPacks;
 
 namespace JigsawPuzzleSolver.Plugins.Implementations
 {
@@ -17,6 +18,10 @@ namespace JigsawPuzzleSolver.Plugins.Implementations
     [PluginDescription("Plugin for solution image generation stitching pieces together")]
     public class PluginGenerateSolutionImageStitching : PluginGroupGenerateSolutionImage
     {
+        public override PackIconBase PluginIcon => new PackIconModern() { Kind = PackIconModernKind.Layer };
+
+        //##############################################################################################################################################################################################
+
         private int _borderAroundSolutionImage;
         [PluginSettingNumber(1, 0, 1000)]
         [PluginSettingDescription("Border around the solution image in pixels in both directions.")]

@@ -11,6 +11,7 @@ using Emgu.CV.Util;
 using JigsawPuzzleSolver.Plugins.AbstractClasses;
 using JigsawPuzzleSolver.Plugins.Attributes;
 using LogBox.LogEvents;
+using MahApps.Metro.IconPacks;
 
 namespace JigsawPuzzleSolver.Plugins.Implementations
 {
@@ -18,6 +19,10 @@ namespace JigsawPuzzleSolver.Plugins.Implementations
     [PluginDescription("Plugin for finding piece corners using GFTT algorithm (Good feature to track)")]
     public class PluginPieceCornersGFTT : PluginGroupFindPieceCorners
     {
+        public override PackIconBase PluginIcon => new PackIconModern() { Kind = PackIconModernKind.Corner };
+
+        //##############################################################################################################################################################################################
+
         private int _blockSize;
         [PluginSettingNumber(1, 1, 100)]
         [PluginSettingDescription("How big is the area to look for the corner in?")]

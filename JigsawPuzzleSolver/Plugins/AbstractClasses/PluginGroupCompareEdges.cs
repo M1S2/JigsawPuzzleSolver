@@ -6,18 +6,17 @@ using System.Threading.Tasks;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using JigsawPuzzleSolver.Plugins.Attributes;
-using MahApps.Metro.IconPacks;
 
 namespace JigsawPuzzleSolver.Plugins.AbstractClasses
 {
     /// <summary>
-    /// Plugin group base class for general settings
+    /// Plugin group base class for edge comparison plugins
     /// </summary>
     [PluginGroupAllowMultipleEnabledPlugins(false)]
-    [PluginGroupOrderIndex(1)]
-    [PluginName("General Settings Plugins")]
-    public abstract class PluginGroupGeneralSettings : Plugin
+    [PluginGroupOrderIndex(4)]
+    [PluginName("Compare Edges Plugins")]
+    public abstract class PluginGroupCompareEdges : Plugin
     {
-
+        public abstract double CompareEdges(Edge edge1, Edge edge2);
     }
 }

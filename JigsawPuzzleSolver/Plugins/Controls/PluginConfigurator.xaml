@@ -5,6 +5,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:JigsawPuzzleSolver.Plugins.Controls"
              xmlns:MetroControls="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:converters="clr-namespace:JigsawPuzzleSolver.GUI_Elements.Converters"
              xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
              xmlns:plug="clr-namespace:JigsawPuzzleSolver.Plugins"
              mc:Ignorable="d" 
@@ -13,6 +15,7 @@
     <UserControl.Resources>
         <local:AttributeBindingConverter x:Key="attrBindingConverter"/>
         <BooleanToVisibilityConverter x:Key="boolVisibilityConverter"/>
+        <converters:IconPackToGeometryDrawingConverter x:Key="iconPackGeometryDrawingConverter"/>
 
         <CollectionViewSource x:Key="pluginsSource" Source="{Binding Source={x:Static plug:PluginFactory.AvailablePlugins}}">
             <CollectionViewSource.GroupDescriptions>
@@ -33,8 +36,13 @@
                             <Expander Margin="5" IsExpanded="False" Background="{DynamicResource WindowBackgroundBrush}" BorderThickness="0">
                                 <Expander.Header>
                                     <DockPanel LastChildFill="False">
-                                        <TextBlock FontSize="14" Text="{Binding ., Converter={StaticResource attrBindingConverter}, ConverterParameter=PluginNameAttribute.Name}"/>
-                                        <MetroControls:ToggleSwitch DockPanel.Dock="Right" OnLabel="Enabled" OffLabel="Disabled" VerticalAlignment="Center" Style="{StaticResource MahApps.Metro.Styles.ToggleSwitch.Win10}" IsChecked="{Binding IsEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding MoreThanOnePluginInPluginGroup, Converter={StaticResource boolVisibilityConverter}}" />
+                                        <Image Margin="10,0" Width="22" Height="22">
+                                            <Image.Source>
+                                                <DrawingImage Drawing="{Binding PluginIcon, Converter={StaticResource iconPackGeometryDrawingConverter}}"/>
+                                            </Image.Source>
+                                        </Image>
+                                        <TextBlock FontSize="14" VerticalAlignment="Center" Text="{Binding ., Converter={StaticResource attrBindingConverter}, ConverterParameter=PluginNameAttribute.Name}"/>
+                                        <MetroControls:ToggleSwitch DockPanel.Dock="Right" Width="120" OnLabel="Enabled" OffLabel="Disabled" VerticalAlignment="Center" Style="{StaticResource MahApps.Metro.Styles.ToggleSwitch.Win10}" IsChecked="{Binding IsEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding MoreThanOnePluginInPluginGroup, Converter={StaticResource boolVisibilityConverter}}" />
                                     </DockPanel>
                                 </Expander.Header>
                                 <StackPanel Margin="5" Orientation="Vertical">

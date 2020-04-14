@@ -17,6 +17,7 @@ namespace JigsawPuzzleSolver.GUI_Elements.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
+            if(value == null) { return new SolidColorBrush(System.Windows.Media.Colors.Black); }
             System.Drawing.Color color1 = (System.Drawing.Color)value;
             return new SolidColorBrush(System.Windows.Media.Color.FromRgb(color1.R, color1.G, color1.B));
         }

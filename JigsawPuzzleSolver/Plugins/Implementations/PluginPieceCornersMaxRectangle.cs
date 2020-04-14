@@ -11,6 +11,7 @@ using Emgu.CV.Util;
 using JigsawPuzzleSolver.Plugins.AbstractClasses;
 using JigsawPuzzleSolver.Plugins.Attributes;
 using LogBox.LogEvents;
+using MahApps.Metro.IconPacks;
 
 namespace JigsawPuzzleSolver.Plugins.Implementations
 {
@@ -18,6 +19,10 @@ namespace JigsawPuzzleSolver.Plugins.Implementations
     [PluginDescription("Plugin for finding piece corners using maximum rectangle algorithmus")]
     public class PluginPieceCornersMaxRectangle : PluginGroupFindPieceCorners
     {
+        public override PackIconBase PluginIcon => new PackIconModern() { Kind = PackIconModernKind.VectorRectangle };
+
+        //##############################################################################################################################################################################################
+
         private double _pieceFindCornersMaxAngleDiff;
         [PluginSettingNumber(1, 0, 360)]
         [PluginSettingDescription("Maximum allowed angle difference from perfect rectangle. If sum of angle deviation of all 4 corners from 90 degree is greaten than this parameter. The rectangle is dismissed.")]

@@ -467,6 +467,9 @@ namespace JigsawPuzzleSolver
 
                 ConcurrentDictionary<int, MatchScore> matchesDict = new ConcurrentDictionary<int, MatchScore>();        // Using ConcurrentDictionary because ConcurrentList doesn't exist
 
+                // Get the (first) enabled Plugin for edge comparison
+                PluginGroupCompareEdges pluginCompareEdges = PluginFactory.GetEnabledPluginsOfGroupType<PluginGroupCompareEdges>().FirstOrDefault();
+
                 ParallelOptions parallelOptions = new ParallelOptions
                 {
                     CancellationToken = _cancelToken,
@@ -493,9 +496,9 @@ namespace JigsawPuzzleSolver
                         Edge edge1 = Pieces[matchScore.PieceIndex1].Edges[matchScore.EdgeIndex1];
                         Edge edge2 = Pieces[matchScore.PieceIndex2].Edges[matchScore.EdgeIndex2];
                         if (edge1 == null || edge2 == null) { matchScore.score = 400000000; }
-                        else { matchScore.score = edge1.Compare(edge2); }
+                        else { matchScore.score = pluginCompareEdges.CompareEdges(edge1, edge2); }
 
-                        if (matchScore.score <= PuzzleSolverParameters.Instance.PuzzleSolverKeepMatchesThreshold)  // Keep only the best matches (all scores above or equal 100000000 mean that the edges won't match)
+                        if (matchScore.score <= PluginFactory.GetGeneralSettingsPlugin().PuzzleSolverKeepMatchesThreshold)  // Keep only the best matches (all scores above or equal 100000000 mean that the edges won't match)
                         {
                             matchesDict.TryAdd(matchesDict.Count, matchScore);
                         }
