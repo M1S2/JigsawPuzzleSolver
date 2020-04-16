@@ -112,8 +112,7 @@ namespace JigsawPuzzleSolver
                 {
                     _openSettingsFlyoutCommand = new RelayCommand(param =>
                     {
-#warning Settings temporary disabled !!!
-                        Flyout flyout = this.Flyouts.Items[1] as Flyout; //this.Flyouts.Items[0] as Flyout;
+                        Flyout flyout = this.Flyouts.Items[0] as Flyout;
                         flyout.IsOpen = !flyout.IsOpen;
                     });
                 }
@@ -180,7 +179,7 @@ namespace JigsawPuzzleSolver
             }*/
 
 #warning Only for faster testing !!!
-            OpenNewPuzzle(@"..\..\..\Test_Pictures\ScannedImages\4");
+            OpenNewPuzzle(@"..\..\..\Test_Pictures\4");
         }
 
         private void OpenNewPuzzle(string piecesFolderPath)

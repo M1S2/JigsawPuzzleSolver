@@ -130,7 +130,6 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="DistanceToPointComparer.cs" />
     <Compile Include="Edge.cs" />
     <Compile Include="Enumerations\PuzzleSavingStates.cs" />
     <Compile Include="Enumerations\EdgeTypes.cs" />
@@ -176,7 +175,6 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     <Compile Include="Plugins\AbstractClasses\PluginGroupGenerateSolutionImage.cs" />
     <Compile Include="Plugins\AbstractClasses\PluginGroupInputImageMask.cs" />
     <Compile Include="Plugins\PluginFactory.cs" />
-    <Compile Include="Structures\PolarCoordinate.cs" />
     <Compile Include="WindowTheme\AppThemeData.cs" />
     <Compile Include="GUI Elements\Converters\AbsConverter.cs" />
     <Compile Include="GUI Elements\Converters\FullPathToFileNameConverter.cs" />
@@ -195,10 +193,7 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     <Compile Include="GUI Elements\SolverControl.xaml.cs">
       <DependentUpon>SolverControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ObservableDictionary.cs" />
-    <Compile Include="PuzzleSolverParameters.cs" />
     <Compile Include="Serialization\SaveableObject.cs" />
-    <Compile Include="Structures\FindCornerRectangleScore.cs" />
     <Compile Include="MatchScoreComparer.cs" />
     <Compile Include="Piece.cs" />
     <Compile Include="Puzzle.cs" />

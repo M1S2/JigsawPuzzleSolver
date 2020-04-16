@@ -25,17 +25,6 @@ namespace JigsawPuzzleSolver.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        public global::JigsawPuzzleSolver.PuzzleSolverParameters SolverParameters {
-            get {
-                return ((global::JigsawPuzzleSolver.PuzzleSolverParameters)(this["SolverParameters"]));
-            }
-            set {
-                this["SolverParameters"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
         public string AppTheme {
             get {
