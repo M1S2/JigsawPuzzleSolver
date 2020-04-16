@@ -17,6 +17,7 @@ using System.Diagnostics;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Threading;
+using JigsawPuzzleSolver.Plugins.Core;
 
 namespace JigsawPuzzleSolver.GUI_Elements
 {
@@ -148,7 +149,7 @@ namespace JigsawPuzzleSolver.GUI_Elements
             ScrollLogEntries = false;
             cancelTokenSource = new CancellationTokenSource();
             PuzzleHandle.SetCancelToken(cancelTokenSource.Token);
-            Plugins.PluginFactory.CancelToken = cancelTokenSource.Token;
+            PluginFactory.CancelToken = cancelTokenSource.Token;
 
             stopWatchDispatcherTimer.Start();
             StopWatchSolver.Restart();

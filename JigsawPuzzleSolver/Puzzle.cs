@@ -20,8 +20,10 @@ using Emgu.CV.Cvb;
 using LogBox.LogEvents;
 using ImageGallery.LocalDriveBitmaps;
 using JigsawPuzzleSolver.Plugins;
-using JigsawPuzzleSolver.Plugins.AbstractClasses;
-using JigsawPuzzleSolver.Plugins.Attributes;
+using JigsawPuzzleSolver.Plugins.Core;
+using JigsawPuzzleSolver.Plugins.Implementations.GroupInputImageMask;
+using JigsawPuzzleSolver.Plugins.Implementations.GroupCompareEdges;
+using JigsawPuzzleSolver.Plugins.Implementations.GroupGenerateSolutionImage;
 
 namespace JigsawPuzzleSolver
 {

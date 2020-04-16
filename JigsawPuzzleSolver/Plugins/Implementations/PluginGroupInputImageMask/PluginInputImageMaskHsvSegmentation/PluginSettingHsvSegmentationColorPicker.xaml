@@ -1,0 +1,27 @@
+﻿<core:PluginSettingsBaseUserControl
+            xmlns:core="clr-namespace:JigsawPuzzleSolver.Plugins.Core"
+            x:Class="JigsawPuzzleSolver.Plugins.Implementations.GroupInputImageMask.PluginSettingHsvSegmentationColorPicker"
+            xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+            xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+            xmlns:local="clr-namespace:JigsawPuzzleSolver.Plugins.Implementations.GroupInputImageMask"
+            xmlns:converters="clr-namespace:JigsawPuzzleSolver.GUI_Elements.Converters"
+            mc:Ignorable="d"
+            x:Name="PluginSettingHsvSegmentationColorPickerUserControl"
+            d:DesignHeight="50" d:DesignWidth="50">
+
+    <core:PluginSettingsBaseUserControl.Resources>
+        <converters:ColorToBrushConverter x:Key="colorBrushConverter"/>
+    </core:PluginSettingsBaseUserControl.Resources>
+    
+    <Grid>
+        <Button Grid.Row="2" Grid.Column="1" Command="{Binding PickColorCommand, ElementName=PluginSettingHsvSegmentationColorPickerUserControl}">
+            <Button.Template>
+                <ControlTemplate>
+                    <Ellipse Height="40" Width="40" HorizontalAlignment="Left" Stroke="{DynamicResource BlackBrush}" StrokeThickness="2" Fill="{Binding CustomProp, ElementName=PluginSettingHsvSegmentationColorPickerUserControl, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, Converter={StaticResource colorBrushConverter}}" ToolTip="Background color of the puzzle pieces."/>
+                </ControlTemplate>
+            </Button.Template>
+        </Button>
+    </Grid>
+</core:PluginSettingsBaseUserControl>

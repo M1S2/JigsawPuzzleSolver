@@ -16,8 +16,8 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using LogBox.LogEvents;
 using ImageGallery.LocalDriveBitmaps;
-using JigsawPuzzleSolver.Plugins;
-using JigsawPuzzleSolver.Plugins.AbstractClasses;
+using JigsawPuzzleSolver.Plugins.Core;
+using JigsawPuzzleSolver.Plugins.Implementations.GroupFindPieceCorners;
 
 namespace JigsawPuzzleSolver
 {

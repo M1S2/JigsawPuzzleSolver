@@ -29,7 +29,7 @@ using MahApps.Metro.Controls.Dialogs;
 using JigsawPuzzleSolver.GUI_Elements;
 using JigsawPuzzleSolver.WindowTheme;
 using LogBox.LogEvents;
-using JigsawPuzzleSolver.Plugins;
+using JigsawPuzzleSolver.Plugins.Core;
 
 namespace JigsawPuzzleSolver
 {
@@ -144,7 +144,7 @@ namespace JigsawPuzzleSolver
             {
                 logBox1.LogEvent(progressValue);
             });
-            Plugins.PluginFactory.LogHandle = logHandle;
+            PluginFactory.LogHandle = logHandle;
         }
 
         //##############################################################################################################################################################################################
@@ -293,7 +293,7 @@ namespace JigsawPuzzleSolver
 
                 if(ShouldClose)         // Save all application settings and shutdown the application
                 {
-                    Plugins.PluginFactory.SavePluginSettings();
+                    PluginFactory.SavePluginSettings();
                     Properties.Settings.Default.Save();
                     Application.Current.Shutdown();
                 }     

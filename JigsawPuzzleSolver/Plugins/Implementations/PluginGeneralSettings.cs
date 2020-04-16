@@ -7,9 +7,7 @@ using System.Drawing;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Emgu.CV;
-using JigsawPuzzleSolver.Plugins.AbstractClasses;
-using JigsawPuzzleSolver.Plugins.Attributes;
-using JigsawPuzzleSolver.Plugins.Controls;
+using JigsawPuzzleSolver.Plugins.Core;
 using MahApps.Metro.IconPacks;
 
 namespace JigsawPuzzleSolver.Plugins.Implementations

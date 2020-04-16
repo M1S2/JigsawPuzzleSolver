@@ -138,43 +138,43 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     <Compile Include="GUI Elements\Converters\ColorToBrushConverter.cs" />
     <Compile Include="GUI Elements\Converters\IconPackToGeometryDrawingConverter.cs" />
     <Compile Include="GUI Elements\Converters\PuzzleStateToIconConverter.cs" />
-    <Compile Include="Plugins\AbstractClasses\PluginGroupGeneralSettings.cs" />
-    <Compile Include="Plugins\AbstractClasses\PluginGroupFindPieceCorners.cs" />
-    <Compile Include="Plugins\AbstractClasses\PluginGroupCompareEdges.cs" />
-    <Compile Include="Plugins\Attributes\PluginGroupOrderIndex.cs" />
-    <Compile Include="Plugins\Controls\PieceBackgroundColorPickerWindow.xaml.cs">
+    <Compile Include="Plugins\Core\PluginSettingsBaseUserControl.cs" />
+    <Compile Include="Plugins\Core\PluginGroupGeneralSettings.cs" />
+    <Compile Include="Plugins\Implementations\PluginGroupFindPieceCorners\PluginGroupFindPieceCorners.cs" />
+    <Compile Include="Plugins\Implementations\PluginGroupCompareEdges\PluginGroupCompareEdges.cs" />
+    <Compile Include="Plugins\Implementations\PluginGroupFindPieceCorners\PluginPieceCornersMaxRectangle\DistanceToPointComparer.cs" />
+    <Compile Include="Plugins\Implementations\PluginGroupFindPieceCorners\PluginPieceCornersMaxRectangle\FindCornerRectangleScore.cs" />
+    <Compile Include="Plugins\Implementations\PluginGroupFindPieceCorners\PluginPieceCornersPolarCoordinates\PolarCoordinate.cs" />
+    <Compile Include="Plugins\Implementations\PluginGroupInputImageMask\PluginInputImageMaskHsvSegmentation\PieceBackgroundColorPickerWindow.xaml.cs">
       <DependentUpon>PieceBackgroundColorPickerWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="PeakFinders\DifferencePeakFinder.cs" />
     <Compile Include="PeakFinders\DouglasPeuckerLineApprox.cs" />
     <Compile Include="PeakFinders\SmoothingFilter.cs" />
-    <Compile Include="Plugins\AbstractClasses\PluginSettingsBaseUserControl.cs" />
-    <Compile Include="Plugins\Attributes\PluginGroupAllowMultipleEnabledPluginsAttribute.cs" />
-    <Compile Include="Plugins\Attributes\PluginDescriptionAttribute.cs" />
-    <Compile Include="Plugins\Attributes\PluginNameAttribute.cs" />
-    <Compile Include="Plugins\Attributes\PluginSetting.cs" />
-    <Compile Include="Plugins\Controls\AttributeBindingConverter.cs" />
-    <Compile Include="Plugins\Controls\PluginConfigurator.xaml.cs">
+    <Compile Include="Plugins\Core\PluginAttributes.cs" />
+    <Compile Include="Plugins\Core\PluginSettingAttributes.cs" />
+    <Compile Include="Plugins\Core\AttributeBindingConverter.cs" />
+    <Compile Include="Plugins\Core\PluginConfigurator.xaml.cs">
       <DependentUpon>PluginConfigurator.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Plugins\Controls\PluginGroupGroupDescription.cs" />
-    <Compile Include="Plugins\Controls\PluginSettingHsvSegmentationColorPicker.xaml.cs">
+    <Compile Include="Plugins\Core\PluginGroupGroupDescription.cs" />
+    <Compile Include="Plugins\Implementations\PluginGroupInputImageMask\PluginInputImageMaskHsvSegmentation\PluginSettingHsvSegmentationColorPicker.xaml.cs">
       <DependentUpon>PluginSettingHsvSegmentationColorPicker.xaml</DependentUpon>
     </Compile>
     <Compile Include="Plugins\Implementations\PluginGeneralSettings.cs" />
-    <Compile Include="Plugins\Implementations\PluginGenerateSolutionImageSimple.cs" />
-    <Compile Include="Plugins\Implementations\PluginGenerateSolutionImageStitching.cs" />
-    <Compile Include="Plugins\Implementations\PluginCompareEdgesContourDiff.cs" />
-    <Compile Include="Plugins\Implementations\PluginPieceCornersPolarCoordinates.cs" />
-    <Compile Include="Plugins\Implementations\PluginPieceCornersMaxRectangle.cs" />
-    <Compile Include="Plugins\Implementations\PluginPieceCornersGFTT.cs" />
-    <Compile Include="Plugins\Implementations\PluginInputImageMaskGrabCut.cs" />
-    <Compile Include="Plugins\Implementations\PluginInputImageMaskHsvHistogram.cs" />
-    <Compile Include="Plugins\Implementations\PluginInputImageMaskHsvSegmentation.cs" />
-    <Compile Include="Plugins\AbstractClasses\Plugin.cs" />
-    <Compile Include="Plugins\AbstractClasses\PluginGroupGenerateSolutionImage.cs" />
-    <Compile Include="Plugins\AbstractClasses\PluginGroupInputImageMask.cs" />
-    <Compile Include="Plugins\PluginFactory.cs" />
+    <Compile Include="Plugins\Implementations\PluginGroupGenerateSolutionImage\PluginGenerateSolutionImageSimple\PluginGenerateSolutionImageSimple.cs" />
+    <Compile Include="Plugins\Implementations\PluginGroupGenerateSolutionImage\PluginGenerateSolutionImageStitching\PluginGenerateSolutionImageStitching.cs" />
+    <Compile Include="Plugins\Implementations\PluginGroupCompareEdges\PluginCompareEdgesContourDiff\PluginCompareEdgesContourDiff.cs" />
+    <Compile Include="Plugins\Implementations\PluginGroupFindPieceCorners\PluginPieceCornersPolarCoordinates\PluginPieceCornersPolarCoordinates.cs" />
+    <Compile Include="Plugins\Implementations\PluginGroupFindPieceCorners\PluginPieceCornersMaxRectangle\PluginPieceCornersMaxRectangle.cs" />
+    <Compile Include="Plugins\Implementations\PluginGroupFindPieceCorners\PluginPieceCornersGFTT\PluginPieceCornersGFTT.cs" />
+    <Compile Include="Plugins\Implementations\PluginGroupInputImageMask\PluginInputImageMaskGrabCut\PluginInputImageMaskGrabCut.cs" />
+    <Compile Include="Plugins\Implementations\PluginGroupInputImageMask\PluginInputImageMaskHsvHistogram\PluginInputImageMaskHsvHistogram.cs" />
+    <Compile Include="Plugins\Implementations\PluginGroupInputImageMask\PluginInputImageMaskHsvSegmentation\PluginInputImageMaskHsvSegmentation.cs" />
+    <Compile Include="Plugins\Core\Plugin.cs" />
+    <Compile Include="Plugins\Implementations\PluginGroupGenerateSolutionImage\PluginGroupGenerateSolutionImage.cs" />
+    <Compile Include="Plugins\Implementations\PluginGroupInputImageMask\PluginGroupInputImageMask.cs" />
+    <Compile Include="Plugins\Core\PluginFactory.cs" />
     <Compile Include="WindowTheme\AppThemeData.cs" />
     <Compile Include="GUI Elements\Converters\AbsConverter.cs" />
     <Compile Include="GUI Elements\Converters\FullPathToFileNameConverter.cs" />
@@ -204,7 +204,7 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     <Compile Include="WindowTheme\WindowThemeUserControl.xaml.cs">
       <DependentUpon>WindowThemeUserControl.xaml</DependentUpon>
     </Compile>
-    <Page Include="Plugins\Controls\PieceBackgroundColorPickerWindow.xaml">
+    <Page Include="Plugins\Implementations\PluginGroupInputImageMask\PluginInputImageMaskHsvSegmentation\PieceBackgroundColorPickerWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -232,11 +232,11 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="Plugins\Controls\PluginConfigurator.xaml">
+    <Page Include="Plugins\Core\PluginConfigurator.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Plugins\Controls\PluginSettingHsvSegmentationColorPicker.xaml">
+    <Page Include="Plugins\Implementations\PluginGroupInputImageMask\PluginInputImageMaskHsvSegmentation\PluginSettingHsvSegmentationColorPicker.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
