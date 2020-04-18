@@ -14,6 +14,7 @@ namespace JigsawPuzzleSolver.Plugins.Implementations.GroupInputImageMask
 {
     [PluginName("InputImageMask HSV Segmentation")]
     [PluginDescription("Plugin for generating binary mask from input image using HSV segmentation")]
+    [PluginIsDevFavorite]
     public class PluginInputImageMaskHsvSegmentation : PluginGroupInputImageMask
     {
         public override PackIconBase PluginIcon => new PackIconMaterial() { Kind = PackIconMaterialKind.Palette };

@@ -39,6 +39,16 @@ namespace JigsawPuzzleSolver.Plugins.Core
     //##############################################################################################################################################################################################
 
     /// <summary>
+    /// Attribute that should be set by developers to plugins that should be marked as favorite (e.g. because they work the best).
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class)]
+    class PluginIsDevFavoriteAttribute : Attribute
+    {
+    }
+
+    //##############################################################################################################################################################################################
+
+    /// <summary>
     /// Attribute containing the order index of the plugin group. This is used to order the plugin groups in the GUI. This attribute should only be assigned to plugin groups.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
@@ -67,4 +77,5 @@ namespace JigsawPuzzleSolver.Plugins.Core
             AllowMultipleEnabledPlugins = allowMultipleEnabledPlugins;
         }
     }
+
 }

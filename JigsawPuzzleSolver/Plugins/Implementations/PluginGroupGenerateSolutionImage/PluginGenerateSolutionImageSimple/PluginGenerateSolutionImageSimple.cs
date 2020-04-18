@@ -15,6 +15,7 @@ namespace JigsawPuzzleSolver.Plugins.Implementations.GroupGenerateSolutionImage
 {
     [PluginName("GenerateSolutionImage Simple")]
     [PluginDescription("Plugin for solution image generation placing pieces side by side")]
+    [PluginIsDevFavorite]
     public class PluginGenerateSolutionImageSimple : PluginGroupGenerateSolutionImage
     {
         public override PackIconBase PluginIcon => new PackIconFontAwesome() { Kind = PackIconFontAwesomeKind.ThSolid };

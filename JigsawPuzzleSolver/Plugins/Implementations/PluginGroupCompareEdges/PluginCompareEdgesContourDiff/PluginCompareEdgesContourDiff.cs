@@ -17,6 +17,7 @@ namespace JigsawPuzzleSolver.Plugins.Implementations.GroupCompareEdges
 {
     [PluginName("PluginCompareEdges Contour Diff")]
     [PluginDescription("Plugin comparing edges using contour difference")]
+    [PluginIsDevFavorite]
     public class PluginCompareEdgesContourDiff : PluginGroupCompareEdges
     {
         public override PackIconBase PluginIcon => new PackIconFontAwesome() { Kind = PackIconFontAwesomeKind.EqualsSolid };

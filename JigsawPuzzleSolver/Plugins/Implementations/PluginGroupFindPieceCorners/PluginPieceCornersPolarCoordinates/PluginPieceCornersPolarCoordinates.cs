@@ -17,6 +17,7 @@ namespace JigsawPuzzleSolver.Plugins.Implementations.GroupFindPieceCorners
 {
     [PluginName("PluginPieceCorners PolarCoordinates")]
     [PluginDescription("Plugin for finding piece corners using polar coordinates algorithm")]
+    [PluginIsDevFavoriteAttribute]
     public class PluginPieceCornersPolarCoordinates : PluginGroupFindPieceCorners
     {
         public override PackIconBase PluginIcon => new PackIconMaterial() { Kind = PackIconMaterialKind.ChartDonut };

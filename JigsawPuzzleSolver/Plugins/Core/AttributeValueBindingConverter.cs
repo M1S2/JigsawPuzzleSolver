@@ -11,10 +11,11 @@ namespace JigsawPuzzleSolver.Plugins.Core
     /// <summary>
     /// Converter to get the value of an custom attribute property.
     /// </summary>
-    class AttributeBindingConverter : IValueConverter
+    class AttributeValueBindingConverter : IValueConverter
     {
         /// <summary>
         /// Converter to get the value of an custom attribute property.
+        /// If only the AttributeName is given, this function returns true, if the Attribute is defined, otherwise false
         /// </summary>
         /// <param name="value">Class that is decorated with the attribute</param>
         /// <param name="targetType"></param>
@@ -42,6 +43,11 @@ namespace JigsawPuzzleSolver.Plugins.Core
                             return propertyInfo.GetValue(firstMatchingAttribute);
                         }
                     }
+                }
+                else if(attributeAndPropertyNameSplitted.Length == 1)
+                {
+                    string attributeName = attributeAndPropertyNameSplitted[0];
+                    return customAttributes.Select(a => a as Attribute).Where(a => ((Type)a.TypeId).Name == attributeName).Count() == 1;        //If an attribute with the given name is found return true, otherwise false
                 }
             }
 

@@ -13,7 +13,11 @@
              d:DesignHeight="450" d:DesignWidth="800">
 
     <UserControl.Resources>
-        <local:AttributeBindingConverter x:Key="attrBindingConverter"/>
+        <local:AttributeValueBindingConverter x:Key="attrValueBindingConverter"/>
+        <local:ConverterChain x:Key="attrDefinedVisibilityConverter">
+            <local:AttributeValueBindingConverter />
+            <BooleanToVisibilityConverter />
+        </local:ConverterChain>
         <BooleanToVisibilityConverter x:Key="boolVisibilityConverter"/>
         <converters:IconPackToGeometryDrawingConverter x:Key="iconPackGeometryDrawingConverter"/>
 
@@ -38,12 +42,13 @@
                                                 <DrawingImage Drawing="{Binding PluginIcon, Converter={StaticResource iconPackGeometryDrawingConverter}}"/>
                                             </Image.Source>
                                         </Image>
-                                        <TextBlock FontSize="14" VerticalAlignment="Center" Text="{Binding ., Converter={StaticResource attrBindingConverter}, ConverterParameter=PluginNameAttribute.Name}"/>
+                                        <TextBlock FontSize="14" VerticalAlignment="Center" Text="{Binding ., Converter={StaticResource attrValueBindingConverter}, ConverterParameter=PluginNameAttribute.Name}" ToolTip="{Binding ., Converter={StaticResource attrValueBindingConverter}, ConverterParameter=PluginDescriptionAttribute.Description}"/>
+                                        <iconPacks:PackIconMaterial Margin="10,0" Width="22" Height="22" Kind="Star" VerticalAlignment="Center" Foreground="Orange" ToolTip="This plugin is the developer favorite plugin" Visibility="{Binding ., Converter={StaticResource attrDefinedVisibilityConverter}, ConverterParameter=PluginIsDevFavoriteAttribute}"/>
                                         <MetroControls:ToggleSwitch DockPanel.Dock="Right" Width="120" OnLabel="Enabled" OffLabel="Disabled" VerticalAlignment="Center" Style="{StaticResource MahApps.Metro.Styles.ToggleSwitch.Win10}" IsChecked="{Binding IsEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding MoreThanOnePluginInPluginGroup, Converter={StaticResource boolVisibilityConverter}}" />
                                     </DockPanel>
                                 </Expander.Header>
                                 <StackPanel Margin="5" Orientation="Vertical">
-                                    <TextBlock Margin="0,5,0,5" Text="{Binding ., Converter={StaticResource attrBindingConverter}, ConverterParameter=PluginDescriptionAttribute.Description}" Foreground="{DynamicResource GrayBrush3}"/>
+                                    <TextBlock Margin="0,5,0,5" Text="{Binding ., Converter={StaticResource attrValueBindingConverter}, ConverterParameter=PluginDescriptionAttribute.Description}" Foreground="{DynamicResource GrayBrush3}"/>
                                     <ContentControl Tag="{Binding}" Loaded="ContentControl_Loaded" />
                                 </StackPanel>
                             </Expander>

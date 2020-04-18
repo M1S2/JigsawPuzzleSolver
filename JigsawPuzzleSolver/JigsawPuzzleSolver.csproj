@@ -138,6 +138,7 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     <Compile Include="GUI Elements\Converters\ColorToBrushConverter.cs" />
     <Compile Include="GUI Elements\Converters\IconPackToGeometryDrawingConverter.cs" />
     <Compile Include="GUI Elements\Converters\PuzzleStateToIconConverter.cs" />
+    <Compile Include="Plugins\Core\ConverterChain.cs" />
     <Compile Include="Plugins\Core\PluginSettingsBaseUserControl.cs" />
     <Compile Include="Plugins\Core\PluginGroupGeneralSettings.cs" />
     <Compile Include="Plugins\Implementations\PluginGroupFindPieceCorners\PluginGroupFindPieceCorners.cs" />
@@ -153,7 +154,7 @@ copy "$(SolutionDir)CHANGELOG.md" "$(TargetDir)CHANGELOG.md"</PostBuildEvent>
     <Compile Include="PeakFinders\SmoothingFilter.cs" />
     <Compile Include="Plugins\Core\PluginAttributes.cs" />
     <Compile Include="Plugins\Core\PluginSettingAttributes.cs" />
-    <Compile Include="Plugins\Core\AttributeBindingConverter.cs" />
+    <Compile Include="Plugins\Core\AttributeValueBindingConverter.cs" />
     <Compile Include="Plugins\Core\PluginConfigurator.xaml.cs">
       <DependentUpon>PluginConfigurator.xaml</DependentUpon>
     </Compile>
