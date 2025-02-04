@@ -170,16 +170,13 @@ namespace JigsawPuzzleSolver
 
         private void OpenNewPuzzle()
         {
-            /*System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
+            System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
             folderBrowserDialog1.Description = "Select a folder containing all scanned puzzle piece images.";
             if(PuzzleHandle != null) { folderBrowserDialog1.SelectedPath = PuzzleHandle.PuzzlePiecesFolderPath; }
             if(folderBrowserDialog1.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 OpenNewPuzzle(folderBrowserDialog1.SelectedPath);
-            }*/
-
-#warning Only for faster testing !!!
-            OpenNewPuzzle(@"..\..\..\Test_Pictures\4");
+            }
         }
 
         private void OpenNewPuzzle(string piecesFolderPath)
